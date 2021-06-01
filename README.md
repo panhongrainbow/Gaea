@@ -52,6 +52,10 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 - [SQL兼容性](docs/compatibility.md)
 - [FAQ](docs/faq.md)
 
+## 开发方式
+
+- [开发当下的测试](docs/teststart.md)
+
 ## 设计与实现
 
 - [整体架构](docs/architecture.md)
