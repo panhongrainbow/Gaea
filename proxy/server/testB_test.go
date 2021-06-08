@@ -7,7 +7,7 @@ import (
 )
 
 // 设定档 key value 细部测试
-func TestB(t *testing.T) {
+func TestB1(t *testing.T) {
 	proxyCfg := `
 ; config type, etcd/file, you can test gaea with file type, you shoud use etcd in production
 config_type=file
@@ -75,3 +75,19 @@ encrypt_key=1234abcd5678efg*
 		require.Equal(t, err, nil)
 	}
 }
+
+func TestB2(t *testing.T) {
+	namespaceConfig := new(models.Namespace)
+	namespaceConfig.OpenGeneralLog = false
+	namespaceConfig.IsEncrypt = false
+	namespaceConfig.Name = "env1_namespace_1"
+	namespaceConfig.Online = true
+	namespaceConfig.ReadOnly = false
+	namespaceConfig.AllowedDBS = make(map[string]bool)
+	namespaceConfig.AllowedDBS["Library"] = true
+	namespaceConfig.DefaultPhyDBS = nil
+	namespaceConfig.SlowSQLTime = "1000"
+	namespaceConfig.BlackSQL = []string{}
+	namespaceConfig.AllowedIP = nil
+	// 再扩充
+} 
