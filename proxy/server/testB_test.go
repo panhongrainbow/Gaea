@@ -1,13 +1,20 @@
 package server
 
 import (
+	"fmt"
+	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/models"
+	"github.com/XiaoMi/Gaea/mysql"
+	"github.com/XiaoMi/Gaea/parser"
+	"github.com/XiaoMi/Gaea/parser/format"
 	// "github.com/XiaoMi/Gaea/stats"
 	"github.com/XiaoMi/Gaea/util"
 	"github.com/XiaoMi/Gaea/util/sync2"
-	// "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/ini.v1"
+	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -165,10 +172,11 @@ func TestB2(t *testing.T) {
 	statisticManager.manager.statistics = nil // 里面有更多内容
 	statisticManager.clusterName = "gaea_default_cluster"
 	statisticManager.statsType = ""
-	/*statisticManager.handlers["/metrics"] = promhttp.Handler() // 暂时，未确认
+	statisticManager.handlers = make(map[string]http.Handler)
+	statisticManager.handlers["/metrics"] = promhttp.Handler() // 暂时，未确认
 	tmp8, _ := initGeneralLogger(proxy)
-	statisticManager.generalLogger = tmp8 // 以下先使用函式，之后在分析
-	statisticManager.sqlTimings = stats.NewMultiTimings("SqlTimings",
+	statisticManager.generalLogger = tmp8
+	/*statisticManager.sqlTimings = stats.NewMultiTimings("SqlTimings",
 		"gaea proxy sql sqlTimings", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
 	statisticManager.sqlFingerprintSlowCounts = stats.NewCountersWithMultiLabels("SqlFingerprintSlowCounts",
 		"gaea proxy sql fingerprint slow counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelFingerprint})
@@ -186,14 +194,50 @@ func TestB2(t *testing.T) {
 		"gaea proxy backend sql sqlTimings", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
 	statisticManager.backendSQLFingerprintSlowCounts = stats.NewCountersWithMultiLabels("BackendSqlFingerprintSlowCounts",
 		"gaea proxy backend sql fingerprint slow counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelFingerprint})
-	// statisticManager.backendSQLErrorCounts
-	// statisticManager.backendSQLFingerprintErrorCounts
-	// statisticManager.backendConnectPoolIdleCounts
-	// statisticManager.backendConnectPoolInUseCounts
+	statisticManager.backendSQLErrorCounts = stats.NewCountersWithMultiLabels("BackendSqlErrorCounts",
+		"gaea proxy backend sql error counts per error type", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
+	statisticManager.backendSQLFingerprintErrorCounts = stats.NewCountersWithMultiLabels("BackendSqlFingerprintErrorCounts",
+		"gaea proxy backend sql fingerprint error counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelFingerprint})
+	statisticManager.backendConnectPoolIdleCounts = stats.NewGaugesWithMultiLabels("backendConnectPoolIdleCounts",
+		"gaea proxy backend idle connect counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelSlice, statsLabelIPAddr})
+	statisticManager.backendConnectPoolInUseCounts = stats.NewGaugesWithMultiLabels("backendConnectPoolInUseCounts",
+			"gaea proxy backend in-use connect counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelSlice, statsLabelIPAddr})
 	statisticManager.backendConnectPoolWaitCounts = stats.NewGaugesWithMultiLabels("backendConnectPoolWaitCounts",
-			"gaea proxy backend wait connect counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelSlice, statsLabelIPAddr})
+			"gaea proxy backend wait connect counts", []string{statsLabelCluster, statsLabelNamespace, statsLabelSlice, statsLabelIPAddr})*/
 	statisticManager.slowSQLTime = 100
 	statisticManager.closeChan = make(chan bool, 0)
-	*/
+	executor := SessionExecutor{}
+	executor.sessionVariables = mysql.NewSessionVariables()
+	executor.txConns = make(map[string]backend.PooledConnect)
+	executor.stmts = make(map[uint32]*Stmt)
+	executor.parser = parser.New()
+	executor.status = initClientConnStatus
+	executor.manager = statisticManager.manager
+	executor.user = "root"
+	collationID := 33 // "utf8"
+	executor.collation = mysql.CollationID(collationID)
+	executor.charset = "utf8"
+	executor.db = "Library"
+	executor.namespace = "env1_namespace_1"
+
+	// 開始檢查和資料庫的溝通
+	tests := []struct {
+		sql    string
+		expect string
+	}{
+		{ // 測試一，查詢直連資料庫版本號
+			"INSERT t.* VALUES (1), (2), (3)", // SQL 字串內容
+			"", // 期望的 SQL 字串關鍵字
+		},
+	}
+
+	// 执行 SQL 字串
+	for _, test := range tests {
+		result, _, _ := executor.parser.Parse(test.sql, "", "")
+		s := &strings.Builder{}
+		ctx := format.NewRestoreCtx(format.EscapeRestoreFlags, s)
+		_ = result[0].Restore(ctx)
+		fmt.Println(s.String())
+	}
 }
  
