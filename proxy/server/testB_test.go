@@ -7,6 +7,7 @@ import (
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/XiaoMi/Gaea/parser"
 	"github.com/XiaoMi/Gaea/parser/format"
+    // 先忽略 stats 包，因为这个测试会跟其他测试发生冲突
 	// "github.com/XiaoMi/Gaea/stats"
 	"github.com/XiaoMi/Gaea/util"
 	"github.com/XiaoMi/Gaea/util/sync2"
@@ -176,6 +177,7 @@ func TestB2(t *testing.T) {
 	statisticManager.handlers["/metrics"] = promhttp.Handler() // 暂时，未确认
 	tmp8, _ := initGeneralLogger(proxy)
 	statisticManager.generalLogger = tmp8
+	在这里和其他的测试会发生冲突，在这里先忽略，因为发现把其他在/proxy/server 里面的测试档删除，整体测试就通过，可能是因为在统计时有publish 函式，其他函式已经publish 一次了，这个测试在publish 一次，就会发生冲突，到时看看要不要跟其他测试合拼，这里先注解
 	/*statisticManager.sqlTimings = stats.NewMultiTimings("SqlTimings",
 		"gaea proxy sql sqlTimings", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
 	statisticManager.sqlFingerprintSlowCounts = stats.NewCountersWithMultiLabels("SqlFingerprintSlowCounts",
@@ -220,18 +222,18 @@ func TestB2(t *testing.T) {
 	executor.db = "Library"
 	executor.namespace = "env1_namespace_1"
 
-	// 開始檢查和資料庫的溝通
+	// 开始检查和资料库的沟通
 	tests := []struct {
 		sql    string
 		expect string
 	}{
-		{ // 測試一，查詢直連資料庫版本號
-			"INSERT t.* VALUES (1), (2), (3)", // SQL 字串內容
-			"", // 期望的 SQL 字串關鍵字
+		{ // 执行 SQL
+			"INSERT t.* VALUES (1), (2), (3)", // SQL 字串内容
+			"", // 期望的 SQL 字串关键字
 		},
 	}
 
-	// 执行 SQL 字串
+	// 执行测试
 	for _, test := range tests {
 		result, _, _ := executor.parser.Parse(test.sql, "", "")
 		s := &strings.Builder{}
