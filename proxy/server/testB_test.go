@@ -155,6 +155,13 @@ func TestB2(t *testing.T) {
 	namespaceConfig.DefaultCollation = ""
 	namespaceConfig.MaxSqlExecuteTime = 0
 	namespaceConfig.MaxSqlResultSize = 0
+	
+    m := new(Manager)
+	current, _, _ := m.switchIndex.Get()
+	namespaceMap := map[string]*models.Namespace{"env1_namespace_1": namespaceConfig}
+	m.namespaces[current] = CreateNamespaceManager(namespaceMap)
+	user, _ := CreateUserManager(namespaceMap)
+    m.users[current] = user
 
 	statisticManager := StatisticManager{}
 	statisticManager.manager = new(Manager)
@@ -177,7 +184,7 @@ func TestB2(t *testing.T) {
 	statisticManager.handlers["/metrics"] = promhttp.Handler() // 暂时，未确认
 	tmp8, _ := initGeneralLogger(proxy)
 	statisticManager.generalLogger = tmp8
-	在这里和其他的测试会发生冲突，在这里先忽略，因为发现把其他在/proxy/server 里面的测试档删除，整体测试就通过，可能是因为在统计时有publish 函式，其他函式已经publish 一次了，这个测试在publish 一次，就会发生冲突，到时看看要不要跟其他测试合拼，这里先注解
+	// 在这里和其他的测试会发生冲突，在这里先忽略，因为发现把其他在/proxy/server 里面的测试档删除，整体测试就通过，可能是因为在统计时有publish 函式，其他函式已经publish 一次了，这个测试在publish 一次，就会发生冲突，到时看看要不要跟其他测试合拼，这里先注解
 	/*statisticManager.sqlTimings = stats.NewMultiTimings("SqlTimings",
 		"gaea proxy sql sqlTimings", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
 	statisticManager.sqlFingerprintSlowCounts = stats.NewCountersWithMultiLabels("SqlFingerprintSlowCounts",
@@ -214,7 +221,7 @@ func TestB2(t *testing.T) {
 	executor.stmts = make(map[uint32]*Stmt)
 	executor.parser = parser.New()
 	executor.status = initClientConnStatus
-	executor.manager = statisticManager.manager
+	executor.manager = m
 	executor.user = "root"
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
@@ -222,7 +229,7 @@ func TestB2(t *testing.T) {
 	executor.db = "Library"
 	executor.namespace = "env1_namespace_1"
 
-	// 开始检查和资料库的沟通
+	// 开始检查和数据库的沟通
 	tests := []struct {
 		sql    string
 		expect string
