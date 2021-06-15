@@ -115,19 +115,19 @@ func TestB2(t *testing.T) {
 	proxy.StatsInterval = 10
 	proxy.EncryptKey = "1234abcd5678efg*"
 
-	namespaceConfig := new(models.Namespace)
-	namespaceConfig.OpenGeneralLog = false
-	namespaceConfig.IsEncrypt = false
-	namespaceConfig.Name = "env1_namespace_1"
-	namespaceConfig.Online = true
-	namespaceConfig.ReadOnly = false
-	namespaceConfig.AllowedDBS = make(map[string]bool)
-	namespaceConfig.AllowedDBS["Library"] = true
-	namespaceConfig.DefaultPhyDBS = nil
-	namespaceConfig.SlowSQLTime = "1000"
-	namespaceConfig.BlackSQL = []string{}
-	namespaceConfig.AllowedIP = nil
-	namespaceConfig.Slices = []*models.Slice{}
+	modelsNameSpace := new(models.Namespace)
+	modelsNameSpace.OpenGeneralLog = false
+	modelsNameSpace.IsEncrypt = false
+	modelsNameSpace.Name = "env1_namespace_1"
+	modelsNameSpace.Online = true
+	modelsNameSpace.ReadOnly = false
+	modelsNameSpace.AllowedDBS = make(map[string]bool)
+	modelsNameSpace.AllowedDBS["Library"] = true
+	modelsNameSpace.DefaultPhyDBS = nil
+	modelsNameSpace.SlowSQLTime = "1000"
+	modelsNameSpace.BlackSQL = []string{}
+	modelsNameSpace.AllowedIP = nil
+	modelsNameSpace.Slices = []*models.Slice{}
 	tmp1 := models.Slice{}
 	tmp1.Name = "slice-0"
 	tmp1.UserName = "root"
@@ -138,9 +138,9 @@ func TestB2(t *testing.T) {
 	tmp1.Capacity = 12
 	tmp1.MaxCapacity = 24
 	tmp1.IdleTimeout = 60
-	namespaceConfig.Slices = append(namespaceConfig.Slices, &tmp1)
-	namespaceConfig.ShardRules = nil
-	namespaceConfig.Users = []*models.User{}
+	modelsNameSpace.Slices = append(modelsNameSpace.Slices, &tmp1)
+	modelsNameSpace.ShardRules = nil
+	modelsNameSpace.Users = []*models.User{}
 	tmp2 := models.User{}
 	tmp2.UserName = "root"
 	tmp2.Password = "12345"
@@ -148,42 +148,57 @@ func TestB2(t *testing.T) {
 	tmp2.RWFlag = 2
 	tmp2.RWSplit = 1
 	tmp2.OtherProperty = 0
-	namespaceConfig.Users = append(namespaceConfig.Users, &tmp2)
-	namespaceConfig.DefaultSlice = "slice-0"
-	namespaceConfig.GlobalSequences = nil
-	namespaceConfig.DefaultCharset = ""
-	namespaceConfig.DefaultCollation = ""
-	namespaceConfig.MaxSqlExecuteTime = 0
-	namespaceConfig.MaxSqlResultSize = 0
+	modelsNameSpace.Users = append(modelsNameSpace.Users, &tmp2)
+	modelsNameSpace.DefaultSlice = "slice-0"
+	modelsNameSpace.GlobalSequences = nil
+	modelsNameSpace.DefaultCharset = ""
+	modelsNameSpace.DefaultCollation = ""
+	modelsNameSpace.MaxSqlExecuteTime = 0
+	modelsNameSpace.MaxSqlResultSize = 0
 	
-    m := new(Manager)
-	current, _, _ := m.switchIndex.Get()
-	namespaceMap := map[string]*models.Namespace{"env1_namespace_1": namespaceConfig}
-	m.namespaces[current] = CreateNamespaceManager(namespaceMap)
-	user, _ := CreateUserManager(namespaceMap)
-    m.users[current] = user
+
+	serverManager := new(Manager)
+	// current, _, _ := serverManager.switchIndex.Get()
+	current := 0
+	// namespaceMap := map[string]*models.Namespace{"env1_namespace_1": modelsNameSpace}
+
+	// serverManager.namespaces[current] = CreateNamespaceManager(namespaceMap)
+	nsMgr := new(NamespaceManager)
+	nsMgr.namespaces = make(map[string]*Namespace, 64)
+	tmp3, _ := NewNamespace(modelsNameSpace)
+	nsMgr.namespaces[modelsNameSpace.Name] = tmp3
+	serverManager.namespaces[current] = nsMgr
+
+	// user, _ := CreateUserManager(namespaceMap)
+	user := new(UserManager)
+	user.users = make(map[string][]string, 64)
+	user.userNamespaces = make(map[string]string, 64)
+	// user.addNamespaceUsers(modelsNameSpace)
+	user.userNamespaces["root" + ":" + "12345"] = "env1_namespace_1"
+	user.users["root"] = append(user.users["root"], "12345")
+	serverManager.users[current] = user
 
 	statisticManager := StatisticManager{}
 	statisticManager.manager = new(Manager)
 	statisticManager.manager.reloadPrepared = sync2.NewAtomicBool(false)
-	tmp3 := util.BoolIndex{}
-	tmp3.Set(true)
-	statisticManager.manager.switchIndex = tmp3
-	tmp4 := NamespaceManager{}
+	tmp4 := util.BoolIndex{}
+	tmp4.Set(true)
+	statisticManager.manager.switchIndex = tmp4
 	tmp5 := NamespaceManager{}
-	statisticManager.manager.namespaces[0] = &tmp4
-	statisticManager.manager.namespaces[1] = &tmp5
-	tmp6 := UserManager{}
+	tmp6 := NamespaceManager{}
+	statisticManager.manager.namespaces[0] = &tmp5
+	statisticManager.manager.namespaces[1] = &tmp6
 	tmp7 := UserManager{}
-	statisticManager.manager.users[0] = &tmp6
-	statisticManager.manager.users[1] = &tmp7
+	tmp8 := UserManager{}
+	statisticManager.manager.users[0] = &tmp7
+	statisticManager.manager.users[1] = &tmp8
 	statisticManager.manager.statistics = nil // 里面有更多内容
 	statisticManager.clusterName = "gaea_default_cluster"
 	statisticManager.statsType = ""
 	statisticManager.handlers = make(map[string]http.Handler)
 	statisticManager.handlers["/metrics"] = promhttp.Handler() // 暂时，未确认
-	tmp8, _ := initGeneralLogger(proxy)
-	statisticManager.generalLogger = tmp8
+	tmp9, _ := initGeneralLogger(proxy)
+	statisticManager.generalLogger = tmp9
 	// 在这里和其他的测试会发生冲突，在这里先忽略，因为发现把其他在/proxy/server 里面的测试档删除，整体测试就通过，可能是因为在统计时有publish 函式，其他函式已经publish 一次了，这个测试在publish 一次，就会发生冲突，到时看看要不要跟其他测试合拼，这里先注解
 	/*statisticManager.sqlTimings = stats.NewMultiTimings("SqlTimings",
 		"gaea proxy sql sqlTimings", []string{statsLabelCluster, statsLabelNamespace, statsLabelOperation})
@@ -221,7 +236,7 @@ func TestB2(t *testing.T) {
 	executor.stmts = make(map[uint32]*Stmt)
 	executor.parser = parser.New()
 	executor.status = initClientConnStatus
-	executor.manager = m
+	executor.manager = serverManager
 	executor.user = "root"
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
@@ -247,6 +262,10 @@ func TestB2(t *testing.T) {
 		ctx := format.NewRestoreCtx(format.EscapeRestoreFlags, s)
 		_ = result[0].Restore(ctx)
 		fmt.Println(s.String())
+
+		serverNameSpace := executor.GetNamespace()
+		router := serverNameSpace.GetRouter()
+		fmt.Println(router)
 	}
 }
  
