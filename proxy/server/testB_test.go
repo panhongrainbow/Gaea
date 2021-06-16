@@ -7,9 +7,12 @@ import (
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/XiaoMi/Gaea/parser"
 	"github.com/XiaoMi/Gaea/parser/format"
+	"github.com/XiaoMi/Gaea/proxy/router"
+	"github.com/XiaoMi/Gaea/proxy/sequence"
     // 先忽略 stats 包，因为这个测试会跟其他测试发生冲突
 	// "github.com/XiaoMi/Gaea/stats"
 	"github.com/XiaoMi/Gaea/util"
+	"github.com/XiaoMi/Gaea/util/cache"
 	"github.com/XiaoMi/Gaea/util/sync2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/require"
@@ -156,7 +159,6 @@ func TestB2(t *testing.T) {
 	modelsNameSpace.MaxSqlExecuteTime = 0
 	modelsNameSpace.MaxSqlResultSize = 0
 	
-
 	serverManager := new(Manager)
 	// current, _, _ := serverManager.switchIndex.Get()
 	current := 0
@@ -165,7 +167,68 @@ func TestB2(t *testing.T) {
 	// serverManager.namespaces[current] = CreateNamespaceManager(namespaceMap)
 	nsMgr := new(NamespaceManager)
 	nsMgr.namespaces = make(map[string]*Namespace, 64)
-	tmp3, _ := NewNamespace(modelsNameSpace)
+    
+	tmp3 := &Namespace{}
+	tmp3.sqls = make(map[string]string, 16)
+	tmp3.userProperties = make(map[string]*UserProperty, 2)
+	tmp3.openGeneralLog = modelsNameSpace.OpenGeneralLog
+	tmp3.slowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	tmp3.errorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	tmp3.backendSlowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	tmp3.backendErrorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	tmp3.planCache = cache.NewLRUCache(defaultPlanCacheCapacity)
+	defer tmp3.Close(false)
+	tmp3.sqls = parseBlackSqls(modelsNameSpace.BlackSQL)
+	tmp3.slowSQLTime, _ = parseSlowSQLTime(modelsNameSpace.SlowSQLTime)
+
+	if modelsNameSpace.MaxSqlExecuteTime <= 0 {
+		tmp3.maxSqlExecuteTime = defaultMaxSqlExecuteTime
+	} else {
+		tmp3.maxSqlExecuteTime = modelsNameSpace.MaxSqlExecuteTime
+	}
+
+	if modelsNameSpace.MaxSqlResultSize <= 0 {
+		tmp3.maxSqlResultSize = defaultMaxSqlResultSize
+	} else {
+		tmp3.maxSqlResultSize = modelsNameSpace.MaxSqlResultSize
+	}
+
+	allowDBs := make(map[string]bool, len(modelsNameSpace.AllowedDBS))
+	for db, allowed := range modelsNameSpace.AllowedDBS {
+		allowDBs[strings.TrimSpace(db)] = allowed
+	}
+	tmp3.allowedDBs = allowDBs
+
+	defaultPhyDBs := make(map[string]string, len(modelsNameSpace.DefaultPhyDBS))
+	for db, phyDB := range modelsNameSpace.DefaultPhyDBS {
+		defaultPhyDBs[strings.TrimSpace(db)] = strings.TrimSpace(phyDB)
+	}
+
+	tmp3.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, allowDBs)
+
+	allowips, _ := parseAllowIps(modelsNameSpace.AllowedIP)
+	tmp3.allowips = allowips
+
+	tmp3.defaultCharset, tmp3.defaultCollationID, _ = parseCharset(modelsNameSpace.DefaultCharset, modelsNameSpace.DefaultCollation)
+
+	for _, user := range modelsNameSpace.Users {
+		up := &UserProperty{RWFlag: user.RWFlag, RWSplit: user.RWSplit, OtherProperty: user.OtherProperty}
+		tmp3.userProperties[user.UserName] = up
+	}
+
+	tmp3.slices, _ = parseSlices(modelsNameSpace.Slices, tmp3.defaultCharset, tmp3.defaultCollationID)
+
+	tmp3.router, _ = router.NewRouter(modelsNameSpace)
+
+	sequences := sequence.NewSequenceManager()
+	for _, v := range modelsNameSpace.GlobalSequences {
+		globalSequenceSlice, _ := tmp3.slices[v.SliceName]
+		seqName := strings.ToUpper(v.DB) + "." + strings.ToUpper(v.Table)
+		seq := sequence.NewMySQLSequence(globalSequenceSlice, seqName, v.PKName)
+		sequences.SetSequence(v.DB, v.Table, seq)
+	}
+	tmp3.sequences = sequences
+	
 	nsMgr.namespaces[modelsNameSpace.Name] = tmp3
 	serverManager.namespaces[current] = nsMgr
 
