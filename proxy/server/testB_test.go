@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+
 	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/XiaoMi/Gaea/mysql"
@@ -9,17 +10,19 @@ import (
 	"github.com/XiaoMi/Gaea/parser/format"
 	"github.com/XiaoMi/Gaea/proxy/router"
 	"github.com/XiaoMi/Gaea/proxy/sequence"
-    // 先忽略 stats 包，因为这个测试会跟其他测试发生冲突
+
+	// 先忽略 stats 包，因为这个测试会跟其他测试发生冲突
 	// "github.com/XiaoMi/Gaea/stats"
+	"net/http"
+	"strings"
+	"testing"
+
 	"github.com/XiaoMi/Gaea/util"
 	"github.com/XiaoMi/Gaea/util/cache"
 	"github.com/XiaoMi/Gaea/util/sync2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/ini.v1"
-	"net/http"
-	"strings"
-	"testing"
 )
 
 // 设定档 key value 细部测试
@@ -77,8 +80,8 @@ encrypt_key=1234abcd5678efg*
 		key   string
 		value string
 	}{
-		{"cluster_name", "gaea_default_cluster",},
-		{"slow_sql_time", "100",},
+		{"cluster_name", "gaea_default_cluster"},
+		{"slow_sql_time", "100"},
 		// 之后再扩充
 	}
 
@@ -158,7 +161,7 @@ func TestB2(t *testing.T) {
 	modelsNameSpace.DefaultCollation = ""
 	modelsNameSpace.MaxSqlExecuteTime = 0
 	modelsNameSpace.MaxSqlResultSize = 0
-	
+
 	serverManager := new(Manager)
 	// current, _, _ := serverManager.switchIndex.Get()
 	current := 0
@@ -167,7 +170,7 @@ func TestB2(t *testing.T) {
 	// serverManager.namespaces[current] = CreateNamespaceManager(namespaceMap)
 	nsMgr := new(NamespaceManager)
 	nsMgr.namespaces = make(map[string]*Namespace, 64)
-    
+
 	tmp3 := &Namespace{}
 	tmp3.sqls = make(map[string]string, 16)
 	tmp3.userProperties = make(map[string]*UserProperty, 2)
@@ -228,7 +231,7 @@ func TestB2(t *testing.T) {
 		sequences.SetSequence(v.DB, v.Table, seq)
 	}
 	tmp3.sequences = sequences
-	
+
 	nsMgr.namespaces[modelsNameSpace.Name] = tmp3
 	serverManager.namespaces[current] = nsMgr
 
@@ -237,7 +240,7 @@ func TestB2(t *testing.T) {
 	user.users = make(map[string][]string, 64)
 	user.userNamespaces = make(map[string]string, 64)
 	// user.addNamespaceUsers(modelsNameSpace)
-	user.userNamespaces["root" + ":" + "12345"] = "env1_namespace_1"
+	user.userNamespaces["root"+":"+"12345"] = "env1_namespace_1"
 	user.users["root"] = append(user.users["root"], "12345")
 	serverManager.users[current] = user
 
@@ -314,7 +317,7 @@ func TestB2(t *testing.T) {
 	}{
 		{ // 执行 SQL
 			"INSERT t.* VALUES (1), (2), (3)", // SQL 字串内容
-			"", // 期望的 SQL 字串关键字
+			"",                                // 期望的 SQL 字串关键字
 		},
 	}
 
@@ -331,4 +334,150 @@ func TestB2(t *testing.T) {
 		fmt.Println(router)
 	}
 }
- 
+
+func TestB4(t *testing.T) {
+	// 初始化测定档 (Load0)
+	modelsNameSpace := new(models.Namespace)
+
+	// >>>>> 载入NS设定档 (Load1)
+	modelsNameSpace.OpenGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
+	modelsNameSpace.IsEncrypt = false                  // true: 加密存储 false: 非加密存储，目前加密Slice、User中的用户名、密码
+	modelsNameSpace.Name = "env1_namespace_1"          // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
+	modelsNameSpace.Online = true                      // 是否在线，逻辑上下线使用
+	modelsNameSpace.ReadOnly = false                   // 是否只读，namespace级别
+	modelsNameSpace.AllowedDBS = make(map[string]bool) // 数据库列表
+	modelsNameSpace.AllowedDBS["Library"] = true       // 数据库列表
+	modelsNameSpace.DefaultPhyDBS = nil                // 预设数据库列表
+	modelsNameSpace.SlowSQLTime = "1000"               // 慢sql阈值，单位: 毫秒
+	modelsNameSpace.BlackSQL = []string{}              // 黑名单sql
+	modelsNameSpace.AllowedIP = nil                    // 白名单IP
+
+	// >>>>> 组织主从物理实例
+	modelsNameSpace.Slices = []*models.Slice{} // 一主多从的物理实例，slice里map的具体字段可参照slice配置
+	slicePiece := models.Slice{}
+	slicePiece.Name = "slice-0"           // 分片名称，自动、有序生成
+	slicePiece.UserName = "root"          // 连接后端mysql所需要的用户名称
+	slicePiece.Password = "12345"         // 连接后端mysql所需要的用户密码
+	slicePiece.Master = "172.17.0.2:3306" // 主实例地址
+	slicePiece.Slaves = []string{}        // 从实例地址列表
+	slicePiece.StatisticSlaves = nil      // 统计型从实例地址列表
+	slicePiece.Capacity = 12              // gaea_proxy与每个实例的连接池大小
+	slicePiece.MaxCapacity = 24           // gaea_proxy与每个实例的连接池最大大小
+	slicePiece.IdleTimeout = 60           // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
+
+	// >>>>> 载入物理设定档 (Load2)
+	modelsNameSpace.Slices = append(modelsNameSpace.Slices, &slicePiece)
+
+	// >>>>> 载入分片设定档 (Load3)
+	modelsNameSpace.ShardRules = nil // 分库、分表、特殊表的配置内容，具体字段可参照shard配置 (载入设定档)
+
+	// >>>>> 组织用户配置
+	modelsNameSpace.Users = []*models.User{} // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
+	userPiece := models.User{}
+	userPiece.UserName = "root"              // 用户名
+	userPiece.Password = "12345"             // 用户密码
+	userPiece.Namespace = "env1_namespace_1" // 对应的命名空间
+	userPiece.RWFlag = 2                     // 读写标识
+	userPiece.RWSplit = 1                    // 是否读写分离
+	userPiece.OtherProperty = 0              // 其他属性，目前用来标识是否走统计从实例
+
+	// >>>>> 载入用户设定档 (Load4)
+	modelsNameSpace.Users = append(modelsNameSpace.Users, &userPiece)
+
+	// >>>>> 载入预设值设定档 (Load5)
+	modelsNameSpace.DefaultSlice = "slice-0" // 预设分片名称
+	modelsNameSpace.GlobalSequences = nil    // 生成全局唯一序列号的配置, 具体字段可参考全局序列号配置
+	modelsNameSpace.DefaultCharset = ""      // 用于指定数据集如何排序，以及字符串的比对规则
+	modelsNameSpace.DefaultCollation = ""    // 用于指定数据集如何排序，以及字符串的比对规则
+	modelsNameSpace.MaxSqlExecuteTime = 0    // sql最大执行时间，大于该时间，进行熔断
+	modelsNameSpace.MaxSqlResultSize = 0     // 限制单分片返回结果集大小不超过max_select_rows
+
+	// 初始化管理员 (Manager0)
+	serverManager := new(Manager)             // 服务器管理员
+	current := 0                              // 切换标签
+	namespaceManager := new(NamespaceManager) // NameSpace 管理员
+	namespaceManager.namespaces = make(map[string]*Namespace, 64)
+	managerNamespace := &Namespace{} // 管理员的 NameSpace
+	defer managerNamespace.Close(false)
+
+	// 组成管理员的 NameSpace (对应到 Load1)
+	managerNamespace.openGeneralLog = modelsNameSpace.OpenGeneralLog                     // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
+	managerNamespace.name = "env1_namespace_1"                                           // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
+	managerNamespace.allowedDBs = make(map[string]bool, len(modelsNameSpace.AllowedDBS)) // 数据库列表
+	for db, allowed := range modelsNameSpace.AllowedDBS {
+		managerNamespace.allowedDBs[strings.TrimSpace(db)] = allowed
+	}
+	defaultPhyDBs := make(map[string]string, len(modelsNameSpace.DefaultPhyDBS)) // 预设数据库列表
+	for db, phyDB := range modelsNameSpace.DefaultPhyDBS {
+		defaultPhyDBs[strings.TrimSpace(db)] = strings.TrimSpace(phyDB)
+	}
+	managerNamespace.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, managerNamespace.allowedDBs)
+	managerNamespace.slowSQLTime, _ = parseSlowSQLTime(modelsNameSpace.SlowSQLTime) // 慢sql阈值，单位: 毫秒
+	managerNamespace.sqls = make(map[string]string, 16)
+	managerNamespace.sqls = parseBlackSqls(modelsNameSpace.BlackSQL)        // 黑名单sql
+	managerNamespace.allowips, _ = parseAllowIps(modelsNameSpace.AllowedIP) // 白名单IP
+
+	// 组成管理员的 NameSpace (对应到 Load2)
+	managerNamespace.slices, _ = parseSlices(modelsNameSpace.Slices, managerNamespace.defaultCharset, managerNamespace.defaultCollationID) // 一主多从的物理实例，slice里map的具体字段可参照slice配置
+
+	// 组成管理员的 NameSpace (对应到 Load4)
+	managerNamespace.userProperties = make(map[string]*UserProperty, 2)
+	for _, user := range modelsNameSpace.Users {
+		up := &UserProperty{RWFlag: user.RWFlag, RWSplit: user.RWSplit, OtherProperty: user.OtherProperty}
+		managerNamespace.userProperties[user.UserName] = up
+	}
+
+	// 组成管理员的 NameSpace (对应到 Load5)
+	sequences := sequence.NewSequenceManager() // 生成全局唯一序列号的配置, 具体字段可参考全局序列号配置
+	for _, v := range modelsNameSpace.GlobalSequences {
+		globalSequenceSlice, _ := managerNamespace.slices[v.SliceName]
+		seqName := strings.ToUpper(v.DB) + "." + strings.ToUpper(v.Table)
+		seq := sequence.NewMySQLSequence(globalSequenceSlice, seqName, v.PKName)
+		sequences.SetSequence(v.DB, v.Table, seq)
+	}
+	managerNamespace.sequences = sequences
+	managerNamespace.defaultCharset, managerNamespace.defaultCollationID, _ = parseCharset(modelsNameSpace.DefaultCharset, modelsNameSpace.DefaultCollation) // 用于指定数据集如何排序，以及字符串的比对规则 & 用于指定数据集如何排序，以及字符串的比对规则
+	if modelsNameSpace.MaxSqlExecuteTime <= 0 {                                                                                                              // sql最大执行时间，大于该时间，进行熔断
+		managerNamespace.maxSqlExecuteTime = defaultMaxSqlExecuteTime
+	} else {
+		managerNamespace.maxSqlExecuteTime = modelsNameSpace.MaxSqlExecuteTime
+	}
+	if modelsNameSpace.MaxSqlResultSize <= 0 { // 限制单分片返回结果集大小不超过max_select_rows
+		managerNamespace.maxSqlResultSize = defaultMaxSqlResultSize
+	} else {
+		managerNamespace.maxSqlResultSize = modelsNameSpace.MaxSqlResultSize
+	}
+
+	// 组成管理员的 NameSpace (延伸部份)
+	managerNamespace.slowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.errorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.backendSlowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.backendErrorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.planCache = cache.NewLRUCache(defaultPlanCacheCapacity)
+
+	// 组成管理员的 NameSpace (建立路由)
+	managerNamespace.router, _ = router.NewRouter(modelsNameSpace)
+
+	// 把 管理員之NS 分别写回 NS 和 服务器管理员
+	namespaceManager.namespaces[modelsNameSpace.Name] = managerNamespace
+	serverManager.namespaces[current] = namespaceManager
+
+	// 指定服务器用户
+	serverUser := new(UserManager)
+	serverUser.users = make(map[string][]string, 64)
+	serverUser.userNamespaces = make(map[string]string, 64)
+	serverUser.userNamespaces["root"+":"+"12345"] = "env1_namespace_1"
+	serverUser.users["root"] = append(serverUser.users["root"], "12345")
+
+	// 把 服务器用户资料 写回 服务器管理员
+	serverManager.users[current] = serverUser
+
+	// 产生执行者资料
+	executor := SessionExecutor{}
+	executor.manager = serverManager
+	executor.namespace = "env1_namespace_1"
+
+	// 进行测试
+	serverNameSpace := executor.GetNamespace()
+	fmt.Println(serverNameSpace)
+}
