@@ -3,7 +3,12 @@ package server
 import (
 	"fmt"
 
+	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/models"
+	"github.com/XiaoMi/Gaea/mysql"
+	"github.com/XiaoMi/Gaea/parser"
+	"github.com/XiaoMi/Gaea/parser/format"
+	"github.com/XiaoMi/Gaea/proxy/plan"
 	"github.com/XiaoMi/Gaea/proxy/router"
 	"github.com/XiaoMi/Gaea/proxy/sequence"
 
@@ -198,7 +203,7 @@ func TestB5(t *testing.T) {
 	ns := executor.GetNamespace()
 
 	// 檢查 NS
-	tests := []struct { // NameSpace 底下有 Master 和 Slave 数据库，检查是否有正确载入
+	testNS := []struct { // NameSpace 底下有 Master 和 Slave 数据库，检查是否有正确载入
 		db    string
 		allow bool
 	}{
@@ -207,7 +212,7 @@ func TestB5(t *testing.T) {
 			true,      // 允许
 		},
 	}
-	for _, test := range tests { // 进行检查
+	for _, test := range testNS { // 进行检查
 		_, ok := ns.allowedDBs[test.db]
 		require.Equal(t, test.allow, ok)
 	}
@@ -215,4 +220,41 @@ func TestB5(t *testing.T) {
 	// 取出 Router
 	rt := ns.GetRouter() // 会取出预设的 Slice 为 Slice-0
 	fmt.Println(rt)
+
+	// 补齐执行者资料
+	executor.sessionVariables = mysql.NewSessionVariables()
+	executor.txConns = make(map[string]backend.PooledConnect)
+	executor.stmts = make(map[uint32]*Stmt)
+	executor.parser = parser.New()
+	executor.status = initClientConnStatus
+	executor.user = "root"
+	collationID := 33 // "utf8"
+	executor.collation = mysql.CollationID(collationID)
+	executor.charset = "utf8"
+	executor.db = "Library"
+
+	// 检查数据库的 Parser
+	testParser := []struct {
+		sql    string
+		expect string
+	}{
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9789865975364,'Dream of the Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+		},
+	}
+	for _, test := range testParser {
+		n, _, _ := executor.parser.Parse(test.sql, "", "")
+		s := &strings.Builder{}
+		ctx := format.NewRestoreCtx(format.EscapeRestoreFlags, s)
+		_ = n[0].Restore(ctx)
+		require.Equal(t, test.expect, s.String())
+
+		// 获得 计划
+		db := executor.db
+		seq := ns.GetSequences()
+		phyDBs := ns.GetPhysicalDBs()
+		p, _ := plan.BuildPlan(n[0], phyDBs, db, s.String(), rt, seq)
+		fmt.Println(p)
+	}
 }
