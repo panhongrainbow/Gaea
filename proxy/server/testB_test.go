@@ -256,5 +256,18 @@ func TestB5(t *testing.T) {
 		phyDBs := ns.GetPhysicalDBs()
 		p, _ := plan.BuildPlan(n[0], phyDBs, db, s.String(), rt, seq)
 		fmt.Println(p)
+
+		// 获得 Session Executor
+		sessionExecutor := newSessionExecutor(serverManager)
+		sessionExecutor.user = "docker"
+		collationID := 33 // "utf8"
+		sessionExecutor.SetCollationID(mysql.CollationID(collationID))
+		sessionExecutor.SetCharset("utf8")
+		sessionExecutor.SetDatabase("Library") // set database
+		sessionExecutor.namespace = "env1_namespace_1"
+
+		// 获得 DC
+		// dc, _ := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
+		// dc.Execute(s.String(), 1)
 	}
 }
