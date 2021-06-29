@@ -112,15 +112,15 @@ func TestB5(t *testing.T) {
 	// >>>>> 组织主从物理实例
 	var dbSlices []*models.Slice // 一主多从的物理实例，slice里map的具体字段可参照slice配置
 	dbSlice := models.Slice{}
-	dbSlice.Name = "slice-0"           // 分片名称，自动、有序生成
-	dbSlice.UserName = "root"          // 连接后端mysql所需要的用户名称
-	dbSlice.Password = "12345"         // 连接后端mysql所需要的用户密码
-	dbSlice.Master = "172.17.0.2:3306" // 主实例地址
-	dbSlice.Slaves = []string{}        // 从实例地址列表
-	dbSlice.StatisticSlaves = nil      // 统计型从实例地址列表
-	dbSlice.Capacity = 12              // gaea_proxy与每个实例的连接池大小
-	dbSlice.MaxCapacity = 24           // gaea_proxy与每个实例的连接池最大大小
-	dbSlice.IdleTimeout = 60           // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
+	dbSlice.Name = "slice-0"            // 分片名称，自动、有序生成
+	dbSlice.UserName = "docker"         // 连接后端mysql所需要的用户名称
+	dbSlice.Password = "12345"          // 连接后端mysql所需要的用户密码
+	dbSlice.Master = "192.168.1.2:3350" // 主实例地址
+	dbSlice.Slaves = []string{}         // 从实例地址列表
+	dbSlice.StatisticSlaves = nil       // 统计型从实例地址列表
+	dbSlice.Capacity = 12               // gaea_proxy与每个实例的连接池大小
+	dbSlice.MaxCapacity = 24            // gaea_proxy与每个实例的连接池最大大小
+	dbSlice.IdleTimeout = 60            // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
 	dbSlices = append(dbSlices, &dbSlice)
 
 	// 管理员的 NameSpace 載入 组织主从物理实例
@@ -129,7 +129,7 @@ func TestB5(t *testing.T) {
 	// >>>>> 组织 NS 用户
 	var nsUsers []*models.User // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
 	nsUser := models.User{}
-	nsUser.UserName = "root"              // 用户名
+	nsUser.UserName = "docker"            // 用户名
 	nsUser.Password = "12345"             // 用户密码
 	nsUser.Namespace = "env1_namespace_1" // 对应的命名空间
 	nsUser.RWFlag = 2                     // 读写标识
@@ -189,7 +189,7 @@ func TestB5(t *testing.T) {
 	serverUser.users = make(map[string][]string, 64)
 	serverUser.userNamespaces = make(map[string]string, 64)
 	serverUser.userNamespaces["root"+":"+"12345"] = "env1_namespace_1"
-	serverUser.users["root"] = append(serverUser.users["root"], "12345")
+	serverUser.users["docker"] = append(serverUser.users["docker"], "12345")
 
 	// 把 服务器用户资料 写回 服务器管理员
 	serverManager.users[current] = serverUser
@@ -227,11 +227,20 @@ func TestB5(t *testing.T) {
 	executor.stmts = make(map[uint32]*Stmt)
 	executor.parser = parser.New()
 	executor.status = initClientConnStatus
-	executor.user = "root"
+	executor.user = "docker"
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
 	executor.charset = "utf8"
 	executor.db = "Library"
+
+	// 补齐 Session 执行者资料
+	sessionExecutor := newSessionExecutor(serverManager)
+	sessionExecutor.user = "docker"
+	collationID = 33 // "utf8"
+	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
+	sessionExecutor.SetCharset("utf8")
+	sessionExecutor.SetDatabase("Library") // set database
+	sessionExecutor.namespace = "env1_namespace_1"
 
 	// 检查数据库的 Parser
 	testParser := []struct {
@@ -243,31 +252,34 @@ func TestB5(t *testing.T) {
 			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9789865975364,'Dream of the Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
 		},
 	}
+
+	// 数据库新增资料测试
 	for _, test := range testParser {
-		n, _, _ := executor.parser.Parse(test.sql, "", "")
+		// 先 Parser
+		node, warns, err := executor.parser.Parse(test.sql, "utf8", "utf8_general_ci")
+		require.Equal(t, []error(nil), warns)
+		require.Equal(t, nil, err)
+
+		// 再 Restore
 		s := &strings.Builder{}
 		ctx := format.NewRestoreCtx(format.EscapeRestoreFlags, s)
-		_ = n[0].Restore(ctx)
+		err = node[0].Restore(ctx)
+		require.Equal(t, nil, err)
+
+		// 检查 Restore 后的 SQL 字串
 		require.Equal(t, test.expect, s.String())
 
 		// 获得 计划
-		db := executor.db
-		seq := ns.GetSequences()
-		phyDBs := ns.GetPhysicalDBs()
-		p, _ := plan.BuildPlan(n[0], phyDBs, db, s.String(), rt, seq)
-		fmt.Println(p)
+		_, err = plan.BuildPlan(node[0], ns.GetPhysicalDBs(), executor.db, s.String(), rt, ns.GetSequences())
+		require.Equal(t, nil, err)
 
-		// 获得 Session Executor
-		sessionExecutor := newSessionExecutor(serverManager)
-		sessionExecutor.user = "docker"
-		collationID := 33 // "utf8"
-		sessionExecutor.SetCollationID(mysql.CollationID(collationID))
-		sessionExecutor.SetCharset("utf8")
-		sessionExecutor.SetDatabase("Library") // set database
-		sessionExecutor.namespace = "env1_namespace_1"
+		// BuildPlan 函式会产生计划 p 变数，
+		// 再执行 sessionExecutor.ExecuteSQL(util.NewRequestContext(), "slice-0", "Library", s.String())，
+		// ret, err := p.ExecuteIn(util.NewRequestContext(), sessionExecutor)
+		// 把SQL 字串写入数据库，但因会触发统计功能，暂时先不使用
 
-		// 获得 DC
-		// dc, _ := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
-		// dc.Execute(s.String(), 1)
+		/*dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
+		require.Equal(t, nil, err)
+		dc.Execute(s.String(), 1)*/
 	}
 }
