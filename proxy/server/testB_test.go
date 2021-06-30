@@ -98,7 +98,7 @@ func TestB5(t *testing.T) {
 	managerNamespace := &Namespace{} // 管理员的 NameSpace
 	defer managerNamespace.Close(false)
 	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
-	managerNamespace.name = "env1_namespace_1"          // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
+	managerNamespace.name = "alone_db0_namespace"       // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
 	managerNamespace.allowedDBs = make(map[string]bool) // 数据库列表
 	managerNamespace.allowedDBs[strings.TrimSpace("Library")] = true
 	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
@@ -129,12 +129,12 @@ func TestB5(t *testing.T) {
 	// >>>>> 组织 NS 用户
 	var nsUsers []*models.User // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
 	nsUser := models.User{}
-	nsUser.UserName = "docker"            // 用户名
-	nsUser.Password = "12345"             // 用户密码
-	nsUser.Namespace = "env1_namespace_1" // 对应的命名空间
-	nsUser.RWFlag = 2                     // 读写标识
-	nsUser.RWSplit = 1                    // 是否读写分离
-	nsUser.OtherProperty = 0              // 其他属性，目前用来标识是否走统计从实例
+	nsUser.UserName = "docker"               // 用户名
+	nsUser.Password = "12345"                // 用户密码
+	nsUser.Namespace = "alone_db0_namespace" // 对应的命名空间
+	nsUser.RWFlag = 2                        // 读写标识
+	nsUser.RWSplit = 1                       // 是否读写分离
+	nsUser.OtherProperty = 0                 // 其他属性，目前用来标识是否走统计从实例
 	nsUsers = append(nsUsers, &nsUser)
 
 	// 管理员的 NameSpace 載入 NS 用户
@@ -181,14 +181,14 @@ func TestB5(t *testing.T) {
 	current := 0                              // 切换标签
 	namespaceManager := new(NamespaceManager) // NameSpace 管理员
 	namespaceManager.namespaces = make(map[string]*Namespace, 64)
-	namespaceManager.namespaces["env1_namespace_1"] = managerNamespace
+	namespaceManager.namespaces["alone_db0_namespace"] = managerNamespace
 	serverManager.namespaces[current] = namespaceManager
 
 	// 指定服务器用户
 	serverUser := new(UserManager)
 	serverUser.users = make(map[string][]string, 64)
 	serverUser.userNamespaces = make(map[string]string, 64)
-	serverUser.userNamespaces["root"+":"+"12345"] = "env1_namespace_1"
+	serverUser.userNamespaces["root"+":"+"12345"] = "alone_db0_namespace"
 	serverUser.users["docker"] = append(serverUser.users["docker"], "12345")
 
 	// 把 服务器用户资料 写回 服务器管理员
@@ -197,7 +197,7 @@ func TestB5(t *testing.T) {
 	// 产生执行者资料
 	executor := SessionExecutor{}
 	executor.manager = serverManager
-	executor.namespace = "env1_namespace_1" // 用 executor.namespace 和 current(切换标签)去取出NS值
+	executor.namespace = "alone_db0_namespace" // 用 executor.namespace 和 current(切换标签)去取出NS值
 
 	// 取出 NS
 	ns := executor.GetNamespace()
@@ -240,16 +240,42 @@ func TestB5(t *testing.T) {
 	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
 	sessionExecutor.SetCharset("utf8")
 	sessionExecutor.SetDatabase("Library") // set database
-	sessionExecutor.namespace = "env1_namespace_1"
+	sessionExecutor.namespace = "alone_db0_namespace"
 
 	// 检查数据库的 Parser
 	testParser := []struct {
 		sql    string
 		expect string
 	}{
+		// 第一本小说 三国演义
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9789865975364,'Dream of the Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
+		},
+		// 第二本小说 水浒传
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", // Parser 后的 SQL 字串
+		},
+		// 第三本小说 西游记
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey to the West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey to the West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
+		},
+		// 第四本小说 红楼梦
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream of the Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+		},
+		// 第五本小说 金瓶梅
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(5, 9780804847773, 'Jin Ping Mei', 'Lanling Xiaoxiao Sheng', 1610, 'Family Life');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (5,9780804847773,'Jin Ping Mei','Lanling Xiaoxiao Sheng',1610,'Family Life')", // Parser 后的 SQL 字串
+		},
+		// 第六本小说 儒林外史
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 	}
 
@@ -278,6 +304,7 @@ func TestB5(t *testing.T) {
 		// ret, err := p.ExecuteIn(util.NewRequestContext(), sessionExecutor)
 		// 把SQL 字串写入数据库，但因会触发统计功能，暂时先不使用
 
+		// 对数据库进行直连操作
 		/*dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
 		require.Equal(t, nil, err)
 		dc.Execute(s.String(), 1)*/
