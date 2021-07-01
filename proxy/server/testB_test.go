@@ -274,8 +274,38 @@ func TestB5(t *testing.T) {
 		},
 		// 第六本小说 儒林外史
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin Waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin Waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
+		},
+		// 第七本小说 初刻拍案惊奇
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(7, 9787101064100, 'Amazing Tales First Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (7,9787101064100,'Amazing Tales First Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+		},
+		// 第八本小说 二刻拍案惊奇
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(8, 9789571447278, 'Amazing Tales Second Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (8,9789571447278,'Amazing Tales Second Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+		},
+		// 第九本小说 封神演义
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(9, 9789861273129, 'Investiture Of The Gods', 'Lu Xixing', 1605, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (9,9789861273129,'Investiture Of The Gods','Lu Xixing',1605,'Mythology')", // Parser 后的 SQL 字串
+		},
+		// 第十本小说 镜花缘
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(10, 9787540251499, 'Flowers In The Mirror', 'Li Ruzhen', 1827, 'Fantasy Stories');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (10,9787540251499,'Flowers In The Mirror','Li Ruzhen',1827,'Fantasy Stories')", // Parser 后的 SQL 字串
+		},
+		// 第十一本小说 镜花缘
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(11, 9787508535296, 'Stories Old And New', 'Feng Menglong', 1620, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (11,9787508535296,'Stories Old And New','Feng Menglong',1620,'Perspective')", // Parser 后的 SQL 字串
+		},
+		// 第十二本小说 说岳全传
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(12, 9787101097559, 'General Yue Fei', 'Qian Cai', 1735, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (12,9787101097559,'General Yue Fei','Qian Cai',1735,'History')", // Parser 后的 SQL 字串
 		},
 	}
 
