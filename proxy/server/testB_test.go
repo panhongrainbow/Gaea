@@ -259,13 +259,13 @@ func TestB5(t *testing.T) {
 		},
 		// 第三本小说 西游记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey to the West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey to the West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey To The West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
 		},
 		// 第四本小说 红楼梦
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream of the Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream Of The Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
 		},
 		// 第五本小说 金瓶梅
 		{
@@ -306,6 +306,36 @@ func TestB5(t *testing.T) {
 		{
 			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(12, 9787101097559, 'General Yue Fei', 'Qian Cai', 1735, 'History');",       // 原始的 SQL 字串
 			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (12,9787101097559,'General Yue Fei','Qian Cai',1735,'History')", // Parser 后的 SQL 字串
+		},
+		// 第十三本小说 杨家将
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(13, 9789863381037, 'The Generals Of The Yang Family', 'Qi Zhonglan', 0, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (13,9789863381037,'The Generals Of The Yang Family','Qi Zhonglan',0,'History')", // Parser 后的 SQL 字串
+		},
+		// 第十四本小说 说唐
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(14, 9789865700027, 'Romance Of Sui And Tang Dynasties', 'Chen Ruheng', 1989, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (14,9789865700027,'Romance Of Sui And Tang Dynasties','Chen Ruheng',1989,'History')", // Parser 后的 SQL 字串
+		},
+		// 第十五本小说 七侠五义
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(15, 9789575709242, 'The Seven Heroes And Five Gallants', 'Shi Yukun', 1879, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (15,9789575709242,'The Seven Heroes And Five Gallants','Shi Yukun',1879,'History')", // Parser 后的 SQL 字串
+		},
+		// 第十六本小说 施公案
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789575709242, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789575709242,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
+		},
+		// 第十七本小说 青楼梦
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(17, 9787533303396, 'Dream Of The Green Chamber', 'Yuda', 1878, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (17,9787533303396,'Dream Of The Green Chamber','Yuda',1878,'Family Saga')", // Parser 后的 SQL 字串
+		},
+		// 第十八本小说 歧路灯
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(18, 9787510434341, 'Lamp In The Side Street', 'Li Luyuan', 1790, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (18,9787510434341,'Lamp In The Side Street','Li Luyuan',1790,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 	}
 
