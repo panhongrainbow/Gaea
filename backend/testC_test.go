@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/XiaoMi/Gaea/mysql"
@@ -35,4 +36,22 @@ func TestC1(t *testing.T) {
 	res, err := dc.Execute(sql, 1)
 	require.Equal(t, nil, err)                      // 检查执行 SQL 是否有问题
 	require.Equal(t, res.AffectedRows, uint64(0x1)) // 检查新增数据是否为 1 笔
+}
+
+func TestC2(t *testing.T) {
+	res := mysql.Result{}
+	res.Status = 34
+	res.InsertID = 0
+	res.AffectedRows = 0
+
+	field := mysql.Field{}
+	field.Data = mysql.FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	field.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
+
+	resultset := mysql.Resultset{}
+	res.Resultset = &resultset
+	res.Resultset.Fields = []*mysql.Field{}
+	res.Resultset.Fields = append(res.Resultset.Fields, &field)
+
+	fmt.Println(res)
 }
