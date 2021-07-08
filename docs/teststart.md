@@ -12,7 +12,7 @@ apt-get install build-essential
 
 # 检查 go 语言的版本
 go version
-# go version go1.16.3 linux/amd64
+# go version go1.16.5 linux/amd64
 
 # 在 Gaea 目录下执行测试
 cd Gaea

@@ -20,8 +20,8 @@ $ MariaDB [(none)]> USE Library;
 # 建立书资料表
 $ CREATE TABLE `Book` (
   `BookID` int(11) NOT NULL,
-  `Isbn` bigint(20) NOT NULL,
-  `Title` varchar(30) NOT NULL,
+  `Isbn` bigint(50) NOT NULL,
+  `Title` varchar(100) NOT NULL,
   `Author` varchar(30) DEFAULT NULL,
   `Publish` int(4) DEFAULT NULL,
   `Category` varchar(30) NOT NULL,
@@ -41,11 +41,11 @@ $ MariaDB [(none)]> USE Library;
 
 # 在 Slave 容器可以正确读到 Master 写入的资料
 $ SELECT * FROM Book;
-#+--------+---------------+------------------------+------------+---------+-------------+
-#| BookID | Isbn          | Title                  | Author     | Publish | Category    |
-#+--------+---------------+------------------------+------------+---------+-------------+
-#|      1 | 9789865975364 | The Red Chamber        | Cao Xueqin |    1791 | Family Saga |
-#+--------+---------------+------------------------+------------+---------+-------------+
+#+--------+---------------+-------------------------------+------------+---------+-------------+
+#| BookID | Isbn          | Title                         | Author     | Publish | Category    |
+#+--------+---------------+-------------------------------+------------+---------+-------------+
+#|      1 | 9789865975364 | Romance Of The Three Kingdoms | Cao Xueqin |    1791 | Family Saga |
+#+--------+---------------+-------------------------------+------------+---------+-------------+
 #1 row in set (0.001 sec) 
 ```
 
