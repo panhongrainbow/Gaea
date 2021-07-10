@@ -324,8 +324,8 @@ func TestB5(t *testing.T) {
 		},
 		// 第十六本小说 施公案
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789575709242, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789575709242,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789574927913, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789574927913,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十七本小说 青楼梦
 		{
@@ -336,6 +336,66 @@ func TestB5(t *testing.T) {
 		{
 			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(18, 9787510434341, 'Lamp In The Side Street', 'Li Luyuan', 1790, 'Unofficial History');",       // 原始的 SQL 字串
 			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (18,9787510434341,'Lamp In The Side Street','Li Luyuan',1790,'Unofficial History')", // Parser 后的 SQL 字串
+		},
+		// 第十九本小说 老残游记
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(19, 9789571447469, 'The Travels of Lao Can', 'Liu E', 1907, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (19,9789571447469,'The Travels of Lao Can','Liu E',1907,'Social Story')", // Parser 后的 SQL 字串
+		},
+		// 第二十本小说 二十年目睹之怪现状
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(20, 9789571470047, 'Bizarre Happenings Eyewitnessed over Two Decades', 'Jianren Wu', 1905, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (20,9789571470047,'Bizarre Happenings Eyewitnessed over Two Decades','Jianren Wu',1905,'Unofficial History')", // Parser 后的 SQL 字串
+		},
+		// 第二十一本小说 孽海花
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(21, 9787101097580, 'A Flower In A Sinful Sea', 'Zeng Pu', 1904, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (21,9787101097580,'A Flower In A Sinful Sea','Zeng Pu',1904,'History')", // Parser 后的 SQL 字串
+		},
+		// 第二十二本小说 官场现形记
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(22, 9789861674193, 'Officialdom Unmasked', 'Li Baojia', 1903, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (22,9789861674193,'Officialdom Unmasked','Li Baojia',1903,'Unofficial History')", // Parser 后的 SQL 字串
+		},
+		// 第二十三本小说 觉世名言十二楼
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(23, 9787805469836, 'Tower For The Summer Heat', 'Li Yu', 1680, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (23,9787805469836,'Tower For The Summer Heat','Li Yu',1680,'Unofficial History')", // Parser 后的 SQL 字串
+		},
+		// 第二十四本小说 无声戏
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(24, 9787508067247, 'Silent Operas', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (24,9787508067247,'Silent Operas','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+		},
+		// 第二十五本小说 肉蒲团
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(25, 9789573609049, 'The Carnal Prayer Mat', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (25,9789573609049,'The Carnal Prayer Mat','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+		},
+		// 第二十六本小说 浮生六记
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
+		},
+		// 第二十六本小说 浮生六记
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
+		},
+		// 第二十七本小说 野叟曝言
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(27, 9786666141110, 'Humble Words Of A Rustic Elder', 'Xia Jingqu', 1787, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (27,9786666141110,'Humble Words Of A Rustic Elder','Xia Jingqu',1787,'Historical fiction')", // Parser 后的 SQL 字串
+		},
+		// 第二十八本小说 九尾龟
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(28, 9789571435473, 'Nine-Tailed Turtle', 'Lu Can', 1551, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (28,9789571435473,'Nine-Tailed Turtle','Lu Can',1551,'Mythology')", // Parser 后的 SQL 字串
+		},
+		// 第二十九本小说 品花宝鉴
+		{
+			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(29, 9789866318603, 'A History Of Floral Treasures', 'Chen Sen', 1849, 'Romance');",       // 原始的 SQL 字串
+			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (29,9789866318603,'A History Of Floral Treasures','Chen Sen',1849,'Romance')", // Parser 后的 SQL 字串
 		},
 	}
 
