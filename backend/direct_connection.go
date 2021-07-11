@@ -28,6 +28,36 @@ import (
 	"github.com/XiaoMi/Gaea/util/sync2"
 )
 
+// 定义单元测试的接口
+type Transferer interface {
+	// 单元测试专用接口
+	IsTakeOver() bool // 是否被单元测试接管
+	MarkTakeOver()    // 标记被单元测试接管
+	UnmarkTakeOver()  // 反标记被单元测试接管
+	// 嵌入每个函式接手的方法
+	// connect() error // 直连进行连线的方法
+}
+
+// 单元测试客户端
+type MockClient struct {
+	TakeOver bool // 现在是否由单元测试接管
+}
+
+// 单元测试的标记函式
+func (m *MockClient) MarkTakeOver() {
+	m.TakeOver = true
+}
+
+// 单元测试的确认函式
+func (m *MockClient) IsTakeOver() bool {
+	return m.TakeOver
+}
+
+// 单元测试的反标记函式
+func (m *MockClient) UnmarkTakeOver() {
+	m.TakeOver = false
+}
+
 // DirectConnection means connection to backend mysql
 type DirectConnection struct {
 	conn *mysql.Conn
@@ -52,6 +82,10 @@ type DirectConnection struct {
 
 	pkgErr error
 	closed sync2.AtomicBool
+
+	// 增加单元测试的属性
+	Mclient *MockClient
+	Trans   Transferer
 }
 
 // NewDirectConnection return direct and authorised connection to mysql with real net connection
@@ -74,6 +108,12 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 
 // connect means real connection to backend mysql after authorization
 func (dc *DirectConnection) connect() error {
+	// 单元测试接管
+	if dc.Mclient.IsTakeOver() {
+		return nil // 立刻中斷
+	}
+
+	// 保持原有程式
 	if dc.conn != nil {
 		dc.conn.Close()
 	}
