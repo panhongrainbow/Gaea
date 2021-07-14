@@ -59,15 +59,23 @@ func TestC3(t *testing.T) {
 	// sql := "SELECT * FROM `Library`.`Book`;"
 
 	// 初始化單元測試程式
-	dc.Mclient = new(MockClient)
-	dc.Trans = new(MockClient)
+	dc.Mclient = new(MockDcClient)
+	dc.Trans = new(MockDcClient)
 	// 單元測試接管
 	dc.Mclient.MarkTakeOver()
 
+	// 进行连线
 	err := dc.connect()
 	require.Equal(t, nil, err) // 检查连线是否有问题
 
 	// res, err := dc.Execute(sql, 50)
 	// require.Equal(t, nil, err)                      // 检查执行 SQL 是否有问题
 	// require.Equal(t, res.AffectedRows, uint64(0x0)) // 检查新增数据是否为 1 笔
+}
+
+func TestC4(t *testing.T) {
+	client := new(MockDcClient)
+	client.Result = make(map[uint32]mysql.Result)
+	number := client.MakeResult("Library", "SELECT * FROM Book;", mysql.SelectLibrayResult())
+	require.Equal(t, uint32(2125487740), number)
 }

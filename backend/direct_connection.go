@@ -19,6 +19,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"net"
 	"strings"
 
@@ -28,7 +29,7 @@ import (
 	"github.com/XiaoMi/Gaea/util/sync2"
 )
 
-// 定义单元测试的接口
+// 🧚 单元测试的定义接口
 type Transferer interface {
 	// 单元测试专用接口
 	IsTakeOver() bool // 是否被单元测试接管
@@ -38,24 +39,38 @@ type Transferer interface {
 	// connect() error // 直连进行连线的方法
 }
 
-// 单元测试客户端
-type MockClient struct {
+// 🧚 单元测试数据库直连客户端
+type MockDcClient struct {
+	// 单元测试设定
 	TakeOver bool // 现在是否由单元测试接管
+	// 单元测试资料回应
+	Result map[uint32]mysql.Result
 }
 
-// 单元测试的标记函式
-func (m *MockClient) MarkTakeOver() {
+// 🧚 单元测试数据库直连的标记函式 (设定)
+func (m *MockDcClient) MarkTakeOver() {
 	m.TakeOver = true
 }
 
-// 单元测试的确认函式
-func (m *MockClient) IsTakeOver() bool {
+// 🧚 单元测试数据库直连的确认函式 (设定)
+func (m *MockDcClient) IsTakeOver() bool {
 	return m.TakeOver
 }
 
-// 单元测试的反标记函式
-func (m *MockClient) UnmarkTakeOver() {
+// 🧚 单元测试数据库直连的反标记函式 (设定)
+func (m *MockDcClient) UnmarkTakeOver() {
 	m.TakeOver = false
+}
+
+// 🧚 单元测试数据库直连的回应资料编辑 (回应)
+func (m *MockDcClient) MakeResult(db, sql string, res mysql.Result) uint32 {
+	// 把数据库和SQL字串转成单纯的数字
+	h := fnv.New32a()
+	h.Write([]byte(db + ";" + sql + ";")) // 所有的字串后面都要加上分号
+
+	// 直接把资料写入数据库
+	m.Result[h.Sum32()] = res
+	return h.Sum32() // 回传登记的数值
 }
 
 // DirectConnection means connection to backend mysql
@@ -83,9 +98,9 @@ type DirectConnection struct {
 	pkgErr error
 	closed sync2.AtomicBool
 
-	// 增加单元测试的属性
-	Mclient *MockClient
-	Trans   Transferer
+	// 🧚 增加单元测试的属性
+	Mclient *MockDcClient // 单元测试数据库直连客户端
+	Trans   Transferer    // 单元测试的定义接口
 }
 
 // NewDirectConnection return direct and authorised connection to mysql with real net connection
@@ -108,7 +123,7 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 
 // connect means real connection to backend mysql after authorization
 func (dc *DirectConnection) connect() error {
-	// 单元测试接管
+	// 🧚 单元测试接管
 	if dc.Mclient.IsTakeOver() {
 		return nil // 立刻中斷
 	}
