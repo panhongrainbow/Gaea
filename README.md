@@ -56,6 +56,7 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 
 - [开发当下的测试](docs/teststart.md)
 - [图书馆实体数据库测试环境](docs/bitnami-mariadb-library.md)
+- [使用 JetBrain GoLand IDE 进行开发](docs/goland-develop.md)
 
 ## 设计与实现
 
