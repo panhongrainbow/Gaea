@@ -17,10 +17,59 @@
 
 ## 2 启动 JetBrain GoLand IDE
 
-[JetBrain GoLand 启动文件](panhongrainbow/run-goland-gaea.md)
+> 内容包含 JetBrain GoLand IDE 启动和故障排除 
+
+| 项目 | 状况名称                   | 对应文件                                                     |
+| ---- | -------------------------- | ------------------------------------------------------------ |
+| 1    | 第一次启动 GoLand          | [JetBrain GoLand IDE 启动方式](panhongrainbow/run-goland-gaea.md) |
+| 2    | 遇到 GoLand 的无法保存设定 | [JetBrain GoLand IDE 权限设定](panhongrainbow/run-goland-gaea.md) |
+| 3    |                            |                                                              |
+| 4    |                            |                                                              |
+| 5    |                            |                                                              |
+
+
+
+
+
+[JetBrain GoLand 权限设定](panhongrainbow/run-goland-gaea.md)
 
 ## 3 初始化设定
 
-同意合同
+先勾选同意合同
 
-<img src="./panhongrainbow/typora-user-images/image-20210715233154739.png" alt="image-20210715233154739" style="zoom:80%;" /> 
+<img src="./panhongrainbow/typora-user-images/image-20210716112848215.png" alt="image-20210716112848215" style="zoom:80%;" /> 
+
+不要传送个人相关资讯
+
+<img src="./panhongrainbow/typora-user-images/image-20210716113442862.png" alt="image-20210716113442862" style="zoom:80%;" /> 
+
+先进行评估，再决定是否购买
+
+<img src="./panhongrainbow/typora-user-images/image-20210716113705977.png" alt="image-20210716113705977" style="zoom:80%;" /> 
+
+先试用 30 天
+
+<img src="./panhongrainbow/typora-user-images/image-20210716114003274.png" alt="image-20210716114003274" style="zoom:80%;" /> 
+
+先设定介面
+
+<img src="./panhongrainbow/typora-user-images/image-20210716115616638.png" alt="image-20210716115616638" style="zoom:80%;" />　
+
+在 Code Inside 资料夹内，可以找到 Gaea 计划资料夹
+
+<img src="./panhongrainbow/typora-user-images/image-20210716121856501.png" alt="image-20210716121856501" style="zoom:80%;" /> 
+
+直接开启 Gaea 计划资料夹
+
+<img src="./panhongrainbow/typora-user-images/image-20210716122209862.png" alt="image-20210716122209862" style="zoom:80%;" />　
+
+修改 JetBrain GoLand IDE 的介面字型
+
+<img src="./panhongrainbow/typora-user-images/image-20210716145906046.png" alt="image-20210716145906046" style="zoom:80%;" />typora-user-images/image-20210716145906046.png" alt="image-20210716145906046" style="zoom:80%;" /> 
+
+修改 JetBrain GoLand IDE 的程式码内容字型
+
+<img src="/home/rongster/.config/Typora/typora-user-images/image-20210716151449425.png" alt="image-20210716151449425" style="zoom:80%;" />
+
+
+
