@@ -52,12 +52,6 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 - [SQL兼容性](docs/compatibility.md)
 - [FAQ](docs/faq.md)
 
-## 开发方式
-
-- [开发当下的测试](docs/teststart.md)
-- [图书馆实体数据库测试环境](docs/bitnami-mariadb-library.md)
-- [使用 JetBrain GoLand IDE 进行开发](docs/goland-develop.md)
-
 ## 设计与实现
 
 - [整体架构](docs/architecture.md)
@@ -65,6 +59,14 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 - [gaea配置热加载设计与实现](docs/config-reloading.md)
 - [gaea proxy后端连接池的设计与实现](docs/connection-pool.md)
 - [prepare的设计与实现](docs/prepare.md)
+
+## 开发方式
+
+- [开发当下的测试](docs/teststart.md)
+- [图书馆实体数据库测试环境](docs/bitnami-mariadb-library.md)
+- [使用 JetBrain GoLand IDE 进行开发](docs/goland-develop.md)
+- [中文文件繁简互换](docs/chinese-translate.md)
+- [多余文件加密](docs/encrypt-extra-files.md)
 
 ## Roadmap
 

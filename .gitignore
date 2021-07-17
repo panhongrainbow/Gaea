@@ -1,6 +1,13 @@
+# 小米原始设定值
 vendor
 y.output
 bin
 logs
 .coverage.*
 .vscode
+
+# MarkDown 的暂时文件
+*.old.md
+
+# 设定相关文件
+docs/panhongrainbow/*
