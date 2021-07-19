@@ -37,6 +37,7 @@ func TestC1(t *testing.T) {
 	require.Equal(t, res.AffectedRows, uint64(0x1)) // 检查新增数据是否为 1 笔
 }
 
+// TestC 主要是用于测试数据库直连
 func TestC2(t *testing.T) {
 	// 建立直接连线
 	var dc DirectConnection
@@ -55,27 +56,38 @@ func TestC2(t *testing.T) {
 	dc.pkgErr = nil
 	dc.closed.Set(false)
 
-	// 向 MariaDB 数据库直接查询资料
-	// sql := "SELECT * FROM `Library`.`Book`;"
-
 	// 初始化單元測試程式
-	dc.Mclient = new(MockDcClient)
+	dc.MockDC = new(MockDcClient)
 	dc.Trans = new(MockDcClient)
 	// 單元測試接管
-	dc.Mclient.MarkTakeOver()
+	dc.MarkTakeOver()
 
 	// 进行连线
 	err := dc.connect()
 	require.Equal(t, nil, err) // 检查连线是否有问题
 
-	// res, err := dc.Execute(sql, 50)
-	// require.Equal(t, nil, err)                      // 检查执行 SQL 是否有问题
-	// require.Equal(t, res.AffectedRows, uint64(0x0)) // 检查新增数据是否为 1 笔
+	// 准备 SQL 查询字串
+	sql := "SELECT * FROM `Library`.`Book`;"
+
+	// 向 MariaDB 数据库直接查询资料
+	res, err := dc.Execute(sql, 50)
+	require.Equal(t, nil, err)                      // 检查执行 SQL 是否有问题
+	require.Equal(t, res.AffectedRows, uint64(0x0)) // 因为只是查询，所以数据库不会有资料被修改
+
+	// 检查数据库回传第 1 本书的资料
+	require.Equal(t, res.Values[0][0].(int), 1)
+	require.Equal(t, res.Values[0][1].(int), 9781517191276)
+	require.Equal(t, res.Values[0][2].(string), "Romance Of The Three Kingdoms")
+
+	// 检查数据库回传第 28 本书的资料
+	require.Equal(t, res.Values[28][0].(int), 29)
+	require.Equal(t, res.Values[28][1].(int), 9789866318603)
+	require.Equal(t, res.Values[28][2].(string), "A History Of Floral Treasures")
 }
 
 func TestC3(t *testing.T) {
 	client := new(MockDcClient)
 	client.Result = make(map[uint32]mysql.Result)
-	number := client.MakeResult("Library", "SELECT * FROM Book;", mysql.SelectLibrayResult())
+	number := client.MakeResult("Library", "SELECT * FROM Book;", *mysql.SelectLibrayResult())
 	require.Equal(t, uint32(2125487740), number)
 }
