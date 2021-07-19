@@ -23,7 +23,7 @@ $ cd Gaea/doc
 $ mv goland-develop.md goland-develop.old.md
 
 # 把文件由繁体中文转成简体中文
-$ opencc -i goland-develop.md.old -o goland-develop.md -c t2s.json
+$ opencc -i goland-develop.old.md -o goland-develop.md -c t2s.json
 ```
 
 ## 简体中文转成繁体中文
@@ -38,5 +38,5 @@ $ cd Gaea/doc
 $ mv goland-develop.md goland-develop.old.md
 
 # 把文件由简体中文转成繁体中文
-$ opencc -i goland-develop.md.old -o goland-develop.md -c s2t.json
+$ opencc -i goland-develop.old.md -o goland-develop.md -c s2t.json
 ```

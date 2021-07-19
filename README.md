@@ -70,6 +70,7 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 - [🏁中文文件繁简互换](docs/chinese-translate.md)
 - [🚫保存程式码副本](docs/panhongrainbow/preserve-data.md)
 - [🚫程式码日常维护](docs/panhongrainbow/maintain-golang-gaea.md)
+- [🏁程式码 GoFmt 格式化维护](docs/gofmt-golang-gaea.md)
 - [🏁触发单元测试](docs/goland-gaea-unit-test.md)
 
 ## Roadmap
