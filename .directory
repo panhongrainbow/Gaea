@@ -2,8 +2,5 @@
 Icon=./docs/assets/xiaomi.png
 
 [Dolphin]
-Timestamp=2021,7,18,2,37,1
+Timestamp=2021,7,19,23,18,46
 Version=4
-
-[Settings]
-HiddenFilesShown=true

@@ -37,7 +37,7 @@ func TestC1(t *testing.T) {
 	require.Equal(t, res.AffectedRows, uint64(0x1)) // 检查新增数据是否为 1 笔
 }
 
-func TestC3(t *testing.T) {
+func TestC2(t *testing.T) {
 	// 建立直接连线
 	var dc DirectConnection
 	dc.addr = "192.168.1.2:3350"
@@ -73,7 +73,7 @@ func TestC3(t *testing.T) {
 	// require.Equal(t, res.AffectedRows, uint64(0x0)) // 检查新增数据是否为 1 笔
 }
 
-func TestC4(t *testing.T) {
+func TestC3(t *testing.T) {
 	client := new(MockDcClient)
 	client.Result = make(map[uint32]mysql.Result)
 	number := client.MakeResult("Library", "SELECT * FROM Book;", mysql.SelectLibrayResult())

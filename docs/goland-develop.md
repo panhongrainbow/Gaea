@@ -27,12 +27,6 @@
 | 4    |                            |                                                              |
 | 5    |                            |                                                              |
 
-
-
-
-
-[JetBrain GoLand 权限设定](panhongrainbow/run-goland-gaea.md)
-
 ## 3 初始化 JetBrain GoLand IDE
 
 先勾选同意合同

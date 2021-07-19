@@ -93,7 +93,7 @@ encrypt_key=1234abcd5678efg*
 	}
 }
 
-func TestB5(t *testing.T) {
+func TestB2(t *testing.T) {
 	// 组成管理员的 NameSpace
 	managerNamespace := &Namespace{} // 管理员的 NameSpace
 	defer managerNamespace.Close(false)
