@@ -73,6 +73,18 @@ Gaea是小米中国区电商研发部研发的基于mysql协议的数据库中�
 - [🏁程式码 GoFmt 格式化维护](docs/gofmt-golang-gaea.md)
 - [🏁触发单元测试](docs/goland-gaea-unit-test.md)
 
+## 开发进入点
+
+记录开发的进入位罝
+
+| 项目 | 位置                                                      | 说明                              |
+| ---- | --------------------------------------------------------- | --------------------------------- |
+| A    | github.com/panhongrainbow/Gaea/parser/testA_test.go       | Sql Parser 转换                   |
+| B    | github.com/panhongrainbow/Gaea/proxy/server/testB_test.go | 把 设定档 和 SQL字串转成 直连命令 |
+| C    | github.com/panhongrainbow/Gaea/backend/testC_test.go      | 和 MariaDB 之间的交界             |
+| D    |                                                           |                                   |
+| E    |                                                           |                                   |
+
 ## Roadmap
 
 - [x] 支持配置加密存储，开关

@@ -54,6 +54,10 @@ func (m *MockDcClient) MarkTakeOver() {
 
 // IsTakeOver 🧚 MockDcClient 单元测试数据库直连的确认函式 (设定)
 func (m *MockDcClient) IsTakeOver() bool {
+	// 因为不是每个函式或过程会完整初始化 Mock Client 变数，如果没有这一层保护，会有 nil 指标的错误
+	if m == nil {
+		return false
+	}
 	return m.TakeOver
 }
 

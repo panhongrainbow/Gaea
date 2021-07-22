@@ -219,7 +219,6 @@ func TestB2(t *testing.T) {
 
 	// 取出 Router
 	rt := ns.GetRouter() // 会取出预设的 Slice 为 Slice-0
-	fmt.Println(rt)
 
 	// 补齐执行者资料
 	executor.sessionVariables = mysql.NewSessionVariables()
@@ -424,9 +423,13 @@ func TestB2(t *testing.T) {
 		// ret, err := p.ExecuteIn(util.NewRequestContext(), sessionExecutor)
 		// 把SQL 字串写入数据库，但因会触发统计功能，暂时先不使用
 
+		// 以下操作会真的写入数据库，在此先中断
+		return
+
 		// 对数据库进行直连操作
-		/*dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
+		dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
 		require.Equal(t, nil, err)
-		dc.Execute(s.String(), 1)*/
+		dc.Execute(s.String(), 50)
+		fmt.Println("目前执行的数据库指令为 ", s.String())
 	}
 }
