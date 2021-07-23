@@ -8,12 +8,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// 这个测试主要是用来测试 Parser 的每个细节，并有图文对照
+// TestA 这个测试主要是用来测试 Parser 的每个细节，并有图文对照
 func TestA(t *testing.T) {
 	var sb strings.Builder
 	parser := New()
 
-	tables := []testCase{
+	tests := []testCase{
+		// 针对 Cluster db0 db0-0 db0-1 或其他的丛集 常用的 SQL 指令进行测试
+		{"SELECT * FROM Library.Book", true, "SELECT * FROM `Library`.`Book`"},
+
 		// SQL 指令 SELECT
 		{"SELECT /*+ MAX_EXECUTION_TIME(1000) */ * FROM db.t", true, "SELECT /*+ MAX_EXECUTION_TIME(1000)*/ * FROM `db`.`t`"},            // (1) 使用优化器
 		{"SELECT DISTINCT v FROM db.t", true, "SELECT DISTINCT `v` FROM `db`.`t`"},                                                       // (2) 过滤重复出现的纪录值
@@ -33,8 +36,8 @@ func TestA(t *testing.T) {
 		{"INSERT t VALUES (1), (2), (3)", true, "INSERT INTO `t` VALUES (1),(2),(3)"},                    // (14) 这次没有使用 INTO 这个 TOKEN
 	}
 
-	for _, table := range tables {
-		stmts, _, err := parser.Parse(table.src, "", "")
+	for _, test := range tests {
+		stmts, _, err := parser.Parse(test.src, "", "")
 		require.Equal(t, err, nil)
 		restoreSQLs := ""
 		for _, stmt := range stmts {
@@ -52,6 +55,6 @@ func TestA(t *testing.T) {
 			restoreSQLs += restoreSQL
 		}
 
-		require.Equal(t, restoreSQLs, table.restore)
+		require.Equal(t, restoreSQLs, test.restore)
 	}
 }

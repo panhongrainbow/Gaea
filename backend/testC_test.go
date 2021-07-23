@@ -25,7 +25,7 @@ func TestC1(t *testing.T) {
 	dc.pkgErr = nil
 	dc.closed.Set(false)
 
-	// 先在这里直接中断
+	// 以下会直接连线到实体数据库，先在这里中断
 	return
 
 	// 向 MariaDB 数据库直接写入资料
