@@ -98,9 +98,9 @@ encrypt_key=1234abcd5678efg*
 	}
 }
 
-// TestB2 内含把 29 本小说写入数据库的程式码
+// TestB2 内含把 29 本小说写入数据库的程式码，这时还没有进行数据库读写分离
 func TestB2(t *testing.T) {
-	// 组成管理员的 NameSpace
+	// 组成管理员的 NameSpace (会写入变数 SessionExecutor -> namespaces[0] -> namespaces["key"])
 	managerNamespace := &Namespace{} // 管理员的 NameSpace
 	defer managerNamespace.Close(false)
 	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
@@ -110,8 +110,8 @@ func TestB2(t *testing.T) {
 	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
 	// defaultPhyDBs[strings.TrimSpace(db)] = strings.TrimSpace(phyDB) // 再指定
 	managerNamespace.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, managerNamespace.allowedDBs)
-	managerNamespace.slowSQLTime = 1000 // 慢sql阈值，单位: 毫秒
-	managerNamespace.sqls = make(map[string]string, 16)
+	managerNamespace.slowSQLTime = 1000                      // 慢sql阈值，单位: 毫秒
+	managerNamespace.sqls = make(map[string]string, 50)      // 有 29 本小说，先暂定 50 好了
 	managerNamespace.sqls = parseBlackSqls([]string{})       // 黑名单sql
 	managerNamespace.allowips, _ = parseAllowIps([]string{}) // 白名单IP
 
@@ -121,7 +121,7 @@ func TestB2(t *testing.T) {
 	dbSlice.Name = "slice-0"            // 分片名称，自动、有序生成
 	dbSlice.UserName = "docker"         // 连接后端mysql所需要的用户名称
 	dbSlice.Password = "12345"          // 连接后端mysql所需要的用户密码
-	dbSlice.Master = "192.168.1.2:3350" // 主实例地址
+	dbSlice.Master = "192.168.1.2:3350" // 主实例地址 (db0 192.168.1.2:3350)
 	dbSlice.Slaves = []string{}         // 从实例地址列表
 	dbSlice.StatisticSlaves = nil       // 统计型从实例地址列表
 	dbSlice.Capacity = 12               // gaea_proxy与每个实例的连接池大小
@@ -129,10 +129,10 @@ func TestB2(t *testing.T) {
 	dbSlice.IdleTimeout = 60            // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
 	dbSlices = append(dbSlices, &dbSlice)
 
-	// 管理员的 NameSpace 載入 组织主从物理实例
+	// 管理员的 NameSpace 載入 组织主从物理实例 (会写入变数 SessionExecutor -> namespaces[0] -> slices["key"])
 	managerNamespace.slices, _ = parseSlices(dbSlices, "utf8mb4", managerNamespace.defaultCollationID) // 一主多从的物理实例，slice里map的具体字段可参照slice配置
 
-	// >>>>> 组织 NS 用户
+	// >>>>> 组织 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
 	var nsUsers []*models.User // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
 	nsUser := models.User{}
 	nsUser.UserName = "docker"               // 用户名
@@ -143,14 +143,14 @@ func TestB2(t *testing.T) {
 	nsUser.OtherProperty = 0                 // 其他属性，目前用来标识是否走统计从实例
 	nsUsers = append(nsUsers, &nsUser)
 
-	// 管理员的 NameSpace 載入 NS 用户
+	// 管理员的 NameSpace 載入 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
 	managerNamespace.userProperties = make(map[string]*UserProperty, 2)
 	for _, user := range nsUsers {
 		up := &UserProperty{RWFlag: user.RWFlag, RWSplit: user.RWSplit, OtherProperty: user.OtherProperty}
 		managerNamespace.userProperties[user.UserName] = up
 	}
 
-	// >>>>> 建立 全局唯一序列号
+	// >>>>> 建立 全局唯一序列号 (会写入变数 SessionExecutor -> namespaces[0] -> sequence["key"])
 	sequences := sequence.NewSequenceManager() // 生成全局唯一序列号的配置, 具体字段可参考全局序列号配置
 	for _, v := range []*models.GlobalSequence{} {
 		globalSequenceSlice, _ := managerNamespace.slices[v.SliceName]
@@ -159,10 +159,16 @@ func TestB2(t *testing.T) {
 		sequences.SetSequence(v.DB, v.Table, seq)
 	}
 
-	// 管理员的 NameSpace 載入 全局唯一序列号
+	// 管理员的 NameSpace 載入 全局唯一序列号 (会写入变数 SessionExecutor -> namespaces[0] -> sequence["key"])
 	managerNamespace.sequences = sequences
 
 	// 管理员的 NameSpace 載入 预设选项
+	/*
+		补齐所有的 managerNamespace 变数，最后先组成 managerNamespace (物品)
+		namespaceManager(map) 的人 指定 db0_cluster_namespace 字串 map 到前面的 managerNamespace (物品)
+		合拼到服務器管理員 serverManager := new(Manager)
+		再合拼到 Session 执行者 executor.manager = serverManager
+	*/
 	managerNamespace.defaultCharset, managerNamespace.defaultCollationID, _ = parseCharset("", "") // 用于指定数据集如何排序，以及字符串的比对规则 & 用于指定数据集如何排序，以及字符串的比对规则
 	managerNamespace.maxSqlExecuteTime = defaultMaxSqlExecuteTime                                  // sql最大执行时间，大于该时间，进行熔断
 	managerNamespace.maxSqlResultSize = defaultMaxSqlResultSize                                    // 限制单分片返回结果集大小不超过max_select_rows
@@ -194,7 +200,7 @@ func TestB2(t *testing.T) {
 	serverUser := new(UserManager)
 	serverUser.users = make(map[string][]string, 64)
 	serverUser.userNamespaces = make(map[string]string, 64)
-	serverUser.userNamespaces["root"+":"+"12345"] = "alone_db0_namespace"
+	serverUser.userNamespaces["docker"+":"+"12345"] = "alone_db0_namespace"
 	serverUser.users["docker"] = append(serverUser.users["docker"], "12345")
 
 	// 把 服务器用户资料 写回 服务器管理员
@@ -524,7 +530,7 @@ encrypt_key=1234abcd5678efg*
   "shard_rules": null,
   "users": [
     {
-      "user_name": "root",
+      "user_name": "docker",
       "password": "12345",
       "namespace": "db0_cluster_namespace",
       "rw_flag": 2,
@@ -580,7 +586,7 @@ encrypt_key=1234abcd5678efg*
 
 // 产生针对 Cluster db0 db0-0 db0-1 的 Plan Session
 func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
-	var userName = "root"
+	var userName = "docker"
 	var namespaceName = "db0_cluster_namespace"
 	var database = "Library"
 
@@ -601,7 +607,7 @@ func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 
 // TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
 func TestB3(t *testing.T) {
-	//可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
+	// 可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
 	return
 
 	// 载入 Session Executor
@@ -643,12 +649,223 @@ func TestB3(t *testing.T) {
 		require.Equal(t, err, nil)
 
 		// 以下会直接连线到实体数据库，先在这里中断
-		return
+		// return
 
 		// 执行 Parser 后的 SQL 指令
 		reqCtx := util.NewRequestContext()
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
 		res, err := p.ExecuteIn(reqCtx, se)
+		require.Equal(t, err, nil)
+
+		// 检查数据库回传第 1 本书的资料
+		require.Equal(t, res.Resultset.Values[0][0].(int64), int64(1))
+		require.Equal(t, res.Resultset.Values[0][1].(int64), int64(9781517191276))
+		require.Equal(t, res.Resultset.Values[0][2].(string), "Romance Of The Three Kingdoms")
+
+		// 检查数据库回传第 28 本书的资料
+		require.Equal(t, res.Resultset.Values[28][0].(int64), int64(29))
+		require.Equal(t, res.Resultset.Values[28][1].(int64), int64(9789866318603))
+		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
+	}
+}
+
+// TestB4 内含把 29 本小说写入数据库的程式码，这时开始进行数据库读写分离
+func TestB4(t *testing.T) {
+	// 组成管理员的 NameSpace (会写入变数 SessionExecutor -> namespaces[0] -> namespaces["key"])
+	managerNamespace := &Namespace{} // 管理员的 NameSpace
+	defer managerNamespace.Close(false)
+	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
+	managerNamespace.name = "db0_cluster_namespace"     // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
+	managerNamespace.allowedDBs = make(map[string]bool) // 数据库列表
+	managerNamespace.allowedDBs[strings.TrimSpace("Library")] = true
+	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
+	// defaultPhyDBs[strings.TrimSpace("Library")] = strings.TrimSpace("Library") // 再指定
+	managerNamespace.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, managerNamespace.allowedDBs)
+	managerNamespace.slowSQLTime = 1000                      // 慢sql阈值，单位: 毫秒
+	managerNamespace.sqls = make(map[string]string, 50)      // 有 29 本小说，先暂定 50 好了
+	managerNamespace.sqls = parseBlackSqls([]string{})       // 黑名单sql
+	managerNamespace.allowips, _ = parseAllowIps([]string{}) // 白名单IP
+
+	// >>>>> 组织主从物理实例 (会写入变数 SessionExecutor -> namespaces[0] -> slices["key"])
+	var dbSlices []*models.Slice // 一主多从的物理实例，slice里map的具体字段可参照slice配置
+	dbSlice := models.Slice{}
+	dbSlice.Name = "slice-0"                                          // 分片名称，自动、有序生成
+	dbSlice.UserName = "docker"                                       // 连接后端mysql所需要的用户名称
+	dbSlice.Password = "12345"                                        // 连接后端mysql所需要的用户密码
+	dbSlice.Master = "192.168.1.2:3350"                               // 主实例地址 (db0 192.168.1.2:3350)
+	dbSlice.Slaves = []string{"192.168.1.2:3351", "192.168.1.2:3352"} // 从实例地址列表  (db0-0 192.168.1.2:3351; db0-1 192.168.1.2:3352)
+	dbSlice.StatisticSlaves = nil                                     // 统计型从实例地址列表
+	dbSlice.Capacity = 12                                             // gaea_proxy与每个实例的连接池大小
+	dbSlice.MaxCapacity = 24                                          // gaea_proxy与每个实例的连接池最大大小
+	dbSlice.IdleTimeout = 60                                          // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
+	dbSlices = append(dbSlices, &dbSlice)
+
+	// 管理员的 NameSpace 載入 组织主从物理实例 (会写入变数 SessionExecutor -> namespaces[0] -> slices["key"])
+	managerNamespace.slices, _ = parseSlices(dbSlices, "utf8mb4", managerNamespace.defaultCollationID) // 一主多从的物理实例，slice里map的具体字段可参照slice配置
+
+	// >>>>> 组织 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
+	var nsUsers []*models.User // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
+	nsUser := models.User{}
+	nsUser.UserName = "docker"                 // 用户名
+	nsUser.Password = "12345"                  // 用户密码
+	nsUser.Namespace = "db0_cluster_namespace" // 对应的命名空间
+	nsUser.RWFlag = 2                          // 读写标识
+	nsUser.RWSplit = 1                         // 是否读写分离
+	nsUser.OtherProperty = 0                   // 其他属性，目前用来标识是否走统计从实例
+	nsUsers = append(nsUsers, &nsUser)
+
+	// 管理员的 NameSpace 載入 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
+	managerNamespace.userProperties = make(map[string]*UserProperty, 2)
+	for _, user := range nsUsers {
+		up := &UserProperty{RWFlag: user.RWFlag, RWSplit: user.RWSplit, OtherProperty: user.OtherProperty}
+		managerNamespace.userProperties[user.UserName] = up
+	}
+
+	// >>>>> 建立 全局唯一序列号 (会写入变数 SessionExecutor -> namespaces[0] -> sequence["key"])
+	sequences := sequence.NewSequenceManager() // 生成全局唯一序列号的配置, 具体字段可参考全局序列号配置
+	for _, v := range []*models.GlobalSequence{} {
+		globalSequenceSlice, _ := managerNamespace.slices[v.SliceName]
+		seqName := strings.ToUpper(v.DB) + "." + strings.ToUpper(v.Table)
+		seq := sequence.NewMySQLSequence(globalSequenceSlice, seqName, v.PKName)
+		sequences.SetSequence(v.DB, v.Table, seq)
+	}
+
+	// 管理员的 NameSpace 載入 全局唯一序列号 (会写入变数 SessionExecutor -> namespaces[0] -> sequence["key"])
+	managerNamespace.sequences = sequences
+
+	// 管理员的 NameSpace 載入 预设选项
+	/*
+		补齐所有的 managerNamespace 变数，最后先组成 managerNamespace (物品)
+		namespaceManager(map) 的人 指定 db0_cluster_namespace 字串 map 到前面的 managerNamespace (物品)
+		合拼到服務器管理員 serverManager := new(Manager)
+		再合拼到 Session 执行者 executor.manager = serverManager
+	*/
+	managerNamespace.defaultCharset, managerNamespace.defaultCollationID, _ = parseCharset("", "") // 用于指定数据集如何排序，以及字符串的比对规则 & 用于指定数据集如何排序，以及字符串的比对规则
+	managerNamespace.maxSqlExecuteTime = defaultMaxSqlExecuteTime                                  // sql最大执行时间，大于该时间，进行熔断
+	managerNamespace.maxSqlResultSize = defaultMaxSqlResultSize                                    // 限制单分片返回结果集大小不超过max_select_rows
+
+	// 管理员的 NameSpace 載入 延伸选择
+	managerNamespace.slowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.errorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.backendSlowSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.backendErrorSQLCache = cache.NewLRUCache(defaultSQLCacheCapacity)
+	managerNamespace.planCache = cache.NewLRUCache(defaultPlanCacheCapacity)
+
+	// 建立路由
+	modelsNameSpace := new(models.Namespace)
+	modelsNameSpace.Slices = []*models.Slice{} // 一主多从的物理实例，slice里map的具体字段可参照slice配置
+	modelsNameSpace.Slices = append(modelsNameSpace.Slices, &dbSlice)
+	modelsNameSpace.DefaultSlice = "slice-0" // 预设分片名称
+	modelsNameSpace.ShardRules = nil         // 分库、分表、特殊表的配置内容，具体字段可参照shard配置 (载入设定档)
+	managerNamespace.router, _ = router.NewRouter(modelsNameSpace)
+
+	// 初始化管理员 Manager
+	serverManager := new(Manager)             // 服务器管理员
+	current := 0                              // 切换标签
+	namespaceManager := new(NamespaceManager) // NameSpace 管理员
+	namespaceManager.namespaces = make(map[string]*Namespace, 64)
+	namespaceManager.namespaces["db0_cluster_namespace"] = managerNamespace
+	serverManager.namespaces[current] = namespaceManager
+
+	// 指定服务器用户
+	serverUser := new(UserManager)
+	serverUser.users = make(map[string][]string, 64)
+	serverUser.userNamespaces = make(map[string]string, 64)
+	serverUser.userNamespaces["docker"+":"+"12345"] = "db0_cluster_namespace"
+	serverUser.users["docker"] = append(serverUser.users["docker"], "12345")
+
+	// 把 服务器用户资料 写回 服务器管理员
+	serverManager.users[current] = serverUser
+
+	// 产生执行者资料
+	executor := SessionExecutor{}
+	executor.manager = serverManager
+	executor.namespace = "db0_cluster_namespace" // 用 executor.namespace 和 current(切换标签)去取出NS值
+
+	// 取出 NS
+	ns := executor.GetNamespace()
+
+	// 檢查 NS
+	testNS := []struct { // NameSpace 底下有 Master 和 Slave 数据库，检查是否有正确载入
+		db    string
+		allow bool
+	}{
+		{ // 允许的数据库列表
+			"Library", // SQL 字串內容
+			true,      // 允许
+		},
+	}
+	for _, test := range testNS { // 进行检查
+		_, ok := ns.allowedDBs[test.db]
+		require.Equal(t, test.allow, ok)
+	}
+
+	// 取出 Router
+	// rt := ns.GetRouter() // 会取出预设的 Slice 为 Slice-0
+
+	// 补齐执行者资料
+	executor.sessionVariables = mysql.NewSessionVariables()
+	executor.txConns = make(map[string]backend.PooledConnect)
+	executor.stmts = make(map[uint32]*Stmt)
+	executor.parser = parser.New()
+	executor.status = initClientConnStatus
+	executor.user = "docker"
+	collationID := 33 // "utf8"
+	executor.collation = mysql.CollationID(collationID)
+	executor.charset = "utf8"
+	executor.db = "Library"
+
+	// 补齐 Session 执行者资料
+	sessionExecutor := newSessionExecutor(serverManager)
+	sessionExecutor.user = "docker"
+	collationID = 33 // "utf8"
+	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
+	sessionExecutor.SetCharset("utf8")
+	sessionExecutor.SetDatabase("Library") // set database
+	sessionExecutor.namespace = "db0_cluster_namespace"
+
+	// 开始检查和资料库的沟通
+	tests := []struct {
+		sql    string
+		expect string
+	}{
+		{ // 测试一，查询数据库资料
+			"SELECT * FROM Library.Book",     // 原始的 SQL 字串
+			"SELECT * FROM `Library`.`Book`", // 期望 Parser 后的 SQL 字串
+		},
+	}
+
+	// 执行 Sql 字串
+	for _, test := range tests {
+		// 執行 SQL Parser
+		ns := executor.GetNamespace()
+		stmts, err := executor.Parse(test.sql)
+		require.Equal(t, err, nil)
+
+		// 检查 Parser 后的 SQL 字串
+		var sb strings.Builder
+		err = stmts.Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
+		require.Equal(t, err, nil)
+		require.Equal(t, sb.String(), test.expect)
+
+		// 建立 SQL 查寻计划
+		rt := ns.GetRouter()
+		seq := ns.GetSequences()
+		phyDBs := ns.GetPhysicalDBs()
+		p, err := plan.BuildPlan(stmts, phyDBs, "Library", test.sql, rt, seq)
+		require.Equal(t, err, nil)
+
+		// 以下会直接连线到实体数据库，先在这里中断
+		// return
+
+		// 执行 Parser 后的 SQL 指令
+		reqCtx := util.NewRequestContext()
+		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
+
+		// 要针对写单元测试 se.manager.RecordBackendSQLMetrics(reqCtx, se.namespace, v, pc.GetAddr(), startTime, err)，先中断
+		return
+
+		res, err := p.ExecuteIn(reqCtx, sessionExecutor)
 		require.Equal(t, err, nil)
 
 		// 检查数据库回传第 1 本书的资料
