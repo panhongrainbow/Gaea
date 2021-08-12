@@ -41,8 +41,8 @@ func TestC1(t *testing.T) {
 func TestC2(t *testing.T) {
 	// 建立直接连线
 	var dc DirectConnection
-	dc.addr = "192.168.1.2:3350"
-	dc.user = "docker"
+	dc.addr = "192.168.122.2:3306"
+	dc.user = "panhong"
 	dc.password = "12345"
 	dc.db = "Library"
 	dc.capability = 0
@@ -59,6 +59,7 @@ func TestC2(t *testing.T) {
 	// 初始化單元測試程式
 	dc.MockDC = new(MockDcClient)
 	dc.Trans = new(MockDcClient)
+
 	// 單元測試接管
 	dc.MarkTakeOver()
 
@@ -75,13 +76,13 @@ func TestC2(t *testing.T) {
 	require.Equal(t, res.AffectedRows, uint64(0x0)) // 因为只是查询，所以数据库不会有资料被修改
 
 	// 检查数据库回传第 1 本书的资料
-	require.Equal(t, res.Values[0][0].(int), 1)
-	require.Equal(t, res.Values[0][1].(int), 9781517191276)
+	require.Equal(t, res.Values[0][0].(int64), int64(1))
+	require.Equal(t, res.Values[0][1].(int64), int64(9781517191276))
 	require.Equal(t, res.Values[0][2].(string), "Romance Of The Three Kingdoms")
 
 	// 检查数据库回传第 28 本书的资料
-	require.Equal(t, res.Values[28][0].(int), 29)
-	require.Equal(t, res.Values[28][1].(int), 9789866318603)
+	require.Equal(t, res.Values[28][0].(int64), int64(29))
+	require.Equal(t, res.Values[28][1].(int64), int64(9789866318603))
 	require.Equal(t, res.Values[28][2].(string), "A History Of Floral Treasures")
 }
 

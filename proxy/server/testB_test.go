@@ -104,7 +104,7 @@ func TestB2(t *testing.T) {
 	managerNamespace := &Namespace{} // 管理员的 NameSpace
 	defer managerNamespace.Close(false)
 	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
-	managerNamespace.name = "alone_db0_namespace"       // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
+	managerNamespace.name = "db0_namespace"             // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
 	managerNamespace.allowedDBs = make(map[string]bool) // 数据库列表
 	managerNamespace.allowedDBs[strings.TrimSpace("Library")] = true
 	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
@@ -118,15 +118,15 @@ func TestB2(t *testing.T) {
 	// >>>>> 组织主从物理实例
 	var dbSlices []*models.Slice // 一主多从的物理实例，slice里map的具体字段可参照slice配置
 	dbSlice := models.Slice{}
-	dbSlice.Name = "slice-0"            // 分片名称，自动、有序生成
-	dbSlice.UserName = "docker"         // 连接后端mysql所需要的用户名称
-	dbSlice.Password = "12345"          // 连接后端mysql所需要的用户密码
-	dbSlice.Master = "192.168.1.2:3350" // 主实例地址 (db0 192.168.1.2:3350)
-	dbSlice.Slaves = []string{}         // 从实例地址列表
-	dbSlice.StatisticSlaves = nil       // 统计型从实例地址列表
-	dbSlice.Capacity = 12               // gaea_proxy与每个实例的连接池大小
-	dbSlice.MaxCapacity = 24            // gaea_proxy与每个实例的连接池最大大小
-	dbSlice.IdleTimeout = 60            // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
+	dbSlice.Name = "slice-0"              // 分片名称，自动、有序生成
+	dbSlice.UserName = "panhong"          // 连接后端mysql所需要的用户名称
+	dbSlice.Password = "12345"            // 连接后端mysql所需要的用户密码
+	dbSlice.Master = "192.168.122.2:3306" // 主实例地址 (db0 192.168.1.2:3350)
+	dbSlice.Slaves = []string{}           // 从实例地址列表
+	dbSlice.StatisticSlaves = nil         // 统计型从实例地址列表
+	dbSlice.Capacity = 12                 // gaea_proxy与每个实例的连接池大小
+	dbSlice.MaxCapacity = 24              // gaea_proxy与每个实例的连接池最大大小
+	dbSlice.IdleTimeout = 60              // gaea_proxy与后端mysql空闲连接存活时间，单位:秒
 	dbSlices = append(dbSlices, &dbSlice)
 
 	// 管理员的 NameSpace 載入 组织主从物理实例 (会写入变数 SessionExecutor -> namespaces[0] -> slices["key"])
@@ -135,12 +135,12 @@ func TestB2(t *testing.T) {
 	// >>>>> 组织 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
 	var nsUsers []*models.User // 应用端连接gaea所需要的用户配置，具体字段可参照users配置
 	nsUser := models.User{}
-	nsUser.UserName = "docker"               // 用户名
-	nsUser.Password = "12345"                // 用户密码
-	nsUser.Namespace = "alone_db0_namespace" // 对应的命名空间
-	nsUser.RWFlag = 2                        // 读写标识
-	nsUser.RWSplit = 1                       // 是否读写分离
-	nsUser.OtherProperty = 0                 // 其他属性，目前用来标识是否走统计从实例
+	nsUser.UserName = "panhong"        // 用户名
+	nsUser.Password = "12345"          // 用户密码
+	nsUser.Namespace = "db0_namespace" // 对应的命名空间
+	nsUser.RWFlag = 2                  // 读写标识
+	nsUser.RWSplit = 1                 // 是否读写分离
+	nsUser.OtherProperty = 0           // 其他属性，目前用来标识是否走统计从实例
 	nsUsers = append(nsUsers, &nsUser)
 
 	// 管理员的 NameSpace 載入 NS 用户 (会写入变数 SessionExecutor -> namespaces[0] -> userProperties["key"])
@@ -193,15 +193,15 @@ func TestB2(t *testing.T) {
 	current := 0                              // 切换标签
 	namespaceManager := new(NamespaceManager) // NameSpace 管理员
 	namespaceManager.namespaces = make(map[string]*Namespace, 64)
-	namespaceManager.namespaces["alone_db0_namespace"] = managerNamespace
+	namespaceManager.namespaces["db0_namespace"] = managerNamespace
 	serverManager.namespaces[current] = namespaceManager
 
 	// 指定服务器用户
 	serverUser := new(UserManager)
 	serverUser.users = make(map[string][]string, 64)
 	serverUser.userNamespaces = make(map[string]string, 64)
-	serverUser.userNamespaces["docker"+":"+"12345"] = "alone_db0_namespace"
-	serverUser.users["docker"] = append(serverUser.users["docker"], "12345")
+	serverUser.userNamespaces["panhong"+":"+"12345"] = "db0_namespace"
+	serverUser.users["panhong"] = append(serverUser.users["panhong"], "12345")
 
 	// 把 服务器用户资料 写回 服务器管理员
 	serverManager.users[current] = serverUser
@@ -209,7 +209,7 @@ func TestB2(t *testing.T) {
 	// 产生执行者资料
 	executor := SessionExecutor{}
 	executor.manager = serverManager
-	executor.namespace = "alone_db0_namespace" // 用 executor.namespace 和 current(切换标签)去取出NS值
+	executor.namespace = "db0_namespace" // 用 executor.namespace 和 current(切换标签)去取出NS值
 
 	// 取出 NS
 	ns := executor.GetNamespace()
@@ -238,7 +238,7 @@ func TestB2(t *testing.T) {
 	executor.stmts = make(map[uint32]*Stmt)
 	executor.parser = parser.New()
 	executor.status = initClientConnStatus
-	executor.user = "docker"
+	executor.user = "panhong"
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
 	executor.charset = "utf8"
@@ -246,12 +246,12 @@ func TestB2(t *testing.T) {
 
 	// 补齐 Session 执行者资料
 	sessionExecutor := newSessionExecutor(serverManager)
-	sessionExecutor.user = "docker"
+	sessionExecutor.user = "panhong"
 	collationID = 33 // "utf8"
 	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
 	sessionExecutor.SetCharset("utf8")
 	sessionExecutor.SetDatabase("Library") // set database
-	sessionExecutor.namespace = "alone_db0_namespace"
+	sessionExecutor.namespace = "db0_namespace"
 
 	// 检查数据库的 Parser
 	testParser := []struct {
@@ -439,7 +439,7 @@ func TestB2(t *testing.T) {
 		return
 
 		// 对数据库进行直连操作
-		dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.1.2:3350")
+		dc, err := executor.manager.GetNamespace(executor.namespace).GetSlice("slice-0").GetDirectConn("192.168.122.2:3306")
 		require.Equal(t, nil, err)
 		dc.Execute(s.String(), 50)
 		fmt.Println("目前执行的数据库指令为 ", s.String())
@@ -517,10 +517,10 @@ encrypt_key=1234abcd5678efg*
   "slices": [
     {
       "name": "slice-0",
-      "user_name": "docker",
+      "user_name": "panhong",
       "password": "12345",
-      "master": "192.168.1.2:3350",
-      "slaves": ["192.168.1.2:3351", "192.168.1.2:3352"],
+      "master": "192.168.122.2:3306",
+      "slaves": ["192.168.122.2:3307", "192.168.122.2:3308"],
       "statistic_slaves": null,
       "capacity": 12,
       "max_capacity": 24,
@@ -530,7 +530,7 @@ encrypt_key=1234abcd5678efg*
   "shard_rules": null,
   "users": [
     {
-      "user_name": "docker",
+      "user_name": "panhong",
       "password": "12345",
       "namespace": "db0_cluster_namespace",
       "rw_flag": 2,
@@ -586,7 +586,7 @@ encrypt_key=1234abcd5678efg*
 
 // 产生针对 Cluster db0 db0-0 db0-1 的 Plan Session
 func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
-	var userName = "docker"
+	var userName = "panhong"
 	var namespaceName = "db0_cluster_namespace"
 	var database = "Library"
 
@@ -608,7 +608,7 @@ func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 // TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
 func TestB3(t *testing.T) {
 	// 可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
-	return
+	// return
 
 	// 载入 Session Executor
 	se, err := preparePlanSessionExecutorForCluster()
@@ -654,6 +654,13 @@ func TestB3(t *testing.T) {
 		// 执行 Parser 后的 SQL 指令
 		reqCtx := util.NewRequestContext()
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
+
+		// 初始化單元測試程式
+		p.(*plan.UnshardPlan).MockPlan = new(plan.MockDcClient)
+		p.(*plan.UnshardPlan).Trans = new(plan.MockDcClient)
+
+		p.(*plan.UnshardPlan).MarkTakeOver()
+
 		res, err := p.ExecuteIn(reqCtx, se)
 		require.Equal(t, err, nil)
 

@@ -117,232 +117,232 @@ func SelectLibrayResult() *Result {
 
 	res.Values = make([][]interface{}, 29)
 	res.Values[0] = make([]interface{}, 6)
-	res.Values[0][0] = 1
-	res.Values[0][1] = 9781517191276
+	res.Values[0][0] = int64(1)
+	res.Values[0][1] = int64(9781517191276)
 	res.Values[0][2] = "Romance Of The Three Kingdoms"
 	res.Values[0][3] = "Luo Guanzhong"
 	res.Values[0][4] = 1522
 	res.Values[0][5] = "Historical fiction"
 
 	res.Values[1] = make([]interface{}, 6)
-	res.Values[1][0] = 2
-	res.Values[1][1] = 9789869442060
+	res.Values[1][0] = int64(2)
+	res.Values[1][1] = int64(9789869442060)
 	res.Values[1][2] = "Water Margin"
 	res.Values[1][3] = "Shi Nai an"
 	res.Values[1][4] = 1589
 	res.Values[1][5] = "Historical fiction"
 
 	res.Values[2] = make([]interface{}, 6)
-	res.Values[2][0] = 3
-	res.Values[2][1] = 9789575709518
+	res.Values[2][0] = int64(3)
+	res.Values[2][1] = int64(9789575709518)
 	res.Values[2][2] = "Journey To The West"
 	res.Values[2][3] = "Wu Cheng en"
 	res.Values[2][4] = 1592
 	res.Values[2][5] = "Gods And Demons Fiction"
 
 	res.Values[3] = make([]interface{}, 6)
-	res.Values[3][0] = 4
-	res.Values[3][1] = 9789865975364
+	res.Values[3][0] = int64(4)
+	res.Values[3][1] = int64(9789865975364)
 	res.Values[3][2] = "Dream Of The Red Chamber"
 	res.Values[3][3] = "Cao Xueqin"
 	res.Values[3][4] = 1791
 	res.Values[3][5] = "Family Saga"
 
 	res.Values[4] = make([]interface{}, 6)
-	res.Values[4][0] = 5
-	res.Values[4][1] = 9780804847773
+	res.Values[4][0] = int64(5)
+	res.Values[4][1] = int64(9780804847773)
 	res.Values[4][2] = "Jin Ping Mei"
 	res.Values[4][3] = "Lanling Xiaoxiao Sheng"
 	res.Values[4][4] = 1610
 	res.Values[4][5] = "Family Saga"
 
 	res.Values[5] = make([]interface{}, 6)
-	res.Values[5][0] = 6
-	res.Values[5][1] = 9780835124072
+	res.Values[5][0] = int64(6)
+	res.Values[5][1] = int64(9780835124072)
 	res.Values[5][2] = "Rulin Waishi"
 	res.Values[5][3] = "Wu Jingzi"
 	res.Values[5][4] = 1750
 	res.Values[5][5] = "Unofficial History"
 
 	res.Values[6] = make([]interface{}, 6)
-	res.Values[6][0] = 7
-	res.Values[6][1] = 9787101064100
+	res.Values[6][0] = int64(7)
+	res.Values[6][1] = int64(9787101064100)
 	res.Values[6][2] = "Amazing Tales First Series"
 	res.Values[6][3] = "Ling Mengchu"
 	res.Values[6][4] = 1628
 	res.Values[6][5] = "Perspective"
 
 	res.Values[7] = make([]interface{}, 6)
-	res.Values[7][0] = 8
-	res.Values[7][1] = 9789571447278
+	res.Values[7][0] = int64(8)
+	res.Values[7][1] = int64(9789571447278)
 	res.Values[7][2] = "Amazing Tales Second Series"
 	res.Values[7][3] = "Ling Mengchu"
 	res.Values[7][4] = 1628
 	res.Values[7][5] = "Perspective"
 
 	res.Values[8] = make([]interface{}, 6)
-	res.Values[8][0] = 9
-	res.Values[8][1] = 9789861273129
+	res.Values[8][0] = int64(9)
+	res.Values[8][1] = int64(9789861273129)
 	res.Values[8][2] = "Investiture Of The Gods"
 	res.Values[8][3] = "Lu Xixing"
 	res.Values[8][4] = 1605
 	res.Values[8][5] = "Mythology"
 
 	res.Values[9] = make([]interface{}, 6)
-	res.Values[9][0] = 10
-	res.Values[9][1] = 9787540251499
+	res.Values[9][0] = int64(10)
+	res.Values[9][1] = int64(9787540251499)
 	res.Values[9][2] = "Flowers In The Mirror"
 	res.Values[9][3] = "Li Ruzhen"
 	res.Values[9][4] = 1827
 	res.Values[9][5] = "Fantasy Stories"
 
 	res.Values[10] = make([]interface{}, 6)
-	res.Values[10][0] = 11
-	res.Values[10][1] = 9787508535296
+	res.Values[10][0] = int64(11)
+	res.Values[10][1] = int64(9787508535296)
 	res.Values[10][2] = "Stories Old And New"
 	res.Values[10][3] = "Feng Menglong"
 	res.Values[10][4] = 1620
 	res.Values[10][5] = "Perspective"
 
 	res.Values[11] = make([]interface{}, 6)
-	res.Values[11][0] = 12
-	res.Values[11][1] = 9787101097559
+	res.Values[11][0] = int64(12)
+	res.Values[11][1] = int64(9787101097559)
 	res.Values[11][2] = "General Yue Fei"
 	res.Values[11][3] = "Qian Cai"
 	res.Values[11][4] = 1735
 	res.Values[11][5] = "History"
 
 	res.Values[12] = make([]interface{}, 6)
-	res.Values[12][0] = 13
-	res.Values[12][1] = 9789863381037
+	res.Values[12][0] = int64(13)
+	res.Values[12][1] = int64(9789863381037)
 	res.Values[12][2] = "The Generals Of The Yang Family"
 	res.Values[12][3] = "Qi Zhonglan"
 	res.Values[12][4] = 0
 	res.Values[12][5] = "History"
 
 	res.Values[13] = make([]interface{}, 6)
-	res.Values[13][0] = 14
-	res.Values[13][1] = 9789865700027
+	res.Values[13][0] = int64(14)
+	res.Values[13][1] = int64(9789865700027)
 	res.Values[13][2] = "Romance Of Sui And Tang Dynasties"
 	res.Values[13][3] = "Chen Ruheng"
 	res.Values[13][4] = 1989
 	res.Values[13][5] = "History"
 
 	res.Values[14] = make([]interface{}, 6)
-	res.Values[14][0] = 15
-	res.Values[14][1] = 9789575709242
+	res.Values[14][0] = int64(15)
+	res.Values[14][1] = int64(9789575709242)
 	res.Values[14][2] = "The Seven Heroes And Five Gallants"
 	res.Values[14][3] = "Shi Yukun"
 	res.Values[14][4] = 1879
 	res.Values[14][5] = "History"
 
 	res.Values[15] = make([]interface{}, 6)
-	res.Values[15][0] = 16
-	res.Values[15][1] = 9789574927913
+	res.Values[15][0] = int64(16)
+	res.Values[15][1] = int64(9789574927913)
 	res.Values[15][2] = "A Collection Of Shi"
 	res.Values[15][3] = "Anonymous"
 	res.Values[15][4] = 1850
 	res.Values[15][5] = "History"
 
 	res.Values[16] = make([]interface{}, 6)
-	res.Values[16][0] = 17
-	res.Values[16][1] = 9787533303396
+	res.Values[16][0] = int64(17)
+	res.Values[16][1] = int64(9787533303396)
 	res.Values[16][2] = "Dream Of The Green Chamber"
 	res.Values[16][3] = "Yuda"
 	res.Values[16][4] = 1878
 	res.Values[16][5] = "Family Saga"
 
 	res.Values[17] = make([]interface{}, 6)
-	res.Values[17][0] = 18
-	res.Values[17][1] = 9787510434341
+	res.Values[17][0] = int64(18)
+	res.Values[17][1] = int64(9787510434341)
 	res.Values[17][2] = "Lamp In The Side Street"
 	res.Values[17][3] = "Li Luyuan"
 	res.Values[17][4] = 1790
 	res.Values[17][5] = "Unofficial History"
 
 	res.Values[18] = make([]interface{}, 6)
-	res.Values[18][0] = 19
-	res.Values[18][1] = 9789571447469
+	res.Values[18][0] = int64(19)
+	res.Values[18][1] = int64(9789571447469)
 	res.Values[18][2] = "The Travels of Lao Can"
 	res.Values[18][3] = "Liu E"
 	res.Values[18][4] = 1907
 	res.Values[18][5] = "Social Story"
 
 	res.Values[19] = make([]interface{}, 6)
-	res.Values[19][0] = 20
-	res.Values[19][1] = 9789571470047
+	res.Values[19][0] = int64(20)
+	res.Values[19][1] = int64(9789571470047)
 	res.Values[19][2] = "Bizarre Happenings Eyewitnessed over Two Decades"
 	res.Values[19][3] = "Jianren Wu"
 	res.Values[19][4] = 1905
 	res.Values[19][5] = "Unofficial History"
 
 	res.Values[20] = make([]interface{}, 6)
-	res.Values[20][0] = 21
-	res.Values[20][1] = 9787101097580
+	res.Values[20][0] = int64(21)
+	res.Values[20][1] = int64(9787101097580)
 	res.Values[20][2] = "A Flower In A Sinful Sea"
 	res.Values[20][3] = "Zeng Pu"
 	res.Values[20][4] = 1904
 	res.Values[20][5] = "History"
 
 	res.Values[21] = make([]interface{}, 6)
-	res.Values[21][0] = 22
-	res.Values[21][1] = 9789861674193
+	res.Values[21][0] = int64(22)
+	res.Values[21][1] = int64(9789861674193)
 	res.Values[21][2] = "Officialdom Unmasked"
 	res.Values[21][3] = "Li Baojia"
 	res.Values[21][4] = 1903
 	res.Values[21][5] = "Unofficial History"
 
 	res.Values[22] = make([]interface{}, 6)
-	res.Values[22][0] = 23
-	res.Values[22][1] = 9787805469836
+	res.Values[22][0] = int64(23)
+	res.Values[22][1] = int64(9787805469836)
 	res.Values[22][2] = "Tower For The Summer Heat"
 	res.Values[22][3] = "Li Yu"
 	res.Values[22][4] = 1680
 	res.Values[22][5] = "Unofficial History"
 
 	res.Values[23] = make([]interface{}, 6)
-	res.Values[23][0] = 24
-	res.Values[23][1] = 9787508067247
+	res.Values[23][0] = int64(24)
+	res.Values[23][1] = int64(9787508067247)
 	res.Values[23][2] = "Silent Operas"
 	res.Values[23][3] = "Li Yu"
 	res.Values[23][4] = 1680
 	res.Values[23][5] = "Unofficial History"
 
 	res.Values[24] = make([]interface{}, 6)
-	res.Values[24][0] = 25
-	res.Values[24][1] = 9789573609049
+	res.Values[24][0] = int64(25)
+	res.Values[24][1] = int64(9789573609049)
 	res.Values[24][2] = "The Carnal Prayer Mat"
 	res.Values[24][3] = "Li Yu"
 	res.Values[24][4] = 1680
 	res.Values[24][5] = "Unofficial History"
 
 	res.Values[25] = make([]interface{}, 6)
-	res.Values[25][0] = 26
-	res.Values[25][1] = 9787533948108
+	res.Values[25][0] = int64(26)
+	res.Values[25][1] = int64(9787533948108)
 	res.Values[25][2] = "Six Records Of A Floating Life"
 	res.Values[25][3] = "Shen Fu"
 	res.Values[25][4] = 1878
 	res.Values[25][5] = "Autobiography"
 
 	res.Values[26] = make([]interface{}, 6)
-	res.Values[26][0] = 27
-	res.Values[26][1] = 9786666141110
+	res.Values[26][0] = int64(27)
+	res.Values[26][1] = int64(9786666141110)
 	res.Values[26][2] = "Humble Words Of A Rustic Elder"
 	res.Values[26][3] = "Xia Jingqu"
 	res.Values[26][4] = 1787
 	res.Values[26][5] = "Historical fiction"
 
 	res.Values[27] = make([]interface{}, 6)
-	res.Values[27][0] = 28
-	res.Values[27][1] = 9789571435473
+	res.Values[27][0] = int64(28)
+	res.Values[27][1] = int64(9789571435473)
 	res.Values[27][2] = "Nine-Tailed Turtle"
 	res.Values[27][3] = "Lu Can"
 	res.Values[27][4] = 1551
 	res.Values[27][5] = "Mythology"
 
 	res.Values[28] = make([]interface{}, 6)
-	res.Values[28][0] = 29
-	res.Values[28][1] = 9789866318603
+	res.Values[28][0] = int64(29)
+	res.Values[28][1] = int64(9789866318603)
 	res.Values[28][2] = "A History Of Floral Treasures"
 	res.Values[28][3] = "Chen Sen"
 	res.Values[28][4] = 1849

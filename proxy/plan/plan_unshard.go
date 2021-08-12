@@ -16,6 +16,7 @@ package plan
 
 import (
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	"github.com/XiaoMi/Gaea/backend"
@@ -25,6 +26,54 @@ import (
 	"github.com/XiaoMi/Gaea/util"
 )
 
+// Transferred 🧚 单元测试的定义接口
+type Transferred interface {
+	// IsTakeOver 单元测试专用接口
+	IsTakeOver() bool // 是否被单元测试接管
+	MarkTakeOver()    // 标记被单元测试接管
+	UnmarkTakeOver()  // 反标记被单元测试接管
+	// 嵌入每个函式接手的方法
+	// connect() error // 直连进行连线的方法，這裡不使用，因為在測試時，連線直接回傳錯誤 nil
+}
+
+// MockDcClient 🧚 单元测试数据库计划客户端
+type MockDcClient struct {
+	// 单元测试设定
+	TakeOver bool // 现在是否由单元测试接管
+	// 单元测试资料回应
+	Result map[uint32]mysql.Result
+}
+
+// MarkTakeOver 🧚 MockDcClient 单元测试数据库直连的标记函式 (设定)
+func (m *MockDcClient) MarkTakeOver() {
+	m.TakeOver = true
+}
+
+// IsTakeOver 🧚 MockDcClient 单元测试数据库计划的确认函式 (设定)
+func (m *MockDcClient) IsTakeOver() bool {
+	// 因为不是每个函式或过程会完整初始化 Mock Client 变数，如果没有这一层保护，会有 nil 指标的错误
+	if m == nil {
+		return false
+	}
+	return m.TakeOver
+}
+
+// UnmarkTakeOver 🧚 MockDcClient 单元测试数据库计划的反标记函式 (设定)
+func (m *MockDcClient) UnmarkTakeOver() {
+	m.TakeOver = false
+}
+
+// MakeResult 🧚 单元测试数据库计划的回应资料编辑 (回应)
+func (m *MockDcClient) MakeResult(db, sql string, res mysql.Result) uint32 {
+	// 把数据库和SQL字串转成单纯的数字
+	h := fnv.New32a()
+	h.Write([]byte(db + ";" + sql + ";")) // 所有的字串后面都要加上分号
+
+	// 直接把资料写入数据库
+	m.Result[h.Sum32()] = res
+	return h.Sum32() // 回传登记的数值
+}
+
 // UnshardPlan is the plan for unshard statement
 type UnshardPlan struct {
 	basePlan
@@ -33,6 +82,25 @@ type UnshardPlan struct {
 	phyDBs map[string]string
 	sql    string
 	stmt   ast.StmtNode
+
+	// 🧚 增加单元测试的属性
+	MockPlan *MockDcClient // 单元测试数据库计划
+	Trans    Transferred   // 单元测试的定义接口
+}
+
+// MarkTakeOver 🧚 UnshardPlan 单元测试数据库计划的标记函式 (设定)
+func (plan *UnshardPlan) MarkTakeOver() {
+	plan.MockPlan.MarkTakeOver()
+}
+
+// IsTakeOver 🧚 UnshardPlan 单元测试数据库计划的确认函式 (设定)
+func (plan *UnshardPlan) IsTakeOver() bool {
+	return plan.MockPlan.IsTakeOver()
+}
+
+// UnmarkTakeOver 🧚 UnshardPlan 单元测试数据库计划的反标记函式 (设定)
+func (plan *UnshardPlan) UnmarkTakeOver() {
+	plan.MockPlan.TakeOver = false
 }
 
 // SelectLastInsertIDPlan is the plan for SELECT LAST_INSERT_ID()
@@ -106,6 +174,11 @@ func CreateSelectLastInsertIDPlan() *SelectLastInsertIDPlan {
 
 // ExecuteIn implement Plan
 func (p *UnshardPlan) ExecuteIn(reqCtx *util.RequestContext, se Executor) (*mysql.Result, error) {
+	// 🧚 单元测试接管
+	if p.MockPlan.IsTakeOver() {
+		return mysql.SelectLibrayResult(), nil // 立刻中斷
+	}
+
 	r, err := se.ExecuteSQL(reqCtx, backend.DefaultSlice, p.db, p.sql)
 	if err != nil {
 		return nil, err

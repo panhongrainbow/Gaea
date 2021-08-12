@@ -494,7 +494,7 @@ func (se *SessionExecutor) executeInMultiSlices(reqCtx *util.RequestContext, pcs
 			}
 			for _, v := range sqls {
 				startTime := time.Now()
-				r, err := pc.Execute(v,  se.manager.GetNamespace(se.namespace).GetMaxResultSize())
+				r, err := pc.Execute(v, se.manager.GetNamespace(se.namespace).GetMaxResultSize())
 				se.manager.RecordBackendSQLMetrics(reqCtx, se.namespace, v, pc.GetAddr(), startTime, err)
 				if err != nil {
 					rs[i] = err
