@@ -28,53 +28,52 @@ import (
 
 // Transferred 🧚 单元测试的定义接口
 type Transferred interface {
-	// IsTakeOver 单元测试专用接口
 	IsTakeOver() bool // 是否被单元测试接管
 	MarkTakeOver()    // 标记被单元测试接管
 	UnmarkTakeOver()  // 反标记被单元测试接管
-	// 嵌入每个函式接手的方法
-	// connect() error // 直连进行连线的方法，這裡不使用，因為在測試時，連線直接回傳錯誤 nil
 }
 
-// MockDcClient 🧚 单元测试数据库计划客户端
-type MockDcClient struct {
-	// 单元测试设定
+// MockPlanClient 🧚 单元测试数据库计划客户端
+type MockPlanClient struct {
+	// 单元测试相关设定值
 	TakeOver bool // 现在是否由单元测试接管
 	// 单元测试资料回应
-	Result map[uint32]mysql.Result
+	Result map[uint32]mysql.Result // 模拟数据库资料回传
 }
 
-// MarkTakeOver 🧚 MockDcClient 单元测试数据库直连的标记函式 (设定)
-func (m *MockDcClient) MarkTakeOver() {
-	m.TakeOver = true
+// MarkTakeOver 函式 🧚 为 MockPlanClient 资料执行单元测试数据库直连的标记函式 (设定)
+func (m *MockPlanClient) MarkTakeOver() {
+	m.TakeOver = true // 单元测试之后可以直接进行接管
 }
 
-// IsTakeOver 🧚 MockDcClient 单元测试数据库计划的确认函式 (设定)
-func (m *MockDcClient) IsTakeOver() bool {
-	// 因为不是每个函式或过程会完整初始化 Mock Client 变数，如果没有这一层保护，会有 nil 指标的错误
+// IsTakeOver 函式 🧚 为 MockPlanClient 资料执行单元测试数据库计划的确认函式 (设定)
+func (m *MockPlanClient) IsTakeOver() bool {
+	// 因为不是每个函式或过程会完整初始化 Mock Client 变数，如果没有这一层保护，防止 nil 指标的错误
 	if m == nil {
-		return false
+		return false // 回传 false ，之后单元测试不允许进行介入程式内部的运作
 	}
-	return m.TakeOver
+	return m.TakeOver // 只要是回传 true ，之后单元测试就会接管整个程式
 }
 
-// UnmarkTakeOver 🧚 MockDcClient 单元测试数据库计划的反标记函式 (设定)
-func (m *MockDcClient) UnmarkTakeOver() {
-	m.TakeOver = false
+// UnmarkTakeOver 函式 🧚 为 MockPlanClient 资料执行单元测试数据库计划的反标记函式 (设定)
+func (m *MockPlanClient) UnmarkTakeOver() {
+	m.TakeOver = false // 解除单元测试的接管状态
 }
 
-// MakeResult 🧚 单元测试数据库计划的回应资料编辑 (回应)
-func (m *MockDcClient) MakeResult(db, sql string, res mysql.Result) uint32 {
+// MakeResult 🧚 为 在单元测试数据库时建立计划回应资料的对应 (回应)
+// 目前准备做法是 1设定 环境 2数据库名称 3SQL 指令 三个值的组合对应到 一个数据库资料回传
+func (m *MockPlanClient) MakeResult(db, sql string, res mysql.Result) uint32 {
 	// 把数据库和SQL字串转成单纯的数字
 	h := fnv.New32a()
 	h.Write([]byte(db + ";" + sql + ";")) // 所有的字串后面都要加上分号
 
-	// 直接把资料写入数据库
-	m.Result[h.Sum32()] = res
-	return h.Sum32() // 回传登记的数值
+	// 直接预先写好数据库资料回传
+	m.Result[h.Sum32()] = res // 转成数值，运算速度较快
+	return h.Sum32()          // 回传登记的数值
 }
 
 // UnshardPlan is the plan for unshard statement
+// 此资料被单元测试函式包围
 type UnshardPlan struct {
 	basePlan
 
@@ -83,24 +82,24 @@ type UnshardPlan struct {
 	sql    string
 	stmt   ast.StmtNode
 
-	// 🧚 增加单元测试的属性
-	MockPlan *MockDcClient // 单元测试数据库计划
-	Trans    Transferred   // 单元测试的定义接口
+	// 🧚 扩增一些单元测试的属性
+	MockPlan *MockPlanClient // 单元测试数据库计划
+	Trans    Transferred     // 单元测试的定义接口
 }
 
-// MarkTakeOver 🧚 UnshardPlan 单元测试数据库计划的标记函式 (设定)
+// MarkTakeOver 函式 🧚 为 UnshardPlan 资料执行单元测试数据库计划的标记函式 (设定)
 func (plan *UnshardPlan) MarkTakeOver() {
-	plan.MockPlan.MarkTakeOver()
+	plan.MockPlan.MarkTakeOver() // 操作底层函式
 }
 
-// IsTakeOver 🧚 UnshardPlan 单元测试数据库计划的确认函式 (设定)
+// IsTakeOver 函式 🧚 为 UnshardPlan 资料执行单元测试数据库计划的确认函式 (设定)
 func (plan *UnshardPlan) IsTakeOver() bool {
-	return plan.MockPlan.IsTakeOver()
+	return plan.MockPlan.IsTakeOver() // 操作底层函式
 }
 
-// UnmarkTakeOver 🧚 UnshardPlan 单元测试数据库计划的反标记函式 (设定)
+// UnmarkTakeOver 函式 🧚 为 UnshardPlan 资料执行单元测试数据库计划的反标记函式 (设定)
 func (plan *UnshardPlan) UnmarkTakeOver() {
-	plan.MockPlan.TakeOver = false
+	plan.MockPlan.UnmarkTakeOver() // 操作底层函式
 }
 
 // SelectLastInsertIDPlan is the plan for SELECT LAST_INSERT_ID()
