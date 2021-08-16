@@ -26,6 +26,8 @@ import (
 	"github.com/XiaoMi/Gaea/util"
 )
 
+var PassMock bool
+
 // Transferred 🧚 单元测试的定义接口
 type Transferred interface {
 	IsTakeOver() bool // 是否被单元测试接管
@@ -175,7 +177,8 @@ func CreateSelectLastInsertIDPlan() *SelectLastInsertIDPlan {
 func (p *UnshardPlan) ExecuteIn(reqCtx *util.RequestContext, se Executor) (*mysql.Result, error) {
 	// 🧚 单元测试接管
 	if p.MockPlan.IsTakeOver() {
-		return mysql.SelectLibrayResult(), nil // 立刻中斷
+		// return mysql.SelectLibrayResult(), nil // 立刻中斷
+		PassMock = true
 	}
 
 	r, err := se.ExecuteSQL(reqCtx, backend.DefaultSlice, p.db, p.sql)

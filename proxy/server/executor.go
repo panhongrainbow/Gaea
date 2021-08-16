@@ -735,6 +735,10 @@ func (se *SessionExecutor) rollback() (err error) {
 
 // ExecuteSQL execute sql
 func (se *SessionExecutor) ExecuteSQL(reqCtx *util.RequestContext, slice, db, sql string) (*mysql.Result, error) {
+	if plan.PassMock {
+		return mysql.SelectLibrayResult(), nil // 立刻中斷
+	}
+
 	phyDB, err := se.GetNamespace().GetDefaultPhyDB(db)
 	if err != nil {
 		return nil, err
