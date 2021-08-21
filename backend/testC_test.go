@@ -61,7 +61,7 @@ func TestC2(t *testing.T) {
 	dc.Trans = new(MockDcClient)
 
 	// 單元測試接管
-	dc.MarkTakeOver()
+	MarkTakeOver()
 
 	// 进行连线
 	err := dc.connect()

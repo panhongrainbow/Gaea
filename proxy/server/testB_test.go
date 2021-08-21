@@ -657,10 +657,7 @@ func TestB3(t *testing.T) {
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
 
 		// 初始化單元測試程式
-		p.(*plan.UnshardPlan).MockPlan = new(plan.MockPlanClient)
-		p.(*plan.UnshardPlan).Trans = new(plan.MockPlanClient)
-
-		p.(*plan.UnshardPlan).MarkTakeOver()
+		backend.MarkTakeOver()
 
 		res, err := p.ExecuteIn(reqCtx, se)
 		require.Equal(t, err, nil)
