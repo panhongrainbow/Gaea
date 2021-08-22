@@ -470,6 +470,12 @@ func (dc *DirectConnection) Ping() error {
 
 // UseDB send ComInitDB to backend mysql
 func (dc *DirectConnection) UseDB(dbName string) error {
+
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		return nil // 立刻中断
+	}
+
 	dc.conn.SetSequence(0)
 	if dc.db == dbName || len(dbName) == 0 {
 		return nil
@@ -585,6 +591,12 @@ func (dc *DirectConnection) ResetConnection() error {
 	}
 
 	if !dc.IsAutoCommit() {
+
+		// 🧚 直接由单元测试接管
+		if IsTakeOver() {
+			return nil // 立刻中斷
+		}
+
 		log.Debug("get autocommit = 0 connection from pool, addr: %s, user: %s, db: %s, status: %d", dc.addr, dc.user, dc.db, dc.status)
 		if err := dc.SetAutoCommit(1); err != nil {
 			log.Warn("set autocommit = 1 in reset connection error, addr: %s, user: %s, db: %s, status: %d, err: %v", dc.addr, dc.user, dc.db, dc.status, err)
@@ -621,6 +633,12 @@ func (dc *DirectConnection) WriteSetStatement() error {
 	if setSQL == "" {
 		return nil
 	}
+
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		return nil // 立刻中断
+	}
+
 	if _, err := dc.exec(setSQL, 0); err != nil {
 		return err
 	}

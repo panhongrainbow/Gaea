@@ -735,12 +735,6 @@ func (se *SessionExecutor) rollback() (err error) {
 
 // ExecuteSQL execute sql
 func (se *SessionExecutor) ExecuteSQL(reqCtx *util.RequestContext, slice, db, sql string) (*mysql.Result, error) {
-
-	// 这里
-	if backend.IsTakeOver() {
-		return mysql.SelectLibrayResult(), nil // 立刻中斷
-	}
-
 	phyDB, err := se.GetNamespace().GetDefaultPhyDB(db)
 	if err != nil {
 		return nil, err
@@ -756,6 +750,11 @@ func (se *SessionExecutor) ExecuteSQL(reqCtx *util.RequestContext, slice, db, sq
 	if err != nil {
 		log.Warn("getUnShardConns failed: %v", err)
 		return nil, err
+	}
+
+	// 这里
+	if backend.IsTakeOver() {
+		// return mysql.SelectLibrayResult(), nil // 立刻中斷
 	}
 
 	rs, err := se.executeInMultiSlices(reqCtx, pcs, sqls)
