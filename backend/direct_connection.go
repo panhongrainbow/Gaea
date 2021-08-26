@@ -31,8 +31,18 @@ import (
 
 var TakeOver bool // 现在是否由单元测试接管
 
+// FakeDB 資料是用來模擬一台假的数据库
+type FakeDB struct {
+	Loaded     bool
+	MockResult map[uint32]mysql.Result
+}
+
+var FakeDBInstance FakeDB // 启动一个模拟的数据库实例
+
 // Transferred 🧚 单元测试的定义接口
 type Transferred interface {
+	IsLoaded() bool
+	LoadData() error
 	// IsTakeOver() bool // 是否被单元测试接管
 	// MarkTakeOver()    // 标记被单元测试接管
 	// UnmarkTakeOver()  // 反标记被单元测试接管
@@ -40,10 +50,11 @@ type Transferred interface {
 
 // MockDcClient 🧚 单元测试数据库直连客户端
 type MockDcClient struct {
+	MockKey uint32 // 识别要 Mock 资料的关键 Key 值
 	// 单元测试相关设定值
 	// TakeOver bool // 现在是否由单元测试接管 (TakeOver 变数移到全域变数)
 	// 单元测试资料回应
-	Result map[uint32]mysql.Result // 模拟数据库资料回传
+	// MockResult map[uint32]mysql.Result // (MockResult 变数移到全域变数)
 }
 
 // MarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的标记函式 (TakeOver 变数移到全域变数后废除)
@@ -88,8 +99,8 @@ func (m *MockDcClient) MakeResult(db, sql string, res mysql.Result) uint32 {
 	h.Write([]byte(db + ";" + sql + ";")) // 所有的字串后面都要加上分号
 
 	// 直接预先写好数据库资料回传
-	m.Result[h.Sum32()] = res // 转成数值，运算速度较快
-	return h.Sum32()          // 回传登记的数值
+	FakeDBInstance.MockResult[h.Sum32()] = res // 转成数值，运算速度较快
+	return h.Sum32()                           // 回传登记的数值
 }
 
 // DirectConnection means connection to backend mysql
@@ -508,9 +519,26 @@ func (dc *DirectConnection) GetAddr() string {
 // Execute send ComQuery or ComStmtPrepare/ComStmtExecute/ComStmtClose to backend mysql
 func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, error) {
 	// 🧚 直接由单元测试接管
-	// if dc.MockDC.IsTakeOver() { // TakeOver 变数移到全域变数后修正
 	if IsTakeOver() {
-		return mysql.SelectLibrayResult(), nil // 立刻中斷
+		// 之后做成对应到 IP 和 SQL 字串，会回传 SQL 的执行结果
+		// 因为把 DC 直连变数展开，里面能够查到的资料也只有 IP 位置和 SQL 执行字串
+		// 如果在执行单元测试过程中，没有命中单元测试的测试资料，就使用 Fatal 中止
+		// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>> 产生测试资料
+
+		dc.MockDC = new(MockDcClient)
+
+		// 这里做 key
+
+		FakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+		number := dc.MockDC.MakeResult("Library", "SELECT * FROM Book;", *mysql.SelectLibrayResult())
+		tmp := FakeDBInstance.MockResult[number]
+
+		return &tmp, nil // 立刻中斷
+		// return mysql.SelectLibrayResult(), nil // 立刻中斷
+
+		// >>>>>>>>>>>>>>>>>>>>>>>>>>>
 	}
 
 	// 以下保持原有程式

@@ -609,7 +609,7 @@ func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 // 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
 func TestB3(t *testing.T) {
 	// 可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
-	return
+	// return
 
 	// 载入 Session Executor
 	se, err := preparePlanSessionExecutorForCluster()
@@ -656,9 +656,10 @@ func TestB3(t *testing.T) {
 		reqCtx := util.NewRequestContext()
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
 
-		// 初始化單元測試程式
+		// 初始化单元测试程式
 		backend.MarkTakeOver()
 
+		// 执行资料库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
 		require.Equal(t, err, nil)
 
@@ -672,6 +673,7 @@ func TestB3(t *testing.T) {
 		require.Equal(t, res.Resultset.Values[28][1].(int64), int64(9789866318603))
 		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
 	}
+
 }
 
 // TestB4 内含把 29 本小说写入数据库的程式码，这时开始进行数据库读写分离
