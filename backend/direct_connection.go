@@ -29,25 +29,6 @@ import (
 	"github.com/XiaoMi/Gaea/util/sync2"
 )
 
-var TakeOver bool // 现在是否由单元测试接管
-
-// FakeDB 資料是用來模擬一台假的数据库
-type FakeDB struct {
-	Loaded     bool
-	MockResult map[uint32]mysql.Result
-}
-
-var FakeDBInstance FakeDB // 启动一个模拟的数据库实例
-
-// Transferred 🧚 单元测试的定义接口
-type Transferred interface {
-	IsLoaded() bool
-	LoadData() error
-	// IsTakeOver() bool // 是否被单元测试接管
-	// MarkTakeOver()    // 标记被单元测试接管
-	// UnmarkTakeOver()  // 反标记被单元测试接管
-}
-
 // MockDcClient 🧚 单元测试数据库直连客户端
 type MockDcClient struct {
 	MockKey uint32 // 识别要 Mock 资料的关键 Key 值
@@ -91,12 +72,12 @@ func UnmarkTakeOver() {
 	TakeOver = false // 解除单元测试的接管状态
 }
 
-// MakeResult 函式 🧚 为 在单元测试数据库时建立直连回应资料的对应 (回应)
+// MakeMockResult 函式 🧚 为 在单元测试数据库时建立直连回应资料的对应 (回应)
 // 目前准备做法是 1设定 环境 2数据库名称 3SQL 指令 三个值的组合对应到 一个数据库资料回传
-func (m *MockDcClient) MakeResult(db, sql string, res mysql.Result) uint32 {
-	// 把数据库和SQL字串转成单纯的数字
+func (m *MockDcClient) MakeMockResult(addr, sql string, res mysql.Result) uint32 {
+	// 把数据库网路位置和SQL字串转成单纯的数字
 	h := fnv.New32a()
-	h.Write([]byte(db + ";" + sql + ";")) // 所有的字串后面都要加上分号
+	h.Write([]byte(addr + ";" + sql + ";")) // 所有的字串后面都要加上分号
 
 	// 直接预先写好数据库资料回传
 	FakeDBInstance.MockResult[h.Sum32()] = res // 转成数值，运算速度较快
@@ -520,20 +501,18 @@ func (dc *DirectConnection) GetAddr() string {
 func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, error) {
 	// 🧚 直接由单元测试接管
 	if IsTakeOver() {
-		// 之后做成对应到 IP 和 SQL 字串，会回传 SQL 的执行结果
-		// 因为把 DC 直连变数展开，里面能够查到的资料也只有 IP 位置和 SQL 执行字串
+		// 之后做成对应到 IP 和 SQL 字串等相关的资料，会回传 SQL 的执行结果
 		// 如果在执行单元测试过程中，没有命中单元测试的测试资料，就使用 Fatal 中止
 		// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
 
 		// >>>>>>>>>>>>>>>>>>>>>>>>>>> 产生测试资料
 
 		dc.MockDC = new(MockDcClient)
+		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
-		// 这里做 key
-
-		FakeDBInstance.MockResult = make(map[uint32]mysql.Result)
-		number := dc.MockDC.MakeResult("Library", "SELECT * FROM Book;", *mysql.SelectLibrayResult())
-		tmp := FakeDBInstance.MockResult[number]
+		bl := basicLoad{}
+		bl.LoadData()
+		tmp := FakeDBInstance.MockResult[3652007921]
 
 		return &tmp, nil // 立刻中斷
 		// return mysql.SelectLibrayResult(), nil // 立刻中斷
