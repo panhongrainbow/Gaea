@@ -144,6 +144,12 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 		closed:           sync2.NewAtomicBool(false),
 		sessionVariables: mysql.NewSessionVariables(),
 	}
+
+	// 指定要载入测试的方法
+	if IsTakeOver() {
+		dc.Trans = new(basicLoad) // 目前是使用最简单的测试资料载入方法，做测试用
+	}
+
 	err := dc.connect()
 	return dc, err
 }
@@ -510,8 +516,8 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 		dc.MockDC = new(MockDcClient)
 		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
-		bl := basicLoad{}
-		bl.LoadData()
+		// bl := basicLoad{}
+		_ = dc.Trans.LoadData()
 		tmp := FakeDBInstance.MockResult[3652007921]
 
 		return &tmp, nil // 立刻中斷

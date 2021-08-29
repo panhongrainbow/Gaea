@@ -20,9 +20,11 @@ var FakeDBInstance FakeDB // 启动一个模拟的数据库实例
 
 // Transferred 🧚 单元测试的测试资料载入定义接口
 type Transferred interface {
-	IsLoaded() bool  // 是否载入资料完成
-	MarkLoaded()     // 标记载入资料完成
-	LoadData() error // 进行测试资的载入资料
+	IsLoaded() bool   // 是否载入资料完成
+	MarkLoaded()      // 标记载入资料完成
+	UnMarkLoaded()    // 去除 载入资料完成 的标记
+	LoadData() error  // 进行测试资的载入资料
+	EmptyData() error // 清空已载入的测试资料
 	// IsTakeOver() bool // 是否被单元测试接管
 	// MarkTakeOver()    // 标记被单元测试接管
 	// UnmarkTakeOver()  // 反标记被单元测试接管
