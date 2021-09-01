@@ -607,7 +607,7 @@ func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 
 // TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
 // 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
-func TestB3(t *testing.T) {
+func TestPlanExecuteIn(t *testing.T) {
 	// 可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
 	// return
 
@@ -618,7 +618,7 @@ func TestB3(t *testing.T) {
 	require.Equal(t, err, nil)
 	require.Equal(t, db, "Library") // 检查 SessionExecutor 是否正确载入
 
-	// 开始检查和资料库的沟通
+	// 开始检查和数据库的沟通
 	tests := []struct {
 		sql    string
 		expect string
@@ -659,7 +659,7 @@ func TestB3(t *testing.T) {
 		// 初始化单元测试程式
 		backend.MarkTakeOver()
 
-		// 执行资料库分库指令
+		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
 		require.Equal(t, err, nil)
 
@@ -831,7 +831,7 @@ func TestB4(t *testing.T) {
 	sessionExecutor.SetDatabase("Library") // set database
 	sessionExecutor.namespace = "db0_cluster_namespace"
 
-	// 开始检查和资料库的沟通
+	// 开始检查和数据库的沟通
 	tests := []struct {
 		sql    string
 		expect string

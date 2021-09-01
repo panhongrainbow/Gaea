@@ -75,7 +75,7 @@ func TestB3(t *testing.T) {
 	require.Equal(t, err, nil)
 	require.Equal(t, db, "Library") // 检查 SessionExecutor 是否正确载入
 
-	// 开始检查和资料库的沟通
+	// 开始检查和数据库的沟通
 	tests := []struct {
 		sql    string
 		expect string

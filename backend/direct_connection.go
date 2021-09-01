@@ -145,9 +145,25 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 		sessionVariables: mysql.NewSessionVariables(),
 	}
 
-	// 指定要载入测试的方法
+	// 🧚 指定要载入测试的方法
 	if IsTakeOver() {
+		// >>>>> >>>>> >>>>> >>>>> >>>>> 先决定要使用假资料的方法
+
+		// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
 		dc.Trans = new(basicLoad) // 目前是使用最简单的测试资料载入方法，做测试用
+
+		// >>>>> >>>>> >>>>> >>>>> >>>>> 开始载入资料
+		if dc.Trans.IsLoaded() == false { // 如果之前没载入测试资料
+			if err := dc.Trans.LoadData(); err == nil {
+				dc.Trans.MarkLoaded() // 标记单元测试资料载入成功
+			} else {
+				// 做成对应到 网路位置、帐号、密码等相关资料，会回传 SQL 的执行结果
+				// 如果在执行单元测试过程中，没有 1 命中单元测试的测试资料 或者是 2 测试资料载入失败，就使用 Fatal 中止
+				// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
+				log.Fatal("单元测试载入测试资料失败 %s", err.Error()) // 直接中断
+			}
+		}
+
 	}
 
 	err := dc.connect()
@@ -505,25 +521,23 @@ func (dc *DirectConnection) GetAddr() string {
 
 // Execute send ComQuery or ComStmtPrepare/ComStmtExecute/ComStmtClose to backend mysql
 func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, error) {
+	// 🧚 只要这个物件 dc *DirectConnection 一初始化时，假资料的产生方式在函式 NewDirectConnection 就决定了
+	// 并在 dc.Trans.MarkLoaded() 这一行完成测试资料载入
+
 	// 🧚 直接由单元测试接管
 	if IsTakeOver() {
-		// 之后做成对应到 IP 和 SQL 字串等相关的资料，会回传 SQL 的执行结果
-		// 如果在执行单元测试过程中，没有命中单元测试的测试资料，就使用 Fatal 中止
-		// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
-
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>> 产生测试资料
-
 		dc.MockDC = new(MockDcClient)
-		dc.MockDC.MockKey = dc.MakeMockKey(sql)
+		dc.MockDC.MockKey = dc.MakeMockKey(sql) // 3652007921
 
-		// bl := basicLoad{}
-		_ = dc.Trans.LoadData()
-		tmp := FakeDBInstance.MockResult[3652007921]
-
-		return &tmp, nil // 立刻中斷
-		// return mysql.SelectLibrayResult(), nil // 立刻中斷
-
-		// >>>>>>>>>>>>>>>>>>>>>>>>>>>
+		if tmp, ok := FakeDBInstance.MockResult[dc.MockDC.MockKey]; ok {
+			fmt.Printf("\u001B[35m 命中测试资料序号 Key: %d\n", dc.MockDC.MockKey)
+			return &tmp, nil // 立刻中斷
+		} else {
+			// 做成对应到 网路位置、帐号、密码等相关资料，会回传 SQL 的执行结果
+			// 如果在执行单元测试过程中，没有 1 命中单元测试的测试资料 或者是 2 测试资料载入失败，就使用 Fatal 中止
+			// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
+			log.Fatal("单元测试没有命中测试资料序号 %d", dc.MockDC.MockKey) // 直接中断
+		}
 	}
 
 	// 以下保持原有程式

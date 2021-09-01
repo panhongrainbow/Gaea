@@ -25,8 +25,8 @@ func TestA(t *testing.T) {
 		{"SELECT HIGH_PRIORITY v FROM db.t", true, "SELECT HIGH_PRIORITY `v` FROM `db`.`t`"},                                             // (5) 高优先权
 		{"SELECT LOW_PRIORITY v FROM db.t", true, "SELECT LOW_PRIORITY `v` FROM `db`.`t`"},                                               // (6) 低优先权
 		{"SELECT DELAYED v FROM db.t", true, "SELECT DELAYED `v` FROM `db`.`t`"},                                                         // (7) 延迟写入，先回报客户 SQL 完成。大多是用在 INSERT ，看看用在 SQL 会不会有问题
-		{"SELECT SQL_CACHE v FROM db.t", true, "SELECT `v` FROM `db`.`t`"},                                                               // (8) 资料库查询时使用快取
-		{"SELECT SQL_NO_CACHE v FROM db.t", true, "SELECT SQL_NO_CACHE `v` FROM `db`.`t`"},                                               // (9) 资料库查询时不使用快取，直接对资料库进行性能测试
+		{"SELECT SQL_CACHE v FROM db.t", true, "SELECT `v` FROM `db`.`t`"},                                                               // (8) 数据库查询时使用快取
+		{"SELECT SQL_NO_CACHE v FROM db.t", true, "SELECT SQL_NO_CACHE `v` FROM `db`.`t`"},                                               // (9) 数据库查询时不使用快取，直接对数据库进行性能测试
 		{"SELECT SQL_CALC_FOUND_ROWS v FROM db.t", true, "SELECT `v` FROM `db`.`t`"},                                                     // (10) func (n *SelectStmt) Restore(ctx *format.RestoreCtx) error 函式不处理 SQL_CALC_FOUND_ROWS 字串
 		{"SELECT * FROM t1 INNER JOIN t2 WHERE t1.id=t2.id", true, "SELECT * FROM `t1` JOIN `t2` WHERE `t1`.`id`=`t2`.`id`"},             // (11) 执行 INNER JOIN
 		{"SELECT * FROM t1 STRAIGHT_JOIN t2 WHERE t1.id=t2.id", true, "SELECT * FROM `t1` STRAIGHT_JOIN `t2` WHERE `t1`.`id`=`t2`.`id`"}, // (12) 执行 STRAIGHT JOIN
