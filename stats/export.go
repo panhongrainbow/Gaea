@@ -79,6 +79,13 @@ func (vg *varGroup) publish(name string, v expvar.Var) {
 	}
 }
 
+func (vg *varGroup) test(name string) bool {
+	if expvar.Get(name) == nil {
+		return false
+	}
+	return true
+}
+
 var defaultVarGroup = varGroup{vars: make(map[string]expvar.Var)}
 
 // Register allows you to register a callback function
@@ -96,6 +103,14 @@ func Publish(name string, v expvar.Var) {
 
 func publish(name string, v expvar.Var) {
 	defaultVarGroup.publish(name, v)
+}
+
+func Test(name string) bool {
+	return test(name)
+}
+
+func test(name string) bool {
+	return defaultVarGroup.test(name)
 }
 
 // PushBackend is an interface for any stats/metrics backend that requires data

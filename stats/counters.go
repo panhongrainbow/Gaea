@@ -192,7 +192,9 @@ func NewCountersWithMultiLabels(name, help string, labels []string) *CountersWit
 		labels: labels,
 	}
 	if name != "" {
-		publish(name, t)
+		if Test(name) == false {
+			publish(name, t)
+		}
 	}
 
 	return t
@@ -270,7 +272,9 @@ func NewCountersFuncWithMultiLabels(name, help string, labels []string, f func()
 		labels: labels,
 	}
 	if name != "" {
-		publish(name, t)
+		if Test(name) == false {
+			publish(name, t)
+		}
 	}
 
 	return t
@@ -360,7 +364,9 @@ func NewGaugesWithMultiLabels(name, help string, labels []string) *GaugesWithMul
 			labels: labels,
 		}}
 	if name != "" {
-		publish(name, t)
+		if Test(name) == false {
+			publish(name, t)
+		}
 	}
 
 	return t
@@ -404,7 +410,9 @@ func NewGaugesFuncWithMultiLabels(name, help string, labels []string, f func() m
 		}}
 
 	if name != "" {
-		publish(name, t)
+		if Test(name) == false {
+			publish(name, t)
+		}
 	}
 
 	return t
