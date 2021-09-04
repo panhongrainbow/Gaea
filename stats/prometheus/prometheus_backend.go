@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/XiaoMi/Gaea/stats"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // PromBackend implements PullBackend using Prometheus as the backing metrics storage.
@@ -23,7 +23,12 @@ var (
 // Init initializes the Prometheus be with the given namespace.
 func Init(namespace string) {
 	be.namespace = namespace
-	stats.Register(be.publishPrometheusMetric)
+	// Finish 函式主要是用于防止函式被重复注册，造成单元测试故障
+	// 此函式先暂时先不上锁，之后看状况
+	// 回传 True 代表已注册，回传 False 代表还没注册
+	if stats.Finish() == false {
+		stats.Register(be.publishPrometheusMetric)
+	}
 }
 
 // GetHandlers return registered handlers

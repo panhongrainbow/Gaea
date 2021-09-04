@@ -3,6 +3,7 @@ package backend
 import (
 	"github.com/XiaoMi/Gaea/mysql"
 	"hash/fnv"
+	"sync"
 )
 
 // TakeOver >>>>> >>>>> >>>>> >>>>> >>>>> 单元测试的指示灯
@@ -11,27 +12,30 @@ var TakeOver bool // 现在是否由单元测试接管
 // FakeDB >>>>> >>>>> >>>>> >>>>> >>>>> 数据库模擬
 
 // FakeDB 資料是用來模擬一台假的数据库
-type FakeDB struct {
+type fakeDB struct {
+	sync.Mutex
 	Loaded     bool
 	MockResult map[uint32]mysql.Result
 }
 
-var FakeDBInstance FakeDB // 启动一个模拟的数据库实例
+var fakeDBInstance fakeDB // 启动一个模拟的数据库实例
 
 // Transferred 🧚 单元测试的测试资料载入定义接口
 type Transferred interface {
+	// IsLoaded 至 EmptyData 以下为 基本操作函式
 	IsLoaded() bool   // 是否载入资料完成
 	MarkLoaded()      // 标记载入资料完成
 	UnMarkLoaded()    // 去除 载入资料完成 的标记
 	LoadData() error  // 进行测试资的载入资料
 	EmptyData() error // 清空已载入的测试资料
-	// IsTakeOver() bool // 是否被单元测试接管
-	// MarkTakeOver()    // 标记被单元测试接管
-	// UnmarkTakeOver()  // 反标记被单元测试接管
+	// Lock 至 UnLock 上锁相关函式另外独立成函式
+	// 因为频繁的上锁和解锁会影响效能，而且上锁和解锁的间隔可能会创造资料被改写的机会
+	Lock()   // 上锁
+	UnLock() // 解锁
 }
 
-// SubFakeDB 为模拟數據庫的部份资料
-type SubFakeDB struct {
+// subFakeDB 为模拟數據庫的部份资料
+type subFakeDB struct {
 	addr     string       // 网路位置
 	user     string       // 帐户
 	password string       // 密码
@@ -61,13 +65,13 @@ func (dc *DirectConnection) MakeMockKey(sql string) uint32 {
 // 帐户 panhong
 // 密码 12345
 // 执行字串作为参数 SELECT * FROM `Library`.`Book`
-func (fdb *FakeDB) MakeMockResult(data SubFakeDB) uint32 {
+func (fdb *fakeDB) MakeMockResult(data subFakeDB) uint32 {
 	// 把相关的资料转成单纯的 key 值数字
 	h := fnv.New32a()
 	h.Write([]byte(data.addr + ";" + data.user + ";" + data.password + ";" + data.sql)) // 所有的字串后面都要加上分号
 
 	// 直接预先写好数据库资料回传
-	FakeDBInstance.MockResult[h.Sum32()] = data.result // 转成数值，运算速度较快
+	fakeDBInstance.MockResult[h.Sum32()] = data.result // 转成数值，运算速度较快
 
 	return h.Sum32() // 回传登记的数值
 }

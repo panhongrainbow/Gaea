@@ -608,9 +608,6 @@ func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 // TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
 // 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
 func TestPlanExecuteIn(t *testing.T) {
-	// 可能又是统计产生的问题让 make test 不能正常执行，先中断，之后再找解决方法
-	// return
-
 	// 载入 Session Executor
 	se, err := preparePlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
@@ -648,9 +645,6 @@ func TestPlanExecuteIn(t *testing.T) {
 		phyDBs := ns.GetPhysicalDBs()
 		p, err := plan.BuildPlan(stmts, phyDBs, db, test.sql, rt, seq)
 		require.Equal(t, err, nil)
-
-		// 以下会直接连线到实体数据库，先在这里中断
-		// return
 
 		// 执行 Parser 后的 SQL 指令
 		reqCtx := util.NewRequestContext()

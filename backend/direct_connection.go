@@ -80,7 +80,7 @@ func (m *MockDcClient) MakeMockResult(addr, sql string, res mysql.Result) uint32
 	h.Write([]byte(addr + ";" + sql + ";")) // 所有的字串后面都要加上分号
 
 	// 直接预先写好数据库资料回传
-	FakeDBInstance.MockResult[h.Sum32()] = res // 转成数值，运算速度较快
+	fakeDBInstance.MockResult[h.Sum32()] = res // 转成数值，运算速度较快
 	return h.Sum32()                           // 回传登记的数值
 }
 
@@ -154,6 +154,11 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 
 		// >>>>> >>>>> >>>>> >>>>> >>>>> 开始载入资料
 		if dc.Trans.IsLoaded() == false { // 如果之前没载入测试资料
+
+			// 上锁和解锁
+			dc.Trans.Lock()
+			defer dc.Trans.UnLock()
+
 			if err := dc.Trans.LoadData(); err == nil {
 				dc.Trans.MarkLoaded() // 标记单元测试资料载入成功
 			} else {
@@ -529,7 +534,7 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 		dc.MockDC = new(MockDcClient)
 		dc.MockDC.MockKey = dc.MakeMockKey(sql) // 3652007921
 
-		if tmp, ok := FakeDBInstance.MockResult[dc.MockDC.MockKey]; ok {
+		if tmp, ok := fakeDBInstance.MockResult[dc.MockDC.MockKey]; ok {
 			fmt.Printf("\u001B[35m 命中测试资料序号 Key: %d\n", dc.MockDC.MockKey)
 			return &tmp, nil // 立刻中斷
 		} else {

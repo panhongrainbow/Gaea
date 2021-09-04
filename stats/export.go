@@ -67,6 +67,13 @@ func (vg *varGroup) register(nvh NewVarHook) {
 	vg.vars = nil
 }
 
+// finish 函式主要是用于防止函式被重复注册，造成单元测试故障
+// 此函式先暂时先不上锁，之后看状况
+// 回传 True 代表已注册，回传 False 代表还没注册
+func (vg *varGroup) finish() bool {
+	return vg.newVarHook != nil
+}
+
 func (vg *varGroup) publish(name string, v expvar.Var) {
 	vg.Lock()
 	defer vg.Unlock()
@@ -79,7 +86,10 @@ func (vg *varGroup) publish(name string, v expvar.Var) {
 	}
 }
 
-func (vg *varGroup) test(name string) bool {
+// exist 函式主要是用于防止 varGroup 物件重复被函式 publish 执行，造成单元测试故障
+// 此函式先暂时先不上锁，之后看状况
+// 回传 True 代表存在，回传 False 代表不存在
+func (vg *varGroup) exist(name string) bool {
 	if expvar.Get(name) == nil {
 		return false
 	}
@@ -96,6 +106,13 @@ func Register(nvh NewVarHook) {
 	defaultVarGroup.register(nvh)
 }
 
+// Finish 函式主要是用于防止函式被重复注册，造成单元测试故障
+// 此函式先暂时先不上锁，之后看状况
+// 回传 True 代表已注册，回传 False 代表还没注册
+func Finish() bool {
+	return defaultVarGroup.finish()
+}
+
 // Publish is expvar.Publish+hook
 func Publish(name string, v expvar.Var) {
 	publish(name, v)
@@ -105,12 +122,18 @@ func publish(name string, v expvar.Var) {
 	defaultVarGroup.publish(name, v)
 }
 
-func Test(name string) bool {
-	return test(name)
+// Exist 函式主要是用于防止 varGroup 物件重复被函式 publish 执行，造成单元测试故障
+// 此函式先暂时先不上锁，之后看状况
+// 回传 True 代表存在，回传 False 代表不存在
+func Exist(name string) bool {
+	return exist(name)
 }
 
-func test(name string) bool {
-	return defaultVarGroup.test(name)
+// exist 函式主要是用于防止 varGroup 物件重复被函式 publish 执行，造成单元测试故障
+// 此函式先暂时先不上锁，之后看状况
+// 回传 True 代表存在，回传 False 代表不存在
+func exist(name string) bool {
+	return defaultVarGroup.exist(name)
 }
 
 // PushBackend is an interface for any stats/metrics backend that requires data
