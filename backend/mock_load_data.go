@@ -36,8 +36,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3307",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Library`.`Book`",
-		result:   *mysql.SelectLibrayResult(),
+		sql:      "SELECT * FROM `Novel`.`Book`",
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料

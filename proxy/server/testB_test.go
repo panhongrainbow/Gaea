@@ -106,7 +106,7 @@ func TestB2(t *testing.T) {
 	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
 	managerNamespace.name = "db0_namespace"             // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
 	managerNamespace.allowedDBs = make(map[string]bool) // 数据库列表
-	managerNamespace.allowedDBs[strings.TrimSpace("Library")] = true
+	managerNamespace.allowedDBs[strings.TrimSpace("Novel")] = true
 	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
 	// defaultPhyDBs[strings.TrimSpace(db)] = strings.TrimSpace(phyDB) // 再指定
 	managerNamespace.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, managerNamespace.allowedDBs)
@@ -220,8 +220,8 @@ func TestB2(t *testing.T) {
 		allow bool
 	}{
 		{ // 允许的数据库列表
-			"Library", // SQL 字串內容
-			true,      // 允许
+			"Novel", // SQL 字串內容
+			true,    // 允许
 		},
 	}
 	for _, test := range testNS { // 进行检查
@@ -242,7 +242,7 @@ func TestB2(t *testing.T) {
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
 	executor.charset = "utf8"
-	executor.db = "Library"
+	executor.db = "Novel"
 
 	// 补齐 Session 执行者资料
 	sessionExecutor := newSessionExecutor(serverManager)
@@ -250,7 +250,7 @@ func TestB2(t *testing.T) {
 	collationID = 33 // "utf8"
 	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
 	sessionExecutor.SetCharset("utf8")
-	sessionExecutor.SetDatabase("Library") // set database
+	sessionExecutor.SetDatabase("Novel") // set database
 	sessionExecutor.namespace = "db0_namespace"
 
 	// 检查数据库的 Parser
@@ -260,153 +260,153 @@ func TestB2(t *testing.T) {
 	}{
 		// 第一本小说 三国演义
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
 		},
 		// 第二本小说 水浒传
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", // Parser 后的 SQL 字串
 		},
 		// 第三本小说 西游记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey To The West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey To The West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
 		},
 		// 第四本小说 红楼梦
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream Of The Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream Of The Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
 		},
 		// 第五本小说 金瓶梅
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(5, 9780804847773, 'Jin Ping Mei', 'Lanling Xiaoxiao Sheng', 1610, 'Family Life');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (5,9780804847773,'Jin Ping Mei','Lanling Xiaoxiao Sheng',1610,'Family Life')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(5, 9780804847773, 'Jin Ping Mei', 'Lanling Xiaoxiao Sheng', 1610, 'Family Life');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (5,9780804847773,'Jin Ping Mei','Lanling Xiaoxiao Sheng',1610,'Family Life')", // Parser 后的 SQL 字串
 		},
 		// 第六本小说 儒林外史
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin Waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin Waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin Waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin Waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 		// 第七本小说 初刻拍案惊奇
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(7, 9787101064100, 'Amazing Tales First Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (7,9787101064100,'Amazing Tales First Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(7, 9787101064100, 'Amazing Tales First Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (7,9787101064100,'Amazing Tales First Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
 		},
 		// 第八本小说 二刻拍案惊奇
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(8, 9789571447278, 'Amazing Tales Second Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (8,9789571447278,'Amazing Tales Second Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(8, 9789571447278, 'Amazing Tales Second Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (8,9789571447278,'Amazing Tales Second Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
 		},
 		// 第九本小说 封神演义
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(9, 9789861273129, 'Investiture Of The Gods', 'Lu Xixing', 1605, 'Mythology');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (9,9789861273129,'Investiture Of The Gods','Lu Xixing',1605,'Mythology')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(9, 9789861273129, 'Investiture Of The Gods', 'Lu Xixing', 1605, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (9,9789861273129,'Investiture Of The Gods','Lu Xixing',1605,'Mythology')", // Parser 后的 SQL 字串
 		},
 		// 第十本小说 镜花缘
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(10, 9787540251499, 'Flowers In The Mirror', 'Li Ruzhen', 1827, 'Fantasy Stories');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (10,9787540251499,'Flowers In The Mirror','Li Ruzhen',1827,'Fantasy Stories')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(10, 9787540251499, 'Flowers In The Mirror', 'Li Ruzhen', 1827, 'Fantasy Stories');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (10,9787540251499,'Flowers In The Mirror','Li Ruzhen',1827,'Fantasy Stories')", // Parser 后的 SQL 字串
 		},
 		// 第十一本小说 镜花缘
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(11, 9787508535296, 'Stories Old And New', 'Feng Menglong', 1620, 'Perspective');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (11,9787508535296,'Stories Old And New','Feng Menglong',1620,'Perspective')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(11, 9787508535296, 'Stories Old And New', 'Feng Menglong', 1620, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (11,9787508535296,'Stories Old And New','Feng Menglong',1620,'Perspective')", // Parser 后的 SQL 字串
 		},
 		// 第十二本小说 说岳全传
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(12, 9787101097559, 'General Yue Fei', 'Qian Cai', 1735, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (12,9787101097559,'General Yue Fei','Qian Cai',1735,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(12, 9787101097559, 'General Yue Fei', 'Qian Cai', 1735, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (12,9787101097559,'General Yue Fei','Qian Cai',1735,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十三本小说 杨家将
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(13, 9789863381037, 'The Generals Of The Yang Family', 'Qi Zhonglan', 0, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (13,9789863381037,'The Generals Of The Yang Family','Qi Zhonglan',0,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(13, 9789863381037, 'The Generals Of The Yang Family', 'Qi Zhonglan', 0, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (13,9789863381037,'The Generals Of The Yang Family','Qi Zhonglan',0,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十四本小说 说唐
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(14, 9789865700027, 'Romance Of Sui And Tang Dynasties', 'Chen Ruheng', 1989, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (14,9789865700027,'Romance Of Sui And Tang Dynasties','Chen Ruheng',1989,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(14, 9789865700027, 'Romance Of Sui And Tang Dynasties', 'Chen Ruheng', 1989, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (14,9789865700027,'Romance Of Sui And Tang Dynasties','Chen Ruheng',1989,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十五本小说 七侠五义
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(15, 9789575709242, 'The Seven Heroes And Five Gallants', 'Shi Yukun', 1879, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (15,9789575709242,'The Seven Heroes And Five Gallants','Shi Yukun',1879,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(15, 9789575709242, 'The Seven Heroes And Five Gallants', 'Shi Yukun', 1879, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (15,9789575709242,'The Seven Heroes And Five Gallants','Shi Yukun',1879,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十六本小说 施公案
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789574927913, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789574927913,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789574927913, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789574927913,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
 		},
 		// 第十七本小说 青楼梦
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(17, 9787533303396, 'Dream Of The Green Chamber', 'Yuda', 1878, 'Family Saga');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (17,9787533303396,'Dream Of The Green Chamber','Yuda',1878,'Family Saga')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(17, 9787533303396, 'Dream Of The Green Chamber', 'Yuda', 1878, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (17,9787533303396,'Dream Of The Green Chamber','Yuda',1878,'Family Saga')", // Parser 后的 SQL 字串
 		},
 		// 第十八本小说 歧路灯
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(18, 9787510434341, 'Lamp In The Side Street', 'Li Luyuan', 1790, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (18,9787510434341,'Lamp In The Side Street','Li Luyuan',1790,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(18, 9787510434341, 'Lamp In The Side Street', 'Li Luyuan', 1790, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (18,9787510434341,'Lamp In The Side Street','Li Luyuan',1790,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 		// 第十九本小说 老残游记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(19, 9789571447469, 'The Travels of Lao Can', 'Liu E', 1907, 'Social Story');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (19,9789571447469,'The Travels of Lao Can','Liu E',1907,'Social Story')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(19, 9789571447469, 'The Travels of Lao Can', 'Liu E', 1907, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (19,9789571447469,'The Travels of Lao Can','Liu E',1907,'Social Story')", // Parser 后的 SQL 字串
 		},
 		// 第二十本小说 二十年目睹之怪现状
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(20, 9789571470047, 'Bizarre Happenings Eyewitnessed over Two Decades', 'Jianren Wu', 1905, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (20,9789571470047,'Bizarre Happenings Eyewitnessed over Two Decades','Jianren Wu',1905,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(20, 9789571470047, 'Bizarre Happenings Eyewitnessed over Two Decades', 'Jianren Wu', 1905, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (20,9789571470047,'Bizarre Happenings Eyewitnessed over Two Decades','Jianren Wu',1905,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 		// 第二十一本小说 孽海花
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(21, 9787101097580, 'A Flower In A Sinful Sea', 'Zeng Pu', 1904, 'History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (21,9787101097580,'A Flower In A Sinful Sea','Zeng Pu',1904,'History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(21, 9787101097580, 'A Flower In A Sinful Sea', 'Zeng Pu', 1904, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (21,9787101097580,'A Flower In A Sinful Sea','Zeng Pu',1904,'History')", // Parser 后的 SQL 字串
 		},
 		// 第二十二本小说 官场现形记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(22, 9789861674193, 'Officialdom Unmasked', 'Li Baojia', 1903, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (22,9789861674193,'Officialdom Unmasked','Li Baojia',1903,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(22, 9789861674193, 'Officialdom Unmasked', 'Li Baojia', 1903, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (22,9789861674193,'Officialdom Unmasked','Li Baojia',1903,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 		// 第二十三本小说 觉世名言十二楼
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(23, 9787805469836, 'Tower For The Summer Heat', 'Li Yu', 1680, 'Unofficial History');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (23,9787805469836,'Tower For The Summer Heat','Li Yu',1680,'Unofficial History')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(23, 9787805469836, 'Tower For The Summer Heat', 'Li Yu', 1680, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (23,9787805469836,'Tower For The Summer Heat','Li Yu',1680,'Unofficial History')", // Parser 后的 SQL 字串
 		},
 		// 第二十四本小说 无声戏
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(24, 9787508067247, 'Silent Operas', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (24,9787508067247,'Silent Operas','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(24, 9787508067247, 'Silent Operas', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (24,9787508067247,'Silent Operas','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
 		},
 		// 第二十五本小说 肉蒲团
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(25, 9789573609049, 'The Carnal Prayer Mat', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (25,9789573609049,'The Carnal Prayer Mat','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(25, 9789573609049, 'The Carnal Prayer Mat', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (25,9789573609049,'The Carnal Prayer Mat','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
 		},
 		// 第二十六本小说 浮生六记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
 		},
 		// 第二十六本小说 浮生六记
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
 		},
 		// 第二十七本小说 野叟曝言
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(27, 9786666141110, 'Humble Words Of A Rustic Elder', 'Xia Jingqu', 1787, 'Historical fiction');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (27,9786666141110,'Humble Words Of A Rustic Elder','Xia Jingqu',1787,'Historical fiction')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(27, 9786666141110, 'Humble Words Of A Rustic Elder', 'Xia Jingqu', 1787, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (27,9786666141110,'Humble Words Of A Rustic Elder','Xia Jingqu',1787,'Historical fiction')", // Parser 后的 SQL 字串
 		},
 		// 第二十八本小说 九尾龟
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(28, 9789571435473, 'Nine-Tailed Turtle', 'Lu Can', 1551, 'Mythology');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (28,9789571435473,'Nine-Tailed Turtle','Lu Can',1551,'Mythology')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(28, 9789571435473, 'Nine-Tailed Turtle', 'Lu Can', 1551, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (28,9789571435473,'Nine-Tailed Turtle','Lu Can',1551,'Mythology')", // Parser 后的 SQL 字串
 		},
 		// 第二十九本小说 品花宝鉴
 		{
-			"INSERT INTO Library.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(29, 9789866318603, 'A History Of Floral Treasures', 'Chen Sen', 1849, 'Romance');",       // 原始的 SQL 字串
-			"INSERT INTO `Library`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (29,9789866318603,'A History Of Floral Treasures','Chen Sen',1849,'Romance')", // Parser 后的 SQL 字串
+			"INSERT INTO Novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(29, 9789866318603, 'A History Of Floral Treasures', 'Chen Sen', 1849, 'Romance');",       // 原始的 SQL 字串
+			"INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (29,9789866318603,'A History Of Floral Treasures','Chen Sen',1849,'Romance')", // Parser 后的 SQL 字串
 		},
 	}
 
@@ -431,7 +431,7 @@ func TestB2(t *testing.T) {
 		require.Equal(t, nil, err)
 
 		// BuildPlan 函式会产生计划 p 变数，
-		// 再执行 sessionExecutor.ExecuteSQL(util.NewRequestContext(), "slice-0", "Library", s.String())，
+		// 再执行 sessionExecutor.ExecuteSQL(util.NewRequestContext(), "slice-0", "Novel", s.String())，
 		// ret, err := p.ExecuteIn(util.NewRequestContext(), sessionExecutor)
 		// 把SQL 字串写入数据库，但因会触发统计功能，暂时先不使用
 
@@ -507,7 +507,7 @@ encrypt_key=1234abcd5678efg*
   "online": true,
   "read_only": false,
   "allowed_dbs": {
-    "Library": true
+    "Novel": true
   },
   "slow_sql_time": "1000",
   "black_sql": [
@@ -588,7 +588,7 @@ encrypt_key=1234abcd5678efg*
 func preparePlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	var userName = "panhong"
 	var namespaceName = "db0_cluster_namespace"
-	var database = "Library"
+	var database = "Novel"
 
 	m, err := prepareNamespaceManagerForCluster()
 	if err != nil {
@@ -611,9 +611,9 @@ func TestPlanExecuteIn(t *testing.T) {
 	// 载入 Session Executor
 	se, err := preparePlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
-	db, err := se.GetNamespace().GetDefaultPhyDB("Library")
+	db, err := se.GetNamespace().GetDefaultPhyDB("Novel")
 	require.Equal(t, err, nil)
-	require.Equal(t, db, "Library") // 检查 SessionExecutor 是否正确载入
+	require.Equal(t, db, "Novel") // 检查 SessionExecutor 是否正确载入
 
 	// 开始检查和数据库的沟通
 	tests := []struct {
@@ -621,8 +621,8 @@ func TestPlanExecuteIn(t *testing.T) {
 		expect string
 	}{
 		{ // 测试一，查询数据库资料
-			"SELECT * FROM Library.Book",     // 原始的 SQL 字串
-			"SELECT * FROM `Library`.`Book`", // 期望 Parser 后的 SQL 字串
+			"SELECT * FROM Novel.Book",     // 原始的 SQL 字串
+			"SELECT * FROM `Novel`.`Book`", // 期望 Parser 后的 SQL 字串
 		},
 	}
 
@@ -678,9 +678,9 @@ func TestB4(t *testing.T) {
 	managerNamespace.openGeneralLog = false             // 记录sql查询的访问日志，说明 https://github.com/XiaoMi/Gaea/issues/109
 	managerNamespace.name = "db0_cluster_namespace"     // namespace 为划分工作业务的最基本单位，一个 namespace 可以有多个使用者
 	managerNamespace.allowedDBs = make(map[string]bool) // 数据库列表
-	managerNamespace.allowedDBs[strings.TrimSpace("Library")] = true
+	managerNamespace.allowedDBs[strings.TrimSpace("Novel")] = true
 	defaultPhyDBs := make(map[string]string, 0) // 预设数据库列表
-	// defaultPhyDBs[strings.TrimSpace("Library")] = strings.TrimSpace("Library") // 再指定
+	// defaultPhyDBs[strings.TrimSpace("Novel")] = strings.TrimSpace("Novel") // 再指定
 	managerNamespace.defaultPhyDBs, _ = parseDefaultPhyDB(defaultPhyDBs, managerNamespace.allowedDBs)
 	managerNamespace.slowSQLTime = 1000                      // 慢sql阈值，单位: 毫秒
 	managerNamespace.sqls = make(map[string]string, 50)      // 有 29 本小说，先暂定 50 好了
@@ -792,7 +792,7 @@ func TestB4(t *testing.T) {
 		allow bool
 	}{
 		{ // 允许的数据库列表
-			"Library", // SQL 字串內容
+			"Novel", // SQL 字串內容
 			true,      // 允许
 		},
 	}
@@ -814,7 +814,7 @@ func TestB4(t *testing.T) {
 	collationID := 33 // "utf8"
 	executor.collation = mysql.CollationID(collationID)
 	executor.charset = "utf8"
-	executor.db = "Library"
+	executor.db = "Novel"
 
 	// 补齐 Session 执行者资料
 	sessionExecutor := newSessionExecutor(serverManager)
@@ -822,7 +822,7 @@ func TestB4(t *testing.T) {
 	collationID = 33 // "utf8"
 	sessionExecutor.SetCollationID(mysql.CollationID(collationID))
 	sessionExecutor.SetCharset("utf8")
-	sessionExecutor.SetDatabase("Library") // set database
+	sessionExecutor.SetDatabase("Novel") // set database
 	sessionExecutor.namespace = "db0_cluster_namespace"
 
 	// 开始检查和数据库的沟通
@@ -831,8 +831,8 @@ func TestB4(t *testing.T) {
 		expect string
 	}{
 		{ // 测试一，查询数据库资料
-			"SELECT * FROM Library.Book",     // 原始的 SQL 字串
-			"SELECT * FROM `Library`.`Book`", // 期望 Parser 后的 SQL 字串
+			"SELECT * FROM Novel.Book",     // 原始的 SQL 字串
+			"SELECT * FROM `Novel`.`Book`", // 期望 Parser 后的 SQL 字串
 		},
 	}
 
@@ -853,7 +853,7 @@ func TestB4(t *testing.T) {
 		rt := ns.GetRouter()
 		seq := ns.GetSequences()
 		phyDBs := ns.GetPhysicalDBs()
-		p, err := plan.BuildPlan(stmts, phyDBs, "Library", test.sql, rt, seq)
+		p, err := plan.BuildPlan(stmts, phyDBs, "Novel", test.sql, rt, seq)
 		require.Equal(t, err, nil)
 
 		// 以下会直接连线到实体数据库，先在这里中断

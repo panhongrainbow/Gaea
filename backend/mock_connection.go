@@ -50,7 +50,7 @@ type subFakeDB struct {
 // 网路位置 192.168.122.2:3307
 // 帐户 panhong
 // 密码 12345
-// 执行字串作为参数 SELECT * FROM `Library`.`Book`
+// 执行字串作为参数 SELECT * FROM `Novel`.`Book`
 func (dc *DirectConnection) MakeMockKey(sql string) uint32 {
 	// 把相关的资料转成单纯的 key 值数字
 	h := fnv.New32a()
@@ -64,7 +64,7 @@ func (dc *DirectConnection) MakeMockKey(sql string) uint32 {
 // 网路位置 192.168.122.2:3307
 // 帐户 panhong
 // 密码 12345
-// 执行字串作为参数 SELECT * FROM `Library`.`Book`
+// 执行字串作为参数 SELECT * FROM `Novel`.`Book`
 func (fdb *fakeDB) MakeMockResult(data subFakeDB) uint32 {
 	// 把相关的资料转成单纯的 key 值数字
 	h := fnv.New32a()

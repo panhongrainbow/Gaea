@@ -1,7 +1,7 @@
 package mysql
 
-// SelectLibrayResult 回传所有的图书馆数据库测试资料
-func SelectLibrayResult() *Result {
+// SelectNovelResult 回传所有的图书馆数据库测试资料
+func SelectNovelResult() *Result {
 	res := Result{}
 	res.Status = 34
 	res.InsertID = 0

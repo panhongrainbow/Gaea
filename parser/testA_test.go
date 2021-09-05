@@ -15,7 +15,7 @@ func TestA(t *testing.T) {
 
 	tests := []testCase{
 		// 针对 Cluster db0 db0-0 db0-1 或其他的丛集 常用的 SQL 指令进行测试
-		{"SELECT * FROM Library.Book", true, "SELECT * FROM `Library`.`Book`"},
+		{"SELECT * FROM Novel.Book", true, "SELECT * FROM `Novel`.`Book`"},
 
 		// SQL 指令 SELECT
 		{"SELECT /*+ MAX_EXECUTION_TIME(1000) */ * FROM db.t", true, "SELECT /*+ MAX_EXECUTION_TIME(1000)*/ * FROM `db`.`t`"},            // (1) 使用优化器

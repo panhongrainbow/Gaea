@@ -11,11 +11,11 @@ $ ssh docker@192.168.122.2
 # 登入 Master 容器的数据库，Master 是用 3306 埠
 $ mysql -h 127.0.0.1 -P 3306 --protocol=TCP -u docker -p
 
-# 创建数据库 Library，这一段可省略，因为 Bitnami-MariaDB 会自动创建数据库
-$ # MariaDB [(none)]> CREATE DATABASE `Library` /*!40100 DEFAULT CHARACTER SET utf8 */;
+# 创建数据库 Novel，这一段可省略，因为 Bitnami-MariaDB 会自动创建数据库
+$ # MariaDB [(none)]> CREATE DATABASE `Novel` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
 # 使用图书馆数据库
-$ MariaDB [(none)]> USE Library;
+$ MariaDB [(none)]> USE Novel;
 
 # 建立书资料表
 $ CREATE TABLE `Book` (
@@ -29,7 +29,7 @@ $ CREATE TABLE `Book` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 # 新增第一笔书的资料
-$ INSERT INTO Library.Book
+$ INSERT INTO Novel.Book
 (BookID, Isbn, Title, Author, Publish, Category)
 VALUES(1, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');
 
@@ -37,7 +37,7 @@ VALUES(1, 9789865975364, 'Dream of the Red Chamber', 'Cao Xueqin', 1791, 'Family
 $ mysql -h 127.0.0.1 -P 3307 --protocol=TCP -u docker -p
 
 # 使用图书馆数据库
-$ MariaDB [(none)]> USE Library;
+$ MariaDB [(none)]> USE Novel;
 
 # 在 Slave 容器可以正确读到 Master 写入的资料
 $ SELECT * FROM Book;
