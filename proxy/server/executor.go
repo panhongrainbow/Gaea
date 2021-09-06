@@ -754,7 +754,7 @@ func (se *SessionExecutor) ExecuteSQL(reqCtx *util.RequestContext, slice, db, sq
 
 	// 这里
 	if backend.IsTakeOver() {
-		// return mysql.SelectNovelResult(), nil // 立刻中斷
+		// return mysql.SelectnovelResult(), nil // 立刻中斷
 	}
 
 	rs, err := se.executeInMultiSlices(reqCtx, pcs, sqls)

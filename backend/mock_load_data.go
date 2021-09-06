@@ -36,8 +36,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3307",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -52,8 +52,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3306",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0000`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -68,8 +68,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3307",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0000`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -84,8 +84,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3308",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0000`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -100,8 +100,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3309",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0001`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -116,8 +116,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3310",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0001`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料
@@ -132,8 +132,8 @@ func (basicLoad) LoadData() error {
 		addr:     "192.168.122.2:3311",
 		user:     "panhong",
 		password: "12345",
-		sql:      "SELECT * FROM `Novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		sql:      "SELECT * FROM `novel`.`Book_0001`",
+		result:   *mysql.SelectnovelResult(),
 	}
 
 	// 载入测试资料

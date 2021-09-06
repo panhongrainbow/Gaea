@@ -299,7 +299,7 @@ func createLinkedRule(rules map[string]map[string]Rule, shard *models.Shard) (*L
 
 func parseRule(cfg *models.Shard) (*BaseRule, error) {
 	r := new(BaseRule)
-	r.db = cfg.DB
+	r.db = cfg.DB // here
 	r.table = strings.ToLower(cfg.Table)
 	r.shardingColumn = strings.ToLower(cfg.Key) //ignore case
 	r.ruleType = cfg.Type

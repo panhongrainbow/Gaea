@@ -14,7 +14,7 @@ func TestC1(t *testing.T) {
 	dc.addr = "192.168.1.2:3350"
 	dc.user = "docker"
 	dc.password = "12345"
-	dc.db = "Novel"
+	dc.db = "novel"
 	dc.capability = 0
 	dc.sessionVariables = mysql.NewSessionVariables()
 	dc.status = 0
@@ -30,7 +30,7 @@ func TestC1(t *testing.T) {
 	return
 
 	// 向 MariaDB 数据库直接写入资料
-	sql := "INSERT INTO `Novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')"
+	sql := "INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')"
 	err := dc.connect()
 	require.Equal(t, nil, err) // 检查连线是否有问题
 	res, err := dc.Execute(sql, 1)
@@ -46,7 +46,7 @@ func TestC2(t *testing.T) {
 	dc.addr = "192.168.122.2:3306"
 	dc.user = "panhong"
 	dc.password = "12345"
-	dc.db = "Novel"
+	dc.db = "novel"
 	dc.capability = 0
 	dc.sessionVariables = mysql.NewSessionVariables()
 	dc.status = 0
@@ -70,7 +70,7 @@ func TestC2(t *testing.T) {
 	require.Equal(t, nil, err) // 检查连线是否有问题
 
 	// 准备 SQL 查询字串
-	sql := "SELECT * FROM `Novel`.`Book`;"
+	sql := "SELECT * FROM `novel`.`Book`;"
 
 	// 向 MariaDB 数据库直接查询资料
 	res, err := dc.Execute(sql, 50)
@@ -91,6 +91,6 @@ func TestC2(t *testing.T) {
 func TestC3(t *testing.T) {
 	/*client := new(MockDcClient)
 	client.MockResult = make(map[uint32]mysql.Result)
-	number := client.MakeMockResult("Novel", "SELECT * FROM Book;", *mysql.SelectNovelResult())
+	number := client.MakeMockResult("novel", "SELECT * FROM Book;", *mysql.SelectnovelResult())
 	require.Equal(t, uint32(2125487740), number)*/
 }

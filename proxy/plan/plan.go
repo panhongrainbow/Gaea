@@ -131,6 +131,8 @@ func (s *Checker) hasShardTableInTableName(n *ast.TableName) bool {
 	}
 	table := n.Name.L
 	_, ok := s.router.GetShardRule(db, table)
+	fmt.Println(">>>>>", db, table)
+	fmt.Println(">>>>>", s.router)
 	return ok
 }
 

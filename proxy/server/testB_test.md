@@ -24,7 +24,7 @@
   "online": true,
   "read_only": false,
   "allowed_dbs": {
-    "Novel": true
+    "novel": true
   },
   "slow_sql_time": "1000",
   "black_sql": [
@@ -71,9 +71,9 @@ func TestB3(t *testing.T) {
 	// 载入 Session Executor
 	se, err := preparePlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
-	db, err := se.GetNamespace().GetDefaultPhyDB("Novel")
+	db, err := se.GetNamespace().GetDefaultPhyDB("novel")
 	require.Equal(t, err, nil)
-	require.Equal(t, db, "Novel") // 检查 SessionExecutor 是否正确载入
+	require.Equal(t, db, "novel") // 检查 SessionExecutor 是否正确载入
 
 	// 开始检查和数据库的沟通
 	tests := []struct {
@@ -81,8 +81,8 @@ func TestB3(t *testing.T) {
 		expect string
 	}{
 		{ // 测试一，查询数据库资料
-			"SELECT * FROM Novel.Book",     // 原始的 SQL 字串
-			"SELECT * FROM `Novel`.`Book`", // 期望 Parser 后的 SQL 字串
+			"SELECT * FROM novel.Book",     // 原始的 SQL 字串
+			"SELECT * FROM `novel`.`Book`", // 期望 Parser 后的 SQL 字串
 		},
 	}
 
