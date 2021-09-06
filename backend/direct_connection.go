@@ -489,7 +489,6 @@ func (dc *DirectConnection) Ping() error {
 
 // UseDB send ComInitDB to backend mysql
 func (dc *DirectConnection) UseDB(dbName string) error {
-
 	// 🧚 直接由单元测试接管
 	if IsTakeOver() {
 		return nil // 立刻中断

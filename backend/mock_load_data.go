@@ -46,6 +46,103 @@ func (basicLoad) LoadData() error {
 
 	// 显示测试资料序号并回传 nil
 	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3306",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0000`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3307",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0000`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3308",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0000`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3309",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0001`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3310",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0001`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
+	// 编写测试资料
+	data = subFakeDB{
+		addr:     "192.168.122.2:3311",
+		user:     "panhong",
+		password: "12345",
+		sql:      "SELECT * FROM `Novel`.`Book_0001`",
+		result:   *mysql.SelectNovelResult(),
+	}
+
+	// 载入测试资料
+	// fakeDBInstance.MockResult = make(map[uint32]mysql.Result)
+	key = fakeDBInstance.MakeMockResult(data)
+
+	// 显示测试资料序号并回传 nil
+	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
+
 	return nil
 }
 
