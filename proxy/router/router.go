@@ -25,6 +25,15 @@ type Router struct {
 	defaultRule Rule
 }
 
+// PrintRouterRuleKeys 函式 🧚 主要是用在单元测试时，把所有的切片规则的 key 都显示出来，方便除错
+func (r *Router) PrintRouterRuleKeys() {
+	for db := range r.rules {
+		for table := range r.rules[db] {
+			fmt.Printf("\u001B[35m 在切片规则的资料库名称 %s 资料表名 %s \n", db, table)
+		}
+	}
+}
+
 //NewRouter build router according to the models of namespace
 func NewRouter(namespace *models.Namespace) (*Router, error) {
 	// copy names of slice list

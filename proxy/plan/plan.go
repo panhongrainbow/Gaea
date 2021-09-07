@@ -16,6 +16,7 @@ package plan
 
 import (
 	"fmt"
+	"github.com/XiaoMi/Gaea/backend"
 	"strings"
 
 	"github.com/XiaoMi/Gaea/mysql"
@@ -131,8 +132,13 @@ func (s *Checker) hasShardTableInTableName(n *ast.TableName) bool {
 	}
 	table := n.Name.L
 	_, ok := s.router.GetShardRule(db, table)
-	fmt.Println(">>>>>", db, table)
-	fmt.Println(">>>>>", s.router)
+
+	// 在单元测试时，希望可以显示更多资讯
+	if backend.IsTakeOver() {
+		fmt.Printf("\u001B[35m 目前传入的数据库名称为 %s 数据库表为 %s \n", db, table)
+		s.router.PrintRouterRuleKeys()
+	}
+
 	return ok
 }
 

@@ -223,6 +223,9 @@ func TestDb0db1PlanExecuteIn(t *testing.T) {
 
 	// 执行 Sql 字串
 	for _, test := range tests {
+		// 初始化单元测试程式
+		backend.MarkTakeOver()
+
 		// 執行 SQL Parser
 		ns := se.GetNamespace()
 		stmts, err := se.Parse(test.sql)
@@ -244,9 +247,6 @@ func TestDb0db1PlanExecuteIn(t *testing.T) {
 		// 执行 Parser 后的 SQL 指令
 		reqCtx := util.NewRequestContext()
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
-
-		// 初始化单元测试程式
-		backend.MarkTakeOver()
 
 		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
