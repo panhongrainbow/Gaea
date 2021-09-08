@@ -15,9 +15,29 @@ import (
 	"testing"
 )
 
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1 台 Master 2 台 Slave 数据库测试
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 2 台 Master 4 台 Slave 数据库测试
 
-// 产生针对 Cluster db0 db0-0 db0-1 的设定档
+/*
+                   +----------------+        +----------------+
+192.168.122.2:3310 | 从数据库 db1-0   |        | 从数据库 db1-1  | 192.168.122.2:3311
+                   +---------\------+        +-------/--------+
+                              --\                /---
+                                 --\          /--
+                                 +--------------+
+              192.168.122.2:3309 | 主数据库 db1   |
+                                 +--------------+
+
+                   +----------------+        +----------------+
+192.168.122.2:3313 | 从数据库 db2-0   |        | 从数据库 db2-1   | 192.168.122.2:3314
+                   +---------\------+        +-------/--------+
+                              --\                /---
+                                 --\          /--
+                                 +--------------+
+              192.168.122.2:3312 | 主数据库 db2   |
+                                 +--------------+
+*/
+
+// prepareDb0db1NamespaceManagerForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的设定档
 func prepareDb0db1NamespaceManagerForCluster() (*Manager, error) {
 	// 服务器设定档
 	proxyCfg := `
@@ -179,7 +199,7 @@ encrypt_key=1234abcd5678efg*
 	return m, nil
 }
 
-// 产生针对 Cluster db0 db0-0 db0-1 的 Plan Session
+// prepareDb0db1PlanSessionExecutorForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的 Plan Session
 func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	var userName = "panhong"
 	var namespaceName = "db0_db1_cluster_namespace"
@@ -200,7 +220,7 @@ func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	return executor, nil
 }
 
-// TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
+// TestDb0db1PlanExecuteIn 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库查询 29 本小说
 // 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
 func TestDb0db1PlanExecuteIn(t *testing.T) {
 	// 载入 Session Executor

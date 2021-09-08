@@ -386,11 +386,6 @@ func TestB2(t *testing.T) {
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
 		},
-		// 第二十六本小说 浮生六记
-		{
-			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
-			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
-		},
 		// 第二十七本小说 野叟曝言
 		{
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(27, 9786666141110, 'Humble Words Of A Rustic Elder', 'Xia Jingqu', 1787, 'Historical fiction');",       // 原始的 SQL 字串

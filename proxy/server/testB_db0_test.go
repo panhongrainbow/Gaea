@@ -17,7 +17,48 @@ import (
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1 台 Master 2 台 Slave 数据库测试
 
-// 产生针对 Cluster db0 db0-0 db0-1 的设定档
+/*
+                   +----------------+        +----------------+
+192.168.122.2:3307 | 从数据库 db0-0   |        | 从数据库 db0-1   | 192.168.122.2:3308
+                   +---------\------+        +-------/--------+
+                              --\                /---
+                                 --\          /--
+                                 +--------------+
+              192.168.122.2:3306 | 主数据库 db0   |
+                                 +--------------+
+
+   第一本小说 三国演义
+   第二本小说 水浒传
+   第三本小说 西游记
+   第四本小说 红楼梦
+   第五本小说 金瓶梅
+   第六本小说 儒林外史
+   第七本小说 初刻拍案惊奇
+   第八本小说 二刻拍案惊奇
+   第九本小说 封神演义
+   第十本小说 镜花缘
+   第十一本小说 喻世明言
+   第十二本小说 说岳全传
+   第十三本小说 杨家将
+   第十四本小说 说唐
+   第十五本小说 七侠五义
+   第十六本小说 施公案
+   第十七本小说 青楼梦
+   第十八本小说 歧路灯
+   第十九本小说 老残游记
+   第二十本小说 二十年目睹之怪现状
+   第二十一本小说 孽海花
+   第二十二本小说 官场现形记
+   第二十三本小说 觉世名言十二楼
+   第二十四本小说 无声戏
+   第二十五本小说 肉蒲团
+   第二十六本小说 浮生六记
+   第二十七本小说 野叟曝言
+   第二十八本小说 九尾龟
+   第二十九本小说 品花宝鉴
+*/
+
+// prepareDb0NamespaceManagerForCluster 函式 产生针对 Cluster (db0 db0-0 db0-1) 的设定档
 func prepareDb0NamespaceManagerForCluster() (*Manager, error) {
 	// 服务器设定档
 	proxyCfg := `
@@ -153,7 +194,7 @@ encrypt_key=1234abcd5678efg*
 	return m, nil
 }
 
-// 产生针对 Cluster db0 db0-0 db0-1 的 Plan Session
+// prepareDb0PlanSessionExecutorForCluster 函式 产生针对 Cluster (db0 db0-0 db0-1) 的 Plan Session
 func prepareDb0PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	var userName = "panhong"
 	var namespaceName = "db0_cluster_namespace"
@@ -174,7 +215,7 @@ func prepareDb0PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	return executor, nil
 }
 
-// TestB3 为向 Cluster db0 db0-0 db0-1 图书馆数据库查询 29 本小说
+// TestDb0PlanExecuteIn 函式 为向 Cluster (db0 db0-0 db0-1) 图书馆数据库查询 29 本小说
 // 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
 func TestDb0PlanExecuteIn(t *testing.T) {
 	// 载入 Session Executor
