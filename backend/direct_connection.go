@@ -31,41 +31,20 @@ import (
 
 // MockDcClient 🧚 单元测试数据库直连客户端
 type MockDcClient struct {
-	MockKey uint32 // 识别要 Mock 资料的关键 Key 值
 	// 单元测试相关设定值
-	// TakeOver bool // 现在是否由单元测试接管 (TakeOver 变数移到全域变数)
-	// 单元测试资料回应
-	// MockResult map[uint32]mysql.Result // (MockResult 变数移到全域变数)
+	MockKey uint32 // 识别要 Mock 资料的关键 Key 值
 }
 
-// MarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的标记函式 (TakeOver 变数移到全域变数后废除)
-/*func (m *MockDcClient) MarkTakeOver() {
-	m.TakeOver = true // 单元测试之后可以直接进行接管
-}*/
-
 // MarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的标记函式 (设定)
+// MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 func MarkTakeOver() {
 	TakeOver = true // 单元测试之后可以直接进行接管
 }
-
-// IsTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的确认函式 (TakeOver 变数移到全域变数后废除)
-/*func (m *MockDcClient) IsTakeOver() bool {
-	// 因为不是每个函式或过程会完整初始化 Mock Client 变数，如果没有这一层保护，防止 nil 指标的错误
-	if m == nil {
-		return false // 回传 false ，之后单元测试不允许进行介入程式内部的运作
-	}
-	return m.TakeOver // 只要是回传 true ，之后单元测试就会接管整个程式
-}*/
 
 // IsTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的确认函式 (设定)
 func IsTakeOver() bool {
 	return TakeOver // 只要是回传 true ，之后单元测试就会接管整个程式，如果回传 false 则反之
 }
-
-// UnmarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的反标记函式 (TakeOver 变数移到全域变数)
-/*func (m *MockDcClient) UnmarkTakeOver() {
-	m.TakeOver = false // 解除单元测试的接管状态 (移到全域变数)
-}*/
 
 // UnmarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的反标记函式 (设定)
 func UnmarkTakeOver() {
@@ -115,21 +94,6 @@ type DirectConnection struct {
 	Trans  Transferred   // 单元测试的定义接口
 }
 
-// MarkTakeOver 函式 🧚 为 DirectConnection 资料执行单元测试数据库直连的标记函式 (TakeOver 变数移到全域变数后废除)
-/*func (dc *DirectConnection) MarkTakeOver() {
-	dc.MockDC.MarkTakeOver() // 操作底层函式
-}*/
-
-// IsTakeOver 函式 🧚 为 DirectConnection 资料执行单元测试数据库直连的确认函式 (TakeOver 变数移到全域变数后废除)
-/*func (dc *DirectConnection) IsTakeOver() bool {
-	return dc.MockDC.IsTakeOver() // 操作底层函式
-}*/
-
-// UnmarkTakeOver 函式 🧚 为 DirectConnection 资料执行单元测试数据库直连的反标记函式 (TakeOver 变数移到全域变数后废除)
-/*func (dc *DirectConnection) UnmarkTakeOver() {
-	dc.MockDC.UnmarkTakeOver() // 操作底层函式
-}*/
-
 // NewDirectConnection return direct and authorised connection to mysql with real net connection
 func NewDirectConnection(addr string, user string, password string, db string, charset string, collationID mysql.CollationID) (*DirectConnection, error) {
 	dc := &DirectConnection{
@@ -178,7 +142,6 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 // connect means real connection to backend mysql after authorization
 func (dc *DirectConnection) connect() error {
 	// 🧚 直接由单元测试接管
-	// if dc.MockDC.IsTakeOver() { // TakeOver 变数移到全域变数后修正
 	if IsTakeOver() {
 		return nil // 立刻中断
 	}

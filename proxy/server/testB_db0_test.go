@@ -216,7 +216,6 @@ func prepareDb0PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 }
 
 // TestDb0PlanExecuteIn 函式 为向 Cluster (db0 db0-0 db0-1) 图书馆数据库查询 29 本小说
-// 测试分二版，分别为连到数据库的版本和不连到数据库的版本，此版本会连到数据库
 func TestDb0PlanExecuteIn(t *testing.T) {
 	// 载入 Session Executor
 	se, err := prepareDb0PlanSessionExecutorForCluster()
@@ -261,7 +260,7 @@ func TestDb0PlanExecuteIn(t *testing.T) {
 		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
 
 		// 初始化单元测试程式
-		backend.MarkTakeOver()
+		backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
