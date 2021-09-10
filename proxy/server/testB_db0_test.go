@@ -18,6 +18,9 @@ import (
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1 台 Master 2 台 Slave 数据库测试
 
 /*
+
+// 切片 Slice-0 内容如下
+
                    +----------------+        +----------------+
 192.168.122.2:3307 | 从数据库 db0-0   |        | 从数据库 db0-1   | 192.168.122.2:3308
                    +---------\------+        +-------/--------+
@@ -26,6 +29,8 @@ import (
                                  +--------------+
               192.168.122.2:3306 | 主数据库 db0   |
                                  +--------------+
+
+数据表 Book
 
    第一本小说 三国演义
    第二本小说 水浒传
@@ -277,4 +282,239 @@ func TestDb0PlanExecuteIn(t *testing.T) {
 		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
 	}
 
+}
+
+// TestDb0PlanExecuteInWrite 函式 为向 Cluster (db0 db0-0 db0-1) 图书馆数据库写入 29 本小说
+// 根本不用考虑切片问题，因为只有一台主数据库
+func TestDb0PlanExecuteInWrite(t *testing.T) {
+	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
+	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
+
+	// 载入 Session Executor
+	se, err := prepareDb0db1PlanSessionExecutorForCluster()
+	require.Equal(t, err, nil)
+	db, err := se.GetNamespace().GetDefaultPhyDB("novel")
+	require.Equal(t, err, nil)
+	require.Equal(t, db, "novel") // 检查 SessionExecutor 是否正确载入
+
+	// 开始检查和数据库的沟通
+	tests := []struct {
+		sql        string
+		expect     string
+		shardIndex int
+	}{
+		// 切片规则
+		// 会分配到那一个切片，设定档有指定依据 BookId 分配
+		// 比如 BookId 为 0 时，会分配到 Slice-0
+		// BookId 为 1 时，会分配到 Slice-1
+
+		// 第一本小说 三国演义 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二本小说 水浒传 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第三本小说 西游记 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demons Fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (3,9789575709518,'Journey To The West','Wu Cheng en',1592,'Gods And Demons Fiction')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第四本小说 红楼梦 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(4, 9789865975364, 'Dream Of The Red Chamber', 'Cao Xueqin', 1791, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+
+		// 第五本小说 金瓶梅 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(5, 9780804847773, 'Jin Ping Mei', 'Lanling Xiaoxiao Sheng', 1610, 'Family Life');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (5,9780804847773,'Jin Ping Mei','Lanling Xiaoxiao Sheng',1610,'Family Life')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第六本小说 儒林外史 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(6, 9780835124072, 'Rulin Waishi', 'Wu Jingzi', 1750, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (6,9780835124072,'Rulin Waishi','Wu Jingzi',1750,'Unofficial History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第七本小说 初刻拍案惊奇 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(7, 9787101064100, 'Amazing Tales First Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (7,9787101064100,'Amazing Tales First Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第八本小说 二刻拍案惊奇 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(8, 9789571447278, 'Amazing Tales Second Series', 'Ling Mengchu', 1628, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (8,9789571447278,'Amazing Tales Second Series','Ling Mengchu',1628,'Perspective')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第九本小说 封神演义 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(9, 9789861273129, 'Investiture Of The Gods', 'Lu Xixing', 1605, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (9,9789861273129,'Investiture Of The Gods','Lu Xixing',1605,'Mythology')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十本小说 镜花缘 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(10, 9787540251499, 'Flowers In The Mirror', 'Li Ruzhen', 1827, 'Fantasy Stories');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (10,9787540251499,'Flowers In The Mirror','Li Ruzhen',1827,'Fantasy Stories')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十一本小说 镜花缘 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(11, 9787508535296, 'Stories Old And New', 'Feng Menglong', 1620, 'Perspective');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (11,9787508535296,'Stories Old And New','Feng Menglong',1620,'Perspective')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十二本小说 说岳全传 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(12, 9787101097559, 'General Yue Fei', 'Qian Cai', 1735, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (12,9787101097559,'General Yue Fei','Qian Cai',1735,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十三本小说 杨家将 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(13, 9789863381037, 'The Generals Of The Yang Family', 'Qi Zhonglan', 0, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (13,9789863381037,'The Generals Of The Yang Family','Qi Zhonglan',0,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十四本小说 说唐 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(14, 9789865700027, 'Romance Of Sui And Tang Dynasties', 'Chen Ruheng', 1989, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (14,9789865700027,'Romance Of Sui And Tang Dynasties','Chen Ruheng',1989,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十五本小说 七侠五义 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(15, 9789575709242, 'The Seven Heroes And Five Gallants', 'Shi Yukun', 1879, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (15,9789575709242,'The Seven Heroes And Five Gallants','Shi Yukun',1879,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十六本小说 施公案 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(16, 9789574927913, 'A Collection Of Shi', 'Anonymous', 1850, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (16,9789574927913,'A Collection Of Shi','Anonymous',1850,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十七本小说 青楼梦 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(17, 9787533303396, 'Dream Of The Green Chamber', 'Yuda', 1878, 'Family Saga');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (17,9787533303396,'Dream Of The Green Chamber','Yuda',1878,'Family Saga')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十八本小说 歧路灯 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(18, 9787510434341, 'Lamp In The Side Street', 'Li Luyuan', 1790, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (18,9787510434341,'Lamp In The Side Street','Li Luyuan',1790,'Unofficial History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第十九本小说 老残游记 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(19, 9789571447469, 'The Travels of Lao Can', 'Liu E', 1907, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (19,9789571447469,'The Travels of Lao Can','Liu E',1907,'Social Story')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十本小说 二十年目睹之怪现状 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(20, 9789571470047, 'Bizarre Happenings Eyewitnessed over Two Decades', 'Jianren Wu', 1905, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (20,9789571470047,'Bizarre Happenings Eyewitnessed over Two Decades','Jianren Wu',1905,'Unofficial History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十一本小说 孽海花 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(21, 9787101097580, 'A Flower In A Sinful Sea', 'Zeng Pu', 1904, 'History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (21,9787101097580,'A Flower In A Sinful Sea','Zeng Pu',1904,'History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十二本小说 官场现形记 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(22, 9789861674193, 'Officialdom Unmasked', 'Li Baojia', 1903, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (22,9789861674193,'Officialdom Unmasked','Li Baojia',1903,'Unofficial History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十三本小说 觉世名言十二楼 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(23, 9787805469836, 'Tower For The Summer Heat', 'Li Yu', 1680, 'Unofficial History');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (23,9787805469836,'Tower For The Summer Heat','Li Yu',1680,'Unofficial History')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十四本小说 无声戏 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(24, 9787508067247, 'Silent Operas', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (24,9787508067247,'Silent Operas','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十五本小说 肉蒲团 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(25, 9789573609049, 'The Carnal Prayer Mat', 'Li Yu', 1680, 'Social Story');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (25,9789573609049,'The Carnal Prayer Mat','Li Yu',1680,'Social Story')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十六本小说 浮生六记 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(26, 9787533948108, 'Six Records Of A Floating Life', 'Shen Fu', 1878, 'Autobiography');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (26,9787533948108,'Six Records Of A Floating Life','Shen Fu',1878,'Autobiography')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十七本小说 野叟曝言 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(27, 9786666141110, 'Humble Words Of A Rustic Elder', 'Xia Jingqu', 1787, 'Historical fiction');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (27,9786666141110,'Humble Words Of A Rustic Elder','Xia Jingqu',1787,'Historical fiction')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十八本小说 九尾龟 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(28, 9789571435473, 'Nine-Tailed Turtle', 'Lu Can', 1551, 'Mythology');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (28,9789571435473,'Nine-Tailed Turtle','Lu Can',1551,'Mythology')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+		// 第二十九本小说 品花宝鉴 (会分配到 Slice-0)
+		{
+			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(29, 9789866318603, 'A History Of Floral Treasures', 'Chen Sen', 1849, 'Romance');",       // 原始的 SQL 字串
+			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (29,9789866318603,'A History Of Floral Treasures','Chen Sen',1849,'Romance')", // Parser 后的 SQL 字串
+			0, // 分配到 Slice-0
+		},
+	}
+
+	// 执行 Sql 字串
+	for _, test := range tests {
+		// 執行 SQL Parser
+		ns := se.GetNamespace()
+		stmts, err := se.Parse(test.sql)
+		require.Equal(t, err, nil)
+
+		// 检查 Parser 后的 SQL 字串
+		var sb strings.Builder
+		err = stmts.Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
+		require.Equal(t, err, nil)
+		require.Equal(t, sb.String(), test.expect)
+
+		// 建立 SQL 查寻计划
+		rt := ns.GetRouter()
+		seq := ns.GetSequences()
+		phyDBs := ns.GetPhysicalDBs()
+		p, err := plan.BuildPlan(stmts, phyDBs, db, test.sql, rt, seq)
+		require.Equal(t, err, nil)
+
+		// 执行 Parser 后的 SQL 指令
+		reqCtx := util.NewRequestContext()
+		// reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果 (因为是 Insert ，一定会用主数据库，所以此行注解)
+
+		// 执行数据库分库指令
+		res, err := p.ExecuteIn(reqCtx, se)
+
+		// 单元测试进行最后检查
+		require.Equal(t, err, nil)
+		require.Equal(t, p.(*plan.InsertPlan).GetRouteResult().GetShardIndexes(), []int{test.shardIndex})
+		require.Equal(t, res.AffectedRows, uint64(0x1))
+	}
 }
