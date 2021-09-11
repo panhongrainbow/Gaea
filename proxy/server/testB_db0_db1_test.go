@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/XiaoMi/Gaea/mysql"
@@ -274,7 +275,7 @@ func TestDb0db1PlanExecuteInSuite(t *testing.T) {
 // 開始會分庫，但是事先要知道資料會跑到那一個資料庫
 func TestDb0db1PlanExecuteInWrite(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
-	// backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
+	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
 	se, err := prepareDb0db1PlanSessionExecutorForCluster()
@@ -508,7 +509,7 @@ func TestDb0db1PlanExecuteInWrite(t *testing.T) {
 // TestDb0db1PlanExecuteInRead 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库查询 29 本小说
 func TestDb0db1PlanExecuteInRead(t *testing.T) {
 	// 初始化单元测试程式
-	// backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
+	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
 	se, err := prepareDb0db1PlanSessionExecutorForCluster()

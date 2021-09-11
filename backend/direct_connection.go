@@ -19,7 +19,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/fnv"
 	"net"
 	"strings"
 
@@ -49,18 +48,6 @@ func IsTakeOver() bool {
 // UnmarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的反标记函式 (设定)
 func UnmarkTakeOver() {
 	TakeOver = false // 解除单元测试的接管状态
-}
-
-// MakeMockResult 函式 🧚 为 在单元测试数据库时建立直连回应资料的对应 (回应)
-// 目前准备做法是 1设定 环境 2数据库名称 3SQL 指令 三个值的组合对应到 一个数据库资料回传
-func (m *MockDcClient) MakeMockResult(addr, sql string, res mysql.Result) uint32 {
-	// 把数据库网路位置和SQL字串转成单纯的数字
-	h := fnv.New32a()
-	h.Write([]byte(addr + ";" + sql + ";")) // 所有的字串后面都要加上分号
-
-	// 直接预先写好数据库资料回传
-	fakeDBInstance.MockResult[h.Sum32()] = res // 转成数值，运算速度较快
-	return h.Sum32()                           // 回传登记的数值
 }
 
 // DirectConnection means connection to backend mysql
@@ -114,17 +101,27 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 		// >>>>> >>>>> >>>>> >>>>> >>>>> 先决定要使用假资料的方法
 
 		// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
-		dc.Trans = new(basicLoad) // 目前是使用最简单的测试资料载入方法，做测试用
+		dc.Trans = new(novelData) // 目前是使用最简单的测试资料载入方法，做测试用
+
+		// 得知要使用的数据库 (正确的做法，手動指定)
+		if err := dc.Trans.UseDB("novel"); err != nil {
+			return dc, err
+		}
+
+		// 得知要使用的数据库 (错误的做法，自动载入)
+		/*if err := dc.Trans.UseDB(dc.db); err != nil { // 因为上层函式并不会传送数据库名称到 dc.db 变数里
+			return dc, err
+		}*/
 
 		// >>>>> >>>>> >>>>> >>>>> >>>>> 开始载入资料
-		if dc.Trans.IsLoaded() == false { // 如果之前没载入测试资料
+		if dc.Trans.IsInited() == false { // 如果之前没载入测试资料
 
 			// 上锁和解锁
 			dc.Trans.Lock()
 			defer dc.Trans.UnLock()
 
 			if err := dc.Trans.LoadData(); err == nil {
-				dc.Trans.MarkLoaded() // 标记单元测试资料载入成功
+				dc.Trans.MarkInited() // 标记单元测试资料载入成功
 			} else {
 				// 做成对应到 网路位置、帐号、密码等相关资料，会回传 SQL 的执行结果
 				// 如果在执行单元测试过程中，没有 1 命中单元测试的测试资料 或者是 2 测试资料载入失败，就使用 Fatal 中止
@@ -489,14 +486,17 @@ func (dc *DirectConnection) GetAddr() string {
 // Execute send ComQuery or ComStmtPrepare/ComStmtExecute/ComStmtClose to backend mysql
 func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, error) {
 	// 🧚 只要这个物件 dc *DirectConnection 一初始化时，假资料的产生方式在函式 NewDirectConnection 就决定了
-	// 并在 dc.Trans.MarkLoaded() 这一行完成测试资料载入
+	// 并在 dc.Trans.MarkInited() 这一行完成测试资料载入
 
 	// 🧚 直接由单元测试接管
 	if IsTakeOver() {
 		dc.MockDC = new(MockDcClient)
-		dc.MockDC.MockKey = dc.MakeMockKey(sql) // 3652007921
+		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
-		if tmp, ok := fakeDBInstance.MockResult[dc.MockDC.MockKey]; ok {
+		// 这里
+		fmt.Println()
+
+		if tmp, ok := fakeDBInstance[dc.db].MockReAct[dc.MockDC.MockKey]; ok {
 			fmt.Printf("\u001B[35m 命中测试资料序号 Key: %d\n", dc.MockDC.MockKey)
 			return &tmp, nil // 立刻中斷
 		} else {
