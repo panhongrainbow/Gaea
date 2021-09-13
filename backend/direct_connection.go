@@ -98,38 +98,10 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 
 	// 🧚 指定要载入测试的方法
 	if IsTakeOver() {
-		// >>>>> >>>>> >>>>> >>>>> >>>>> 先决定要使用假资料的方法
-
-		// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
-		dc.Trans = new(novelData) // 目前是使用最简单的测试资料载入方法，做测试用
-
-		// 得知要使用的数据库 (正确的做法，手動指定)
-		if err := dc.Trans.UseDB("novel"); err != nil {
+		// >>>>> >>>>> >>>>> >>>>> >>>>> 1决定要使用何种数据库模拟资料 并 2完成初始化数据库模拟资料
+		if err := dc.InitTrans(); err != nil {
 			return dc, err
 		}
-
-		// 得知要使用的数据库 (错误的做法，自动载入)
-		/*if err := dc.Trans.UseDB(dc.db); err != nil { // 因为上层函式并不会传送数据库名称到 dc.db 变数里
-			return dc, err
-		}*/
-
-		// >>>>> >>>>> >>>>> >>>>> >>>>> 开始载入资料
-		if dc.Trans.IsInited() == false { // 如果之前没载入测试资料
-
-			// 上锁和解锁
-			dc.Trans.Lock()
-			defer dc.Trans.UnLock()
-
-			if err := dc.Trans.LoadData(); err == nil {
-				dc.Trans.MarkInited() // 标记单元测试资料载入成功
-			} else {
-				// 做成对应到 网路位置、帐号、密码等相关资料，会回传 SQL 的执行结果
-				// 如果在执行单元测试过程中，没有 1 命中单元测试的测试资料 或者是 2 测试资料载入失败，就使用 Fatal 中止
-				// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
-				log.Fatal("单元测试载入测试资料失败 %s", err.Error()) // 直接中断
-			}
-		}
-
 	}
 
 	err := dc.connect()
@@ -494,17 +466,8 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
 		// 这里
+		fakeDBInstance[dc.db].Test()
 		fmt.Println()
-
-		if tmp, ok := fakeDBInstance[dc.db].MockReAct[dc.MockDC.MockKey]; ok {
-			fmt.Printf("\u001B[35m 命中测试资料序号 Key: %d\n", dc.MockDC.MockKey)
-			return &tmp, nil // 立刻中斷
-		} else {
-			// 做成对应到 网路位置、帐号、密码等相关资料，会回传 SQL 的执行结果
-			// 如果在执行单元测试过程中，没有 1 命中单元测试的测试资料 或者是 2 测试资料载入失败，就使用 Fatal 中止
-			// Fatal 中止 只有在单元测试的环境下才会执行，不会影响到主程式，还算安全
-			log.Fatal("单元测试没有命中测试资料序号 %d", dc.MockDC.MockKey) // 直接中断
-		}
 	}
 
 	// 以下保持原有程式
