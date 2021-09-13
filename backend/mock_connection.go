@@ -29,7 +29,7 @@ type Transferred interface {
 	UnMarkInited()    // 去除 载入资料完成 的标记
 	LoadData() error  // 进行测试资的载入资料
 	EmptyData() error // 清空已载入的测试资料
-	UseDB(string) error
+	UseFakeDB(string) error
 	// Lock 至 UnLock 上锁相关函式另外独立成函式
 	// 因为频繁的上锁和解锁会影响效能，而且上锁和解锁的间隔可能会创造资料被改写的机会
 	Lock()   // 上锁

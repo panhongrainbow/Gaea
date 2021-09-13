@@ -14,32 +14,32 @@ type novelData struct {
 	dbName string
 }
 
-// GetDB 函式 🧚 为 在数据库池并不会传送资料库名称到下层函式，用此函式取出数据库名称
-func (n *novelData) GetDB() string {
+// GetFakeDB 函式 🧚 为 在数据库池并不会传送资料库名称到下层函式，用此函式取出数据库名称
+func (n *novelData) GetFakeDB() string {
 	return n.dbName
 }
 
-// UseDB 函式 🧚 为 在数据库池并不会传送资料库名称到下层函式，用此函式指定数据库名称
-func (n *novelData) UseDB(db string) error {
+// UseFakeDB 函式 🧚 为 在数据库池并不会传送资料库名称到下层函式，用此函式指定数据库名称
+func (n *novelData) UseFakeDB(db string) error {
 	n.dbName = db
 	return nil
 }
 
 // IsInited 函式 🧚 为 确认是否 初始化模拟数据库
 func (n *novelData) IsInited() bool {
-	fakeDBInstance[n.GetDB()].Lock()
-	defer fakeDBInstance[n.GetDB()].Unlock()
-	return fakeDBInstance[n.GetDB()].Loaded // 回传载入资料是否完成
+	fakeDBInstance[n.GetFakeDB()].Lock()
+	defer fakeDBInstance[n.GetFakeDB()].Unlock()
+	return fakeDBInstance[n.GetFakeDB()].Loaded // 回传载入资料是否完成
 }
 
 // MarkInited 函式 🧚 为 标记 初始化模拟数据库 完成
 func (n *novelData) MarkInited() {
-	fakeDBInstance[n.GetDB()].Loaded = true // 载入资料完成
+	fakeDBInstance[n.GetFakeDB()].Loaded = true // 载入资料完成
 }
 
 // UnMarkInited 函式 🧚 为 去除 初始化模拟数据库 的标记
 func (n *novelData) UnMarkInited() {
-	fakeDBInstance[n.GetDB()].Loaded = false // 去除 载入资料完成 的标记
+	fakeDBInstance[n.GetFakeDB()].Loaded = false // 去除 载入资料完成 的标记
 }
 
 // EmptyData 函式 🧚 为 清空已载入的测试资料
@@ -48,7 +48,7 @@ func (n *novelData) UnMarkInited() {
 // 所以已载入的测试资料就全部清除，不需要考虑一笔一笔去移除
 func (n *novelData) EmptyData() error {
 	// 清空载入测试资料
-	fakeDBInstance[n.GetDB()].MockReAct = nil
+	fakeDBInstance[n.GetFakeDB()].MockReAct = nil
 	return nil
 }
 
@@ -62,19 +62,19 @@ func (n *novelData) EmptyData() error {
 
 // Lock 函式 🧚 上锁函式
 func (n *novelData) Lock() {
-	fakeDBInstance[n.GetDB()].Lock()
+	fakeDBInstance[n.GetFakeDB()].Lock()
 }
 
 // UnLock 函式 🧚 解锁函式
 func (n *novelData) UnLock() {
-	fakeDBInstance[n.GetDB()].Unlock()
+	fakeDBInstance[n.GetFakeDB()].Unlock()
 }
 
 // LoadData 函式 🧚 为 载入一些测试资料
 func (n *novelData) InitData() error {
 	// 载入测试资料
-	fakeDBInstance[n.GetDB()] = new(fakeDB)
-	fakeDBInstance[n.GetDB()].MockReAct = make(map[uint32]mysql.Result)
+	fakeDBInstance[n.GetFakeDB()] = new(fakeDB)
+	fakeDBInstance[n.GetFakeDB()].MockReAct = make(map[uint32]mysql.Result)
 	return nil
 }
 

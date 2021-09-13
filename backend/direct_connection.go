@@ -99,11 +99,16 @@ func NewDirectConnection(addr string, user string, password string, db string, c
 	// 🧚 指定要载入测试的方法
 	if IsTakeOver() {
 		// >>>>> >>>>> >>>>> >>>>> >>>>> 1决定要使用何种数据库模拟资料 并 2完成初始化数据库模拟资料
-		if err := dc.InitTrans(); err != nil {
+		fdb, err := dc.initSwitchTrans()
+		if err != nil {
 			return dc, err
 		}
+
+		// >>>>> >>>>> >>>>> >>>>> >>>>> 回复模拟数据库的名称
+		dc.db = fdb
 	}
 
+	// 之后保持原有的程式码
 	err := dc.connect()
 	return dc, err
 }
@@ -466,8 +471,11 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
 		// 这里
-		fakeDBInstance[dc.db].Test()
-		fmt.Println()
+		/*fmt.Printf("\u001B[35m 数据库名称: %s\n", dc.db)
+		fmt.Printf("\u001B[35m 查询模拟数据库的网路位置: %s\n", dc.addr)
+		fmt.Printf("\u001B[35m 数据库执行字串: %s\n", sql)*/
+		res, err := fakeDBInstance[dc.db].switchMockResult(dc.db, dc.MockDC.MockKey)
+		return res, err
 	}
 
 	// 以下保持原有程式
