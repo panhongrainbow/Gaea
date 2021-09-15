@@ -91,6 +91,6 @@ func TestC2(t *testing.T) {
 func TestC3(t *testing.T) {
 	/*client := new(MockDcClient)
 	client.MockReAct = make(map[uint32]mysql.Result)
-	number := client.MakeMockResult("novel", "SELECT * FROM Book;", *mysql.SelectnovelResult())
+	number := client.MakeMockResult("novel", "SELECT * FROM Book;", *mysql.SelectNovelResult())
 	require.Equal(t, uint32(2125487740), number)*/
 }

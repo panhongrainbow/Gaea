@@ -1,6 +1,8 @@
 package backend
 
 import (
+	"fmt"
+	"github.com/XiaoMi/Gaea/mysql"
 	"log"
 	"strconv"
 	"strings"
@@ -35,8 +37,13 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 			return "", err
 		}
 		// 初始化数据库模拟资料
-		if _, ok := fakeDBInstance["novel"]; ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
+		if _, ok := fakeDBInstance["novel"]; !ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
+			if fakeDBInstance == nil {
+				fakeDBInstance = make(map[string]*fakeDB)
+			}
 			fakeDBInstance["novel"] = new(fakeDB)
+			fakeDBInstance["novel"].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成二个切片
+			fmt.Println("切片長度", len(fakeDBInstance["novel"].MockDataInDB))
 		}
 		return "novel", err
 		// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
@@ -47,8 +54,13 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 			return "", err
 		}
 		// 初始化数据库模拟资料
-		if _, ok := fakeDBInstance["novel"]; ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
+		if _, ok := fakeDBInstance["novel"]; !ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
+			if fakeDBInstance == nil {
+				fakeDBInstance = make(map[string]*fakeDB)
+			}
 			fakeDBInstance["novel"] = new(fakeDB)
+			fakeDBInstance["novel"].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成二个切片
+			fmt.Println("切片長度", len(fakeDBInstance["novel"].MockDataInDB))
 		}
 		return "novel", err
 	}

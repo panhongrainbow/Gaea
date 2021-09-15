@@ -70,7 +70,7 @@ func (n *novelData) UnLock() {
 	fakeDBInstance[n.GetFakeDB()].Unlock()
 }
 
-// LoadData 函式 🧚 为 载入一些测试资料
+// InitData 函式 🧚 为 载入一些测试资料
 func (n *novelData) InitData() error {
 	// 载入测试资料
 	fakeDBInstance[n.GetFakeDB()] = new(fakeDB)
@@ -86,7 +86,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -103,7 +103,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -119,7 +119,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -135,7 +135,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -151,7 +151,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -167,7 +167,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
@@ -183,7 +183,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectnovelResult(),
+		result:   *mysql.SelectNovelResult(),
 	}
 
 	// 载入测试资料
