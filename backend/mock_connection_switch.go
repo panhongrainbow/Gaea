@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 	"log"
 	"strconv"
@@ -30,39 +29,26 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 	// 根据测试埠号去载入相关模拟数据库
 	switch {
 	// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
-	case (3309 <= port) && (port <= 3311): // 第二丛集 Port 3309 ~ 3311
+	case (3309 <= port) && (port <= 3314): // 第二丛集 Port 3309 ~ 3311 第三丛集 Port 3312 ~ 3314
 		// 决定要使用何种数据库模拟资料
-		dc.Trans = new(novelData)                           // 29本小说资料
-		if err := dc.Trans.UseFakeDB("novel"); err != nil { // 29本小说资料
+		dc.Trans = new(novelData)                           // 调用 29 本小说的资料和方法
+		if err := dc.Trans.UseFakeDB("novel"); err != nil { // 指定使用 novel 模拟资料
 			return "", err
 		}
 		// 初始化数据库模拟资料
-		if _, ok := fakeDBInstance["novel"]; !ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
-			if fakeDBInstance == nil {
-				fakeDBInstance = make(map[string]*fakeDB)
+		// 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
+		if _, ok := fakeDBInstance[dc.Trans.GetFakeDB()]; !ok {
+			fakeDBInstance[dc.Trans.GetFakeDB()] = new(fakeDB)
+			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
+
+			// 两组切片的模拟资料先初始化为空白无数据库数据
+			for i := 0; i < len(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB); i++ {
+				fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB[i].MakeNovelEmptyResult()
 			}
-			fakeDBInstance["novel"] = new(fakeDB)
-			fakeDBInstance["novel"].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成二个切片
-			fmt.Println("切片長度", len(fakeDBInstance["novel"].MockDataInDB))
 		}
-		return "novel", err
-		// 将来要抽换制造假资料的方法，就直接在这里抽换就好，这是唯一要修改的地方
-	case (3312 <= port) && (port <= 3314): // 第三丛集 Port 3312 ~ 3314
-		// 决定要使用何种数据库模拟资料
-		dc.Trans = new(novelData)                           // 29本小说资料
-		if err := dc.Trans.UseFakeDB("novel"); err != nil { // 29本小说资料
-			return "", err
-		}
-		// 初始化数据库模拟资料
-		if _, ok := fakeDBInstance["novel"]; !ok { // 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
-			if fakeDBInstance == nil {
-				fakeDBInstance = make(map[string]*fakeDB)
-			}
-			fakeDBInstance["novel"] = new(fakeDB)
-			fakeDBInstance["novel"].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成二个切片
-			fmt.Println("切片長度", len(fakeDBInstance["novel"].MockDataInDB))
-		}
-		return "novel", err
+
+		// 初始化小说数据库模拟资料并回传
+		return dc.Trans.GetFakeDB(), err
 	}
 
 	// 都没命中埠的事后的处理

@@ -473,7 +473,7 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 
 		// 显示 SQL 字串和 Key 之间的对应关系
 		fmt.Printf("\u001B[35m 数据库名称: %s\n", dc.db)
-		fmt.Printf("\u001B[35m 查询模拟数据库的网路位置: %s\n", dc.addr)
+		fmt.Printf("\u001B[35m 模拟数据库的网路位置: %s\n", dc.addr)
 		fmt.Printf("\u001B[35m 数据库执行字串: %s\n", sql)
 		fmt.Printf("\u001B[35m 数据库执行时所对应的 Key: %d\n", dc.MockDC.MockKey)
 

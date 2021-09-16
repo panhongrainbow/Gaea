@@ -19,17 +19,18 @@ type fakeDB struct {
 	MockDataInDB []mysql.Result          // 模拟在数据库里的资料
 }
 
-var fakeDBInstance map[string]*fakeDB // 启动一个模拟的数据库实例
+var fakeDBInstance = make(map[string]*fakeDB) // 启动一个模拟的数据库实例
 
 // Transferred 🧚 单元测试的测试资料载入定义接口
 type Transferred interface {
 	// IsInited 至 EmptyData 以下为 不会修改资料的 基本操作函式
-	IsInited() bool   // 是否载入资料完成
-	MarkInited()      // 标记载入资料完成
-	UnMarkInited()    // 去除 载入资料完成 的标记
-	LoadData() error  // 进行测试资的载入资料
-	EmptyData() error // 清空已载入的测试资料
-	UseFakeDB(string) error
+	IsInited() bool         // 是否载入资料完成
+	MarkInited()            // 标记载入资料完成
+	UnMarkInited()          // 去除 载入资料完成 的标记
+	LoadData() error        // 进行测试资的载入资料
+	EmptyData() error       // 清空已载入的测试资料
+	GetFakeDB() string      // 取得登记后的数据库名称
+	UseFakeDB(string) error // 登记将要使用的数据库名称
 	// Lock 至 UnLock 上锁相关函式另外独立成函式
 	// 因为频繁的上锁和解锁会影响效能，而且上锁和解锁的间隔可能会创造资料被改写的机会
 	Lock()   // 上锁

@@ -1,26 +1,29 @@
 package mysql
 
 // MakeNovelEmptyResult 回传没有任何一本小说库存
-func MakeNovelEmptyResult() Result {
-	res := Result{}
-	res.Status = 34
-	res.InsertID = 0
-	res.AffectedRows = 0
+func (r *Result) MakeNovelEmptyResult() error {
+	r.Status = 34
+	r.InsertID = 0
+	r.AffectedRows = 0
 
+	field0 := Field{}
 	resultset := Resultset{}
-	res.Resultset = &resultset
-	res.Resultset.Fields = []*Field{}
+	r.Resultset = &resultset
+	r.Resultset.Fields = []*Field{}
+	r.Resultset.Fields = append(r.Resultset.Fields, &field0)
 
-	res.FieldNames = make(map[string]int)
-	res.FieldNames["BookID"] = 0
-	res.FieldNames["Isbn"] = 1
-	res.FieldNames["Title"] = 2
-	res.FieldNames["Author"] = 3
-	res.FieldNames["Publish"] = 4
-	res.FieldNames["Category"] = 5
+	r.FieldNames = make(map[string]int)
+	r.FieldNames["BookID"] = 0
+	r.FieldNames["Isbn"] = 1
+	r.FieldNames["Title"] = 2
+	r.FieldNames["Author"] = 3
+	r.FieldNames["Publish"] = 4
+	r.FieldNames["Category"] = 5
 
-	res.RowDatas = make([]RowData, 29)
-	return res
+	r.Values = nil
+	r.RowDatas = nil
+
+	return nil
 }
 
 // InsertFirstNovelResult 插入第一本小说到模拟数据库
@@ -40,8 +43,9 @@ func (r *Result) InsertFirstNovelResult() error {
 	field0.Decimal = 0
 	field0.DefaultValueLength = 0
 	field0.DefaultValue = nil
+	r.Resultset.Fields = append(r.Resultset.Fields, &field0)
 
-	r.Values = make([][]interface{}, 29)
+	r.Values = make([][]interface{}, 1)
 	r.Values[0] = make([]interface{}, 6)
 	r.Values[0][0] = int64(1)
 	r.Values[0][1] = int64(9781517191276)
@@ -50,10 +54,8 @@ func (r *Result) InsertFirstNovelResult() error {
 	r.Values[0][4] = 1522
 	r.Values[0][5] = "Historical fiction"
 
-	r.Resultset.Fields = append(r.Resultset.Fields, &field0)
-
-	r.RowDatas = make([]RowData, 29)
-	r.RowDatas[0] = []uint8{1, 49, 13, 57, 55, 56, 49, 53, 49, 55, 49, 57, 49, 50, 55, 54, 29, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 84, 104, 101, 32, 84, 104, 114, 101, 101, 32, 75, 105, 110, 103, 100, 111, 109, 115, 13, 76, 117, 111, 32, 71, 117, 97, 110, 122, 104, 111, 110, 103, 4, 49, 53, 50, 50, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110}
+	r.RowDatas = make([]RowData, 0)
+	// r.RowDatas = append(r.RowDatas, []uint8{1, 49, 13, 57, 55, 56, 49, 53, 49, 55, 49, 57, 49, 50, 55, 54, 29, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 84, 104, 101, 32, 84, 104, 114, 101, 101, 32, 75, 105, 110, 103, 100, 111, 109, 115, 13, 76, 117, 111, 32, 71, 117, 97, 110, 122, 104, 111, 110, 103, 4, 49, 53, 50, 50, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
 
 	return nil
 }

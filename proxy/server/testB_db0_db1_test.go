@@ -525,10 +525,10 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 		expect string
 	}{
 		// 第一本小说 三国演义
-		{
+		/*{
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
-		},
+		},*/
 		{ // 测试二，查询数据库资料
 			// 有二组切片组成时，需要加 Order By，回传的数据才会有顺序性，每次回传的数据一致时，单元测试才会正常
 			"SELECT * FROM novel.Book ORDER BY BookID",       // 原始的 SQL 字串
