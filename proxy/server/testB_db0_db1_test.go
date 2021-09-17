@@ -357,7 +357,7 @@ func TestDb0db1PlanExecuteInWrite(t *testing.T) {
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (10,9787540251499,'Flowers In The Mirror','Li Ruzhen',1827,'Fantasy Stories')", // Parser 后的 SQL 字串
 			0, // 分配到 Slice-0
 		},
-		// 第十一本小说 镜花缘 (会分配到 Slice-1)
+		// 第十一本小说 喻世明言 (会分配到 Slice-1)
 		{
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(11, 9787508535296, 'Stories Old And New', 'Feng Menglong', 1620, 'Perspective');",       // 原始的 SQL 字串
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (11,9787508535296,'Stories Old And New','Feng Menglong',1620,'Perspective')", // Parser 后的 SQL 字串
@@ -525,10 +525,10 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 		expect string
 	}{
 		// 第一本小说 三国演义
-		/*{
+		{
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
-		},*/
+		},
 		{ // 测试二，查询数据库资料
 			// 有二组切片组成时，需要加 Order By，回传的数据才会有顺序性，每次回传的数据一致时，单元测试才会正常
 			"SELECT * FROM novel.Book ORDER BY BookID",       // 原始的 SQL 字串
@@ -562,6 +562,9 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 
 		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
+		if test.sql == "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');" {
+			fmt.Println()
+		}
 		require.Equal(t, err, nil)
 		fmt.Println(res)
 	}

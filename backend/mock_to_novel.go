@@ -50,6 +50,10 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		*/
 		fmt.Println("命中 1401931444")
 		return mysql.SelectNovelResult(), nil
+	case 4290409450:
+		fmt.Println("命中 4290409450")
+		fakeDBInstance["novel"].MockDataInDB[0].InsertFirstNovelResult()
+		return &fakeDBInstance["novel"].MockDataInDB[0], nil
 	}
 	log.Fatal("没有命中模拟测试 key 为: ", key) // 中断，因为测试程式有问题
 	return nil, nil

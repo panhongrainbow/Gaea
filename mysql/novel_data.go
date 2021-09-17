@@ -20,8 +20,8 @@ func (r *Result) MakeNovelEmptyResult() error {
 	r.FieldNames["Publish"] = 4
 	r.FieldNames["Category"] = 5
 
-	r.Values = nil
-	r.RowDatas = nil
+	r.Values = make([][]interface{}, 0, 29)
+	r.RowDatas = make([]RowData, 0, 29)
 
 	return nil
 }
@@ -29,33 +29,16 @@ func (r *Result) MakeNovelEmptyResult() error {
 // InsertFirstNovelResult 插入第一本小说到模拟数据库
 func (r *Result) InsertFirstNovelResult() error {
 
-	field0 := Field{}
-	field0.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field0.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field0.Table = []uint8{66, 111, 111, 107}
-	field0.OrgTable = []uint8{66, 111, 111, 107}
-	field0.Name = []uint8{66, 111, 111, 107, 73, 68}
-	field0.OrgName = []uint8{66, 111, 111, 107, 73, 68}
-	field0.Charset = 63
-	field0.ColumnLength = 11
-	field0.Type = 3
-	field0.Flag = 20483
-	field0.Decimal = 0
-	field0.DefaultValueLength = 0
-	field0.DefaultValue = nil
-	r.Resultset.Fields = append(r.Resultset.Fields, &field0)
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(1)
+	tmp[1] = int64(9781517191276)
+	tmp[2] = "Romance Of The Three Kingdoms"
+	tmp[3] = "Luo Guanzhong"
+	tmp[4] = 1522
+	tmp[5] = "Historical fiction"
+	r.Values = append(r.Values, tmp)
 
-	r.Values = make([][]interface{}, 1)
-	r.Values[0] = make([]interface{}, 6)
-	r.Values[0][0] = int64(1)
-	r.Values[0][1] = int64(9781517191276)
-	r.Values[0][2] = "Romance Of The Three Kingdoms"
-	r.Values[0][3] = "Luo Guanzhong"
-	r.Values[0][4] = 1522
-	r.Values[0][5] = "Historical fiction"
-
-	r.RowDatas = make([]RowData, 0)
-	// r.RowDatas = append(r.RowDatas, []uint8{1, 49, 13, 57, 55, 56, 49, 53, 49, 55, 49, 57, 49, 50, 55, 54, 29, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 84, 104, 101, 32, 84, 104, 114, 101, 101, 32, 75, 105, 110, 103, 100, 111, 109, 115, 13, 76, 117, 111, 32, 71, 117, 97, 110, 122, 104, 111, 110, 103, 4, 49, 53, 50, 50, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
+	r.RowDatas = append(r.RowDatas, []uint8{1, 49, 13, 57, 55, 56, 49, 53, 49, 55, 49, 57, 49, 50, 55, 54, 29, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 84, 104, 101, 32, 84, 104, 114, 101, 101, 32, 75, 105, 110, 103, 100, 111, 109, 115, 13, 76, 117, 111, 32, 71, 117, 97, 110, 122, 104, 111, 110, 103, 4, 49, 53, 50, 50, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
 
 	return nil
 }
