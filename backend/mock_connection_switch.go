@@ -39,11 +39,11 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 		// 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
 		if _, ok := fakeDBInstance[dc.Trans.GetFakeDB()]; !ok {
 			fakeDBInstance[dc.Trans.GetFakeDB()] = new(fakeDB)
-			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]mysql.Result, 2, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
+			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]*mysql.Result, 0, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
 
-			// 两组切片的模拟资料先初始化为空白无数据库数据
-			for i := 0; i < len(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB); i++ {
-				fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB[i].MakeNovelEmptyResult()
+			for i := 0; i < 2; i++ {
+				tmp, _ := mysql.MakeNovelEmptyResult()
+				fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
 			}
 		}
 

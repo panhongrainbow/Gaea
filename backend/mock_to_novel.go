@@ -28,7 +28,8 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 			数据库执行时所对应的 Key: 1260331735
 		*/
 		fmt.Println("命中 1260331735")
-		return mysql.SelectNovelResult(), nil
+		return fdb.MockDataInDB[1], nil
+		// return mysql.SelectNovelResult(), nil
 	case 1196547673:
 		/*
 			所对应各切片 SQL 执行字串 以及 切片相关资讯
@@ -38,7 +39,7 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 			数据库执行时所对应的 Key: 1196547673
 		*/
 		fmt.Println("命中 1196547673")
-		return &fakeDBInstance["novel"].MockDataInDB[0], nil
+		return fdb.MockDataInDB[0], nil
 		// return mysql.SelectNovelResult(), nil
 	case 1401931444:
 		/*
@@ -49,11 +50,12 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 			数据库执行时所对应的 Key: 1401931444
 		*/
 		fmt.Println("命中 1401931444")
-		return mysql.SelectNovelResult(), nil
-	case 4290409450:
-		fmt.Println("命中 4290409450")
-		fakeDBInstance["novel"].MockDataInDB[0].InsertFirstNovelResult()
-		return &fakeDBInstance["novel"].MockDataInDB[0], nil
+		return fdb.MockDataInDB[1], nil
+	case 1389454267:
+		fmt.Println("命中 1389454267")
+		fdb.MockDataInDB[1].InsertFirstNovelResult()
+
+		return fdb.MockDataInDB[1], nil
 	}
 	log.Fatal("没有命中模拟测试 key 为: ", key) // 中断，因为测试程式有问题
 	return nil, nil

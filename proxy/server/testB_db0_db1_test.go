@@ -521,18 +521,21 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 
 	// 开始检查和数据库的沟通
 	tests := []struct {
-		sql    string
-		expect string
+		sql       string // Parse 前的 SQL 字串
+		expect    string // Parse 后的 SQL 字串
+		fromSlave int    // 实行读写分离，值为1的话是从 Slave 读资料，0 的话是从 Master 写资料
 	}{
 		// 第一本小说 三国演义
 		{
 			"INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');",       // 原始的 SQL 字串
 			"INSERT INTO `novel`.`Book` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (1,9781517191276,'Romance Of The Three Kingdoms','Luo Guanzhong',1522,'Historical fiction')", // Parser 后的 SQL 字串
+			0, // 从 Master 写资料
 		},
 		{ // 测试二，查询数据库资料
 			// 有二组切片组成时，需要加 Order By，回传的数据才会有顺序性，每次回传的数据一致时，单元测试才会正常
 			"SELECT * FROM novel.Book ORDER BY BookID",       // 原始的 SQL 字串
 			"SELECT * FROM `novel`.`Book` ORDER BY `BookID`", // 期望 Parser 后的 SQL 字串
+			1, // 从 Slave 读资料
 		},
 	}
 
@@ -558,13 +561,14 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 
 		// 执行 Parser 后的 SQL 指令
 		reqCtx := util.NewRequestContext()
-		reqCtx.Set(util.FromSlave, 1) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
+		reqCtx.Set(util.FromSlave, test.fromSlave) // 在这里设定读取时从 Slave 节点，达到读写分离的效果
 
 		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
-		if test.sql == "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');" {
+		if test.sql != "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');" {
 			fmt.Println()
 		}
+
 		require.Equal(t, err, nil)
 		fmt.Println(res)
 	}
