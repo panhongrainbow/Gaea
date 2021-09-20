@@ -188,8 +188,8 @@ func TestMockNovelKey(t *testing.T) {
 			"panhong",            // 用户名称
 			"12345",              // 用户密码
 			"novel",              // 数据库名称
-			"SELECT *,`BookID` FROM `novel`.`Book_0000` ORDER BY `BookID`", // SQL 执行字串
-			2864051087, // 所对应的 key 值
+			"SELECT *,`BookID` FROM `novel`.`Book_0001` ORDER BY `BookID`", // SQL 执行字串
+			2403537350, // 所对应的 key 值
 		},
 		{
 			// 第一台丛集从伺服器
@@ -197,8 +197,8 @@ func TestMockNovelKey(t *testing.T) {
 			"panhong",            // 用户名称
 			"12345",              // 用户密码
 			"novel",              // 数据库名称
-			"SELECT *,`BookID` FROM `novel`.`Book_0000` ORDER BY `BookID`", // SQL 执行字串
-			575021710, // 所对应的 key 值
+			"SELECT *,`BookID` FROM `novel`.`Book_0001` ORDER BY `BookID`", // SQL 执行字串
+			1260331735, // 所对应的 key 值
 		},
 		{
 			// 第二台丛集从伺服器

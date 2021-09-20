@@ -17,45 +17,78 @@ func (fdb *fakeDB) switchMockResult(db string, key uint32) (*mysql.Result, error
 }
 
 // switchNovelResult 函式 🧚 为在小说模拟数据库时去找对应到 SQL 字串的回应讯息
+// 这里可以参考位于 Gaea/backend/mock_key_test.go 的测试函式 TestMockNovelKey
 func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 	switch key {
-	case 1260331735:
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 向多台数据库进行查询
+	case 3717314451, 1196547673, 4270781616:
 		/*
+			向第一个切片进行查询
 			所对应各切片 SQL 执行字串 以及 切片相关资讯
 			数据库名称: novel
-			模拟数据库的网路位置: 192.168.122.2:3313
-			数据库执行字串: SELECT *,`BookID` FROM `novel`.`Book_0001` ORDER BY `BookID`
-			数据库执行时所对应的 Key: 1260331735
-		*/
-		fmt.Println("命中 1260331735")
-		return fdb.MockDataInDB[1], nil
-	case 1196547673:
-		/*
-			所对应各切片 SQL 执行字串 以及 切片相关资讯
-			数据库名称: novel
-			模拟数据库的网路位置: 192.168.122.2:3310
+			模拟数据库的网路位置: 192.168.122.2:3309 或 192.168.122.2:3310 或 192.168.122.2:3311
 			数据库执行字串: SELECT *,`BookID` FROM `novel`.`Book_0000` ORDER BY `BookID`
-			数据库执行时所对应的 Key: 1196547673
+			数据库执行时所对应的 Key: 3717314451 或 1196547673 或 4270781616
 		*/
-		fmt.Println("命中 1196547673")
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
 		return fdb.MockDataInDB[0], nil
-	case 1401931444:
+	case 2403537350, 1260331735, 1401931444:
 		/*
+			向第二个切片进行查询
 			所对应各切片 SQL 执行字串 以及 切片相关资讯
 			数据库名称: novel
-			模拟数据库的网路位置: 192.168.122.2:3314
+			模拟数据库的网路位置: 192.168.122.2:3312 或 192.168.122.2:3313 或 192.168.122.2:3314
 			数据库执行字串: SELECT *,`BookID` FROM `novel`.`Book_0001` ORDER BY `BookID`
-			数据库执行时所对应的 Key: 1401931444
+			数据库执行时所对应的 Key: 2403537350 或 1260331735 或 1401931444
 		*/
-		fmt.Println("命中 1401931444")
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
 		return fdb.MockDataInDB[1], nil
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 向多台数据库进行写入
 	case 1389454267:
-		fmt.Println("命中 1389454267")
-		if err := fdb.MockDataInDB[1].InsertFirstNovelResult(); err != nil {
+		if err := fdb.MockDataInDB[1].InsertFirstNovelResult(); err != nil { // 写入第一本小说到数据库 三国演义
 			return nil, err
 		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 514659115:
+		if err := fdb.MockDataInDB[1].InsertThirdNovelResult(); err != nil { // 写入第三本小说到数据库 西游记
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 4076192191:
+		if err := fdb.MockDataInDB[1].InsertFifthNovelResult(); err != nil { // 写入第五本小说到数据库 金瓶梅
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 1572904758:
+		if err := fdb.MockDataInDB[1].InsertSeventhNovelResult(); err != nil { // 写入第七本小说到数据库 初刻拍案惊奇
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 3188314210:
+		if err := fdb.MockDataInDB[1].InsertNinethNovelResult(); err != nil { // 写入第九本小说到数据库 封神演义
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 3599615497:
+		if err := fdb.MockDataInDB[1].InsertEleventhNovelResult(); err != nil { // 写入第十一本小说到数据库 喻世明言
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 709958148:
+		if err := fdb.MockDataInDB[1].InsertThirteenthNovelResult(); err != nil { // 写入第十三本小说到数据库 杨家将
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
 		return mysql.MakeNovelEmptyResult()
 	}
-	log.Fatal("没有命中模拟测试 key 为: ", key) // 中断，因为测试程式有问题
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 如果没有命中 key 值的时候，就直接中断整个测试
+	log.Fatalf("\u001B[35m 没有命中模拟测试 Key 为: %d\n", key) // 中断，因为测试程式有问题
 	return nil, nil
 }

@@ -121,8 +121,9 @@ func MakeNovelEmptyResult() (*Result, error) {
 	return tmp, nil
 }
 
-// InsertFirstNovelResult 插入第一本小说到模拟数据库
+// InsertFirstNovelResult 函式 🧚 为插入第一本小说到模拟数据库 三国演义
 func (r *Result) InsertFirstNovelResult() error {
+	// 新增 Value
 	tmp := make([]interface{}, 6)
 	tmp[0] = int64(1)
 	tmp[1] = int64(9781517191276)
@@ -132,8 +133,124 @@ func (r *Result) InsertFirstNovelResult() error {
 	tmp[5] = "Historical fiction"
 	r.Values = append(r.Values, tmp)
 
+	// 新增 RowDatas
 	r.RowDatas = append(r.RowDatas, []uint8{1, 49, 13, 57, 55, 56, 49, 53, 49, 55, 49, 57, 49, 50, 55, 54, 29, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 84, 104, 101, 32, 84, 104, 114, 101, 101, 32, 75, 105, 110, 103, 100, 111, 109, 115, 13, 76, 117, 111, 32, 71, 117, 97, 110, 122, 104, 111, 110, 103, 4, 49, 53, 50, 50, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
 
+	// 正常回传
+	return nil
+}
+
+// InsertThirdNovelResult 函式 🧚 为插入第三本小说到模拟数据库 西游记
+func (r *Result) InsertThirdNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(3)
+	tmp[1] = int64(9789575709518)
+	tmp[2] = "Journey To The West"
+	tmp[3] = "Wu Cheng en"
+	tmp[4] = 1592
+	tmp[5] = "Gods And Demons Fiction"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 51, 13, 57, 55, 56, 57, 53, 55, 53, 55, 48, 57, 53, 49, 56, 19, 74, 111, 117, 114, 110, 101, 121, 32, 84, 111, 32, 84, 104, 101, 32, 87, 101, 115, 116, 11, 87, 117, 32, 67, 104, 101, 110, 103, 32, 101, 110, 4, 49, 53, 57, 50, 23, 71, 111, 100, 115, 32, 65, 110, 100, 32, 68, 101, 109, 111, 110, 115, 32, 70, 105, 99, 116, 105, 111, 110})
+
+	// 正常回传
+	return nil
+}
+
+// InsertFifthNovelResult 函式 🧚 为插入第五本小说到模拟数据库 金瓶梅
+func (r *Result) InsertFifthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(5)
+	tmp[1] = int64(9780804847773)
+	tmp[2] = "Jin Ping Mei"
+	tmp[3] = "Lanling Xiaoxiao Sheng"
+	tmp[4] = 1610
+	tmp[5] = "Family Saga"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 53, 13, 57, 55, 56, 48, 56, 48, 52, 56, 52, 55, 55, 55, 51, 12, 74, 105, 110, 32, 80, 105, 110, 103, 32, 77, 101, 105, 22, 76, 97, 110, 108, 105, 110, 103, 32, 88, 105, 97, 111, 120, 105, 97, 111, 32, 83, 104, 101, 110, 103, 4, 49, 54, 49, 48, 11, 70, 97, 109, 105, 108, 121, 32, 76, 105, 102, 101})
+
+	// 正常回传
+	return nil
+}
+
+// InsertSeventhNovelResult 函式 🧚 为插入第七本小说到模拟数据库 初刻拍案惊奇
+func (r *Result) InsertSeventhNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(7)
+	tmp[1] = int64(9787101064100)
+	tmp[2] = "Amazing Tales First Series"
+	tmp[3] = "Ling Mengchu"
+	tmp[4] = 1628
+	tmp[5] = "Perspective"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 55, 13, 57, 55, 56, 55, 49, 48, 49, 48, 54, 52, 49, 48, 48, 26, 65, 109, 97, 122, 105, 110, 103, 32, 84, 97, 108, 101, 115, 32, 70, 105, 114, 115, 116, 32, 83, 101, 114, 105, 101, 115, 12, 76, 105, 110, 103, 32, 77, 101, 110, 103, 99, 104, 117, 4, 49, 54, 50, 56, 11, 80, 101, 114, 115, 112, 101, 99, 116, 105, 118, 101})
+
+	// 正常回传
+	return nil
+}
+
+// InsertNinethNovelResult 函式 🧚 为插入第九本小说到模拟数据库 封神演义
+func (r *Result) InsertNinethNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(9)
+	tmp[1] = int64(9789861273129)
+	tmp[2] = "Investiture Of The Gods"
+	tmp[3] = "Lu Xixing"
+	tmp[4] = 1605
+	tmp[5] = "Mythology"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 57, 13, 57, 55, 56, 57, 56, 54, 49, 50, 55, 51, 49, 50, 57, 23, 73, 110, 118, 101, 115, 116, 105, 116, 117, 114, 101, 32, 79, 102, 32, 84, 104, 101, 32, 71, 111, 100, 115, 9, 76, 117, 32, 88, 105, 120, 105, 110, 103, 4, 49, 54, 48, 53, 9, 77, 121, 116, 104, 111, 108, 111, 103, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertEleventhNovelResult 函式 🧚 为插入第十一本小说到模拟数据库 喻世明言
+func (r *Result) InsertEleventhNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(11)
+	tmp[1] = int64(9787508535296)
+	tmp[2] = "Stories Old And New"
+	tmp[3] = "Feng Menglong"
+	tmp[4] = 1620
+	tmp[5] = "Perspective"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 49, 13, 57, 55, 56, 55, 53, 48, 56, 53, 51, 53, 50, 57, 54, 19, 83, 116, 111, 114, 105, 101, 115, 32, 79, 108, 100, 32, 65, 110, 100, 32, 78, 101, 119, 13, 70, 101, 110, 103, 32, 77, 101, 110, 103, 108, 111, 110, 103, 4, 49, 54, 50, 48, 11, 80, 101, 114, 115, 112, 101, 99, 116, 105, 118, 101})
+
+	// 正常回传
+	return nil
+}
+
+// InsertThirteenthNovelResult 函式 🧚 为插入第十三本小说到模拟数据库 杨家将
+func (r *Result) InsertThirteenthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(13)
+	tmp[1] = int64(9789863381037)
+	tmp[2] = "The Generals Of The Yang Family"
+	tmp[3] = "Qi Zhonglan"
+	tmp[4] = 0
+	tmp[5] = "History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 51, 13, 57, 55, 56, 57, 56, 54, 51, 51, 56, 49, 48, 51, 55, 31, 84, 104, 101, 32, 71, 101, 110, 101, 114, 97, 108, 115, 32, 79, 102, 32, 84, 104, 101, 32, 89, 97, 110, 103, 32, 70, 97, 109, 105, 108, 121, 11, 81, 105, 32, 90, 104, 111, 110, 103, 108, 97, 110, 1, 48, 7, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
 	return nil
 }
 
