@@ -86,6 +86,54 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
 		return mysql.MakeNovelEmptyResult()
+	case 56203336:
+		if err := fdb.MockDataInDB[1].InsertFifteenthNovelResult(); err != nil { // 写入第十五本小说到数据库 七侠五义
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 3821388015:
+		if err := fdb.MockDataInDB[1].InsertSeventeenthNovelResult(); err != nil { // 写入第十七本小说到数据库 青楼梦
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 398747927:
+		if err := fdb.MockDataInDB[1].InsertNineteenthNovelResult(); err != nil { // 写入第十九本小说到数据库 老残游记
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 1498815330:
+		if err := fdb.MockDataInDB[1].InsertTwentyFirstNovelResult(); err != nil { // 写入第二十一本小说到数据库 孽海花
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 2614046017:
+		if err := fdb.MockDataInDB[1].InsertTwentyThirdNovelResult(); err != nil { // 写入第二十三本小说到数据库 觉世名言十二楼
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 238477972:
+		if err := fdb.MockDataInDB[1].InsertTwentyFifthNovelResult(); err != nil { // 写入第二十五本小说到数据库 肉蒲团
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 2745523730:
+		if err := fdb.MockDataInDB[1].InsertTwentySeventhNovelResult(); err != nil { // 写入第二十七本小说到数据库 野叟曝言
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
+	case 424563096:
+		if err := fdb.MockDataInDB[1].InsertTwentyNinethNovelResult(); err != nil { // 写入第二十九本小说到数据库 品花宝鉴
+			return nil, err
+		}
+		fmt.Printf("\u001B[35m 命中数据库所对应的 Key: %d\n", key)
+		return mysql.MakeNovelEmptyResult()
 	}
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 如果没有命中 key 值的时候，就直接中断整个测试
