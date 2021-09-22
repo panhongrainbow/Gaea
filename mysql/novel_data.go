@@ -121,7 +121,7 @@ func MakeNovelEmptyResult() (*Result, error) {
 	return tmp, nil
 }
 
-// InsertFirstNovelResult 函式 🧚 为插入第一本小说到模拟数据库 三国演义
+// InsertFirstNovelResult 函式 🧚 为插入第一本小说到模拟数据库 三国演义 (会分配到 Slice-1)
 func (r *Result) InsertFirstNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -140,7 +140,26 @@ func (r *Result) InsertFirstNovelResult() error {
 	return nil
 }
 
-// InsertThirdNovelResult 函式 🧚 为插入第三本小说到模拟数据库 西游记
+// InsertSecondNovelResult 函式 🧚 为插入第二本小说到模拟数据库 水浒传 (会分配到 Slice-0)
+func (r *Result) InsertSecondNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(2)
+	tmp[1] = int64(9789869442060)
+	tmp[2] = "Water Margin"
+	tmp[3] = "Shi Nai an"
+	tmp[4] = 1589
+	tmp[5] = "Historical fiction"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 50, 13, 57, 55, 56, 57, 56, 54, 57, 52, 52, 50, 48, 54, 48, 12, 87, 97, 116, 101, 114, 32, 77, 97, 114, 103, 105, 110, 10, 83, 104, 105, 32, 78, 97, 105, 32, 97, 110, 4, 49, 53, 56, 57, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
+
+	// 正常回传
+	return nil
+}
+
+// InsertThirdNovelResult 函式 🧚 为插入第三本小说到模拟数据库 西游记 (会分配到 Slice-1)
 func (r *Result) InsertThirdNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -159,7 +178,26 @@ func (r *Result) InsertThirdNovelResult() error {
 	return nil
 }
 
-// InsertFifthNovelResult 函式 🧚 为插入第五本小说到模拟数据库 金瓶梅
+// InsertFourthNovelResult 函式 🧚 为插入第四本小说到模拟数据库 红楼梦 (会分配到 Slice-0)
+func (r *Result) InsertFourthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(4)
+	tmp[1] = int64(9789865975364)
+	tmp[2] = "Dream Of The Red Chamber"
+	tmp[3] = "Cao Xueqin"
+	tmp[4] = 1791
+	tmp[5] = "Family Saga"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 52, 13, 57, 55, 56, 57, 56, 54, 53, 57, 55, 53, 51, 54, 52, 24, 68, 114, 101, 97, 109, 32, 79, 102, 32, 84, 104, 101, 32, 82, 101, 100, 32, 67, 104, 97, 109, 98, 101, 114, 10, 67, 97, 111, 32, 88, 117, 101, 113, 105, 110, 4, 49, 55, 57, 49, 11, 70, 97, 109, 105, 108, 121, 32, 83, 97, 103, 97})
+
+	// 正常回传
+	return nil
+}
+
+// InsertFifthNovelResult 函式 🧚 为插入第五本小说到模拟数据库 金瓶梅 (会分配到 Slice-1)
 func (r *Result) InsertFifthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -178,7 +216,26 @@ func (r *Result) InsertFifthNovelResult() error {
 	return nil
 }
 
-// InsertSeventhNovelResult 函式 🧚 为插入第七本小说到模拟数据库 初刻拍案惊奇
+// InsertSixthNovelResult 函式 🧚 为插入第六本小说到模拟数据库 儒林外史 (会分配到 Slice-0)
+func (r *Result) InsertSixthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(6)
+	tmp[1] = int64(9780835124072)
+	tmp[2] = "Rulin Waishi"
+	tmp[3] = "Wu Jingzi"
+	tmp[4] = 1750
+	tmp[5] = "Unofficial History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 54, 13, 57, 55, 56, 48, 56, 51, 53, 49, 50, 52, 48, 55, 50, 12, 82, 117, 108, 105, 110, 32, 87, 97, 105, 115, 104, 105, 9, 87, 117, 32, 74, 105, 110, 103, 122, 105, 4, 49, 55, 53, 48, 18, 85, 110, 111, 102, 102, 105, 99, 105, 97, 108, 32, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertSeventhNovelResult 函式 🧚 为插入第七本小说到模拟数据库 初刻拍案惊奇 (会分配到 Slice-1)
 func (r *Result) InsertSeventhNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -197,7 +254,26 @@ func (r *Result) InsertSeventhNovelResult() error {
 	return nil
 }
 
-// InsertNinethNovelResult 函式 🧚 为插入第九本小说到模拟数据库 封神演义
+// InsertEighthNovelResult 函式 🧚 为插入第八本小说到模拟数据库 二刻拍案惊奇 (会分配到 Slice-0)
+func (r *Result) InsertEighthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(8)
+	tmp[1] = int64(9789571447278)
+	tmp[2] = "Amazing Tales Second Series"
+	tmp[3] = "Ling Mengchu"
+	tmp[4] = 1628
+	tmp[5] = "Perspective"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{1, 56, 13, 57, 55, 56, 57, 53, 55, 49, 52, 52, 55, 50, 55, 56, 27, 65, 109, 97, 122, 105, 110, 103, 32, 84, 97, 108, 101, 115, 32, 83, 101, 99, 111, 110, 100, 32, 83, 101, 114, 105, 101, 115, 12, 76, 105, 110, 103, 32, 77, 101, 110, 103, 99, 104, 117, 4, 49, 54, 50, 56, 11, 80, 101, 114, 115, 112, 101, 99, 116, 105, 118, 101})
+
+	// 正常回传
+	return nil
+}
+
+// InsertNinethNovelResult 函式 🧚 为插入第九本小说到模拟数据库 封神演义 (会分配到 Slice-1)
 func (r *Result) InsertNinethNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -216,7 +292,26 @@ func (r *Result) InsertNinethNovelResult() error {
 	return nil
 }
 
-// InsertEleventhNovelResult 函式 🧚 为插入第十一本小说到模拟数据库 喻世明言
+// InsertTenthNovelResult 函式 🧚 为插入第十本小说到模拟数据库 镜花缘 (会分配到 Slice-0)
+func (r *Result) InsertTenthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(10)
+	tmp[1] = int64(9787540251499)
+	tmp[2] = "Flowers In The Mirror"
+	tmp[3] = "Li Ruzhen"
+	tmp[4] = 1827
+	tmp[5] = "Fantasy Stories"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 48, 13, 57, 55, 56, 55, 53, 52, 48, 50, 53, 49, 52, 57, 57, 21, 70, 108, 111, 119, 101, 114, 115, 32, 73, 110, 32, 84, 104, 101, 32, 77, 105, 114, 114, 111, 114, 9, 76, 105, 32, 82, 117, 122, 104, 101, 110, 4, 49, 56, 50, 55, 15, 70, 97, 110, 116, 97, 115, 121, 32, 83, 116, 111, 114, 105, 101, 115})
+
+	// 正常回传
+	return nil
+}
+
+// InsertEleventhNovelResult 函式 🧚 为插入第十一本小说到模拟数据库 喻世明言 (会分配到 Slice-1)
 func (r *Result) InsertEleventhNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -235,7 +330,26 @@ func (r *Result) InsertEleventhNovelResult() error {
 	return nil
 }
 
-// InsertThirteenthNovelResult 函式 🧚 为插入第十三本小说到模拟数据库 杨家将
+// InsertTwelfthNovelResult 函式 🧚 为插入第十二本小说到模拟数据库 说岳全传 (会分配到 Slice-0)
+func (r *Result) InsertTwelfthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(12)
+	tmp[1] = int64(9787101097559)
+	tmp[2] = "General Yue Fei"
+	tmp[3] = "Qian Cai"
+	tmp[4] = 1735
+	tmp[5] = "History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 50, 13, 57, 55, 56, 55, 49, 48, 49, 48, 57, 55, 53, 53, 57, 15, 71, 101, 110, 101, 114, 97, 108, 32, 89, 117, 101, 32, 70, 101, 105, 8, 81, 105, 97, 110, 32, 67, 97, 105, 4, 49, 55, 51, 53, 7, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertThirteenthNovelResult 函式 🧚 为插入第十三本小说到模拟数据库 杨家将 (会分配到 Slice-1)
 func (r *Result) InsertThirteenthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -254,7 +368,26 @@ func (r *Result) InsertThirteenthNovelResult() error {
 	return nil
 }
 
-// InsertFifteenthNovelResult 函式 🧚 为插入第十五本小说到模拟数据库 七侠五义
+// InsertFourteenthNovelResult 函式 🧚 为插入第十四本小说到模拟数据库 说唐 (会分配到 Slice-0)
+func (r *Result) InsertFourteenthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(14)
+	tmp[1] = int64(9789865700027)
+	tmp[2] = "Romance Of Sui And Tang Dynasties"
+	tmp[3] = "Chen Ruheng"
+	tmp[4] = 1989
+	tmp[5] = "History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 52, 13, 57, 55, 56, 57, 56, 54, 53, 55, 48, 48, 48, 50, 55, 33, 82, 111, 109, 97, 110, 99, 101, 32, 79, 102, 32, 83, 117, 105, 32, 65, 110, 100, 32, 84, 97, 110, 103, 32, 68, 121, 110, 97, 115, 116, 105, 101, 115, 11, 67, 104, 101, 110, 32, 82, 117, 104, 101, 110, 103, 4, 49, 57, 56, 57, 7, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertFifteenthNovelResult 函式 🧚 为插入第十五本小说到模拟数据库 七侠五义 (会分配到 Slice-1)
 func (r *Result) InsertFifteenthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -273,7 +406,26 @@ func (r *Result) InsertFifteenthNovelResult() error {
 	return nil
 }
 
-// InsertSeventeenthNovelResult 函式 🧚 为插入第十七本小说到模拟数据库 青楼梦
+// InsertSixteenthNovelResult 函式 🧚 为插入第十六本小说到模拟数据库 施公案 (会分配到 Slice-0)
+func (r *Result) InsertSixteenthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(16)
+	tmp[1] = int64(9789574927913)
+	tmp[2] = "A Collection Of Shi"
+	tmp[3] = "Anonymous"
+	tmp[4] = 1850
+	tmp[5] = "History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 54, 13, 57, 55, 56, 57, 53, 55, 52, 57, 50, 55, 57, 49, 51, 19, 65, 32, 67, 111, 108, 108, 101, 99, 116, 105, 111, 110, 32, 79, 102, 32, 83, 104, 105, 9, 65, 110, 111, 110, 121, 109, 111, 117, 115, 4, 49, 56, 53, 48, 7, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertSeventeenthNovelResult 函式 🧚 为插入第十七本小说到模拟数据库 青楼梦 (会分配到 Slice-1)
 func (r *Result) InsertSeventeenthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -292,7 +444,26 @@ func (r *Result) InsertSeventeenthNovelResult() error {
 	return nil
 }
 
-// InsertNineteenthNovelResult 函式 🧚 为插入第十九本小说到模拟数据库 老残游记
+// InsertEighteenthNovelResult 函式 🧚 为插入第十八本小说到模拟数据库 歧路灯 (会分配到 Slice-0)
+func (r *Result) InsertEighteenthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(18)
+	tmp[1] = int64(9787510434341)
+	tmp[2] = "Lamp In The Side Street"
+	tmp[3] = "Li Luyuan"
+	tmp[4] = 1790
+	tmp[5] = "Unofficial History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 49, 56, 13, 57, 55, 56, 55, 53, 49, 48, 52, 51, 52, 51, 52, 49, 23, 76, 97, 109, 112, 32, 73, 110, 32, 84, 104, 101, 32, 83, 105, 100, 101, 32, 83, 116, 114, 101, 101, 116, 9, 76, 105, 32, 76, 117, 121, 117, 97, 110, 4, 49, 55, 57, 48, 18, 85, 110, 111, 102, 102, 105, 99, 105, 97, 108, 32, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertNineteenthNovelResult 函式 🧚 为插入第十九本小说到模拟数据库 老残游记 (会分配到 Slice-1)
 func (r *Result) InsertNineteenthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -311,7 +482,26 @@ func (r *Result) InsertNineteenthNovelResult() error {
 	return nil
 }
 
-// InsertTwentyFirstNovelResult 函式 🧚 为插入第二十一本小说到模拟数据库 孽海花
+// InsertTwentiethNovelResult 函式 🧚 为插入第二十本小说到模拟数据库 二十年目睹之怪现状 (会分配到 Slice-0)
+func (r *Result) InsertTwentiethNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(20)
+	tmp[1] = int64(9789571470047)
+	tmp[2] = "Bizarre Happenings Eyewitnessed over Two Decades"
+	tmp[3] = "Jianren Wu"
+	tmp[4] = 1905
+	tmp[5] = "Unofficial History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 48, 13, 57, 55, 56, 57, 53, 55, 49, 52, 55, 48, 48, 52, 55, 48, 66, 105, 122, 97, 114, 114, 101, 32, 72, 97, 112, 112, 101, 110, 105, 110, 103, 115, 32, 69, 121, 101, 119, 105, 116, 110, 101, 115, 115, 101, 100, 32, 111, 118, 101, 114, 32, 84, 119, 111, 32, 68, 101, 99, 97, 100, 101, 115, 10, 74, 105, 97, 110, 114, 101, 110, 32, 87, 117, 4, 49, 57, 48, 53, 18, 85, 110, 111, 102, 102, 105, 99, 105, 97, 108, 32, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertTwentyFirstNovelResult 函式 🧚 为插入第二十一本小说到模拟数据库 孽海花 (会分配到 Slice-1)
 func (r *Result) InsertTwentyFirstNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -330,7 +520,26 @@ func (r *Result) InsertTwentyFirstNovelResult() error {
 	return nil
 }
 
-// InsertTwentyThirdNovelResult 函式 🧚 为插入第二十三本小说到模拟数据库 觉世名言十二楼
+// InsertTwentySecondNovelResult 函式 🧚 为插入第二十二本小说到模拟数据库 官场现形记 (会分配到 Slice-0)
+func (r *Result) InsertTwentySecondNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(22)
+	tmp[1] = int64(9789861674193)
+	tmp[2] = "Officialdom Unmasked"
+	tmp[3] = "Li Baojia"
+	tmp[4] = 1903
+	tmp[5] = "Unofficial History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 50, 13, 57, 55, 56, 57, 56, 54, 49, 54, 55, 52, 49, 57, 51, 20, 79, 102, 102, 105, 99, 105, 97, 108, 100, 111, 109, 32, 85, 110, 109, 97, 115, 107, 101, 100, 9, 76, 105, 32, 66, 97, 111, 106, 105, 97, 4, 49, 57, 48, 51, 18, 85, 110, 111, 102, 102, 105, 99, 105, 97, 108, 32, 72, 105, 115, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertTwentyThirdNovelResult 函式 🧚 为插入第二十三本小说到模拟数据库 觉世名言十二楼 (会分配到 Slice-1)
 func (r *Result) InsertTwentyThirdNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -349,7 +558,26 @@ func (r *Result) InsertTwentyThirdNovelResult() error {
 	return nil
 }
 
-// InsertTwentyFifthNovelResult 函式 🧚 为插入第二十五本小说到模拟数据库 肉蒲团
+// InsertTwentyFourthNovelResult 函式 🧚 为插入第二十四本小说到模拟数据库 无声戏 (会分配到 Slice-0)
+func (r *Result) InsertTwentyFourthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(24)
+	tmp[1] = int64(9787508067247)
+	tmp[2] = "Silent Operas"
+	tmp[3] = "Li Yu"
+	tmp[4] = 1680
+	tmp[5] = "Unofficial History"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 52, 13, 57, 55, 56, 55, 53, 48, 56, 48, 54, 55, 50, 52, 55, 13, 83, 105, 108, 101, 110, 116, 32, 79, 112, 101, 114, 97, 115, 5, 76, 105, 32, 89, 117, 4, 49, 54, 56, 48, 12, 83, 111, 99, 105, 97, 108, 32, 83, 116, 111, 114, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertTwentyFifthNovelResult 函式 🧚 为插入第二十五本小说到模拟数据库 肉蒲团 (会分配到 Slice-1)
 func (r *Result) InsertTwentyFifthNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -368,7 +596,26 @@ func (r *Result) InsertTwentyFifthNovelResult() error {
 	return nil
 }
 
-// InsertTwentySeventhNovelResult 函式 🧚 为插入第二十七本小说到模拟数据库 野叟曝言
+// InsertTwentySixthNovelResult 函式 🧚 为插入第二十六本小说到模拟数据库 浮生六记 (会分配到 Slice-0)
+func (r *Result) InsertTwentySixthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(26)
+	tmp[1] = int64(9787533948108)
+	tmp[2] = "Six Records Of A Floating Life"
+	tmp[3] = "Shen Fu"
+	tmp[4] = 1878
+	tmp[5] = "Autobiography"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 54, 13, 57, 55, 56, 55, 53, 51, 51, 57, 52, 56, 49, 48, 56, 30, 83, 105, 120, 32, 82, 101, 99, 111, 114, 100, 115, 32, 79, 102, 32, 65, 32, 70, 108, 111, 97, 116, 105, 110, 103, 32, 76, 105, 102, 101, 7, 83, 104, 101, 110, 32, 70, 117, 4, 49, 56, 55, 56, 13, 65, 117, 116, 111, 98, 105, 111, 103, 114, 97, 112, 104, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertTwentySeventhNovelResult 函式 🧚 为插入第二十七本小说到模拟数据库 野叟曝言 (会分配到 Slice-1)
 func (r *Result) InsertTwentySeventhNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
@@ -381,22 +628,32 @@ func (r *Result) InsertTwentySeventhNovelResult() error {
 	r.Values = append(r.Values, tmp)
 
 	// 新增 RowDatas
-	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 53, 13, 57, 55, 56, 57, 53, 55, 51, 54, 48, 57, 48, 52, 57, 21, 84, 104, 101, 32, 67, 97, 114, 110, 97, 108, 32, 80, 114, 97, 121, 101, 114, 32, 77, 97, 116, 5, 76, 105, 32, 89, 117, 4, 49, 54, 56, 48, 12, 83, 111, 99, 105, 97, 108, 32, 83, 116, 111, 114, 121})
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 55, 13, 57, 55, 56, 54, 54, 54, 54, 49, 52, 49, 49, 49, 48, 30, 72, 117, 109, 98, 108, 101, 32, 87, 111, 114, 100, 115, 32, 79, 102, 32, 65, 32, 82, 117, 115, 116, 105, 99, 32, 69, 108, 100, 101, 114, 10, 88, 105, 97, 32, 74, 105, 110, 103, 113, 117, 4, 49, 55, 56, 55, 18, 72, 105, 115, 116, 111, 114, 105, 99, 97, 108, 32, 102, 105, 99, 116, 105, 111, 110})
 
 	// 正常回传
 	return nil
 }
 
-// InsertTwentyNinethNovelResult 函式 🧚 为插入第二十九本小说到模拟数据库 品花宝鉴
-/*
-res.Values[28] = make([]interface{}, 6)
-	res.Values[28][0] = int64(29)
-	res.Values[28][1] = int64(9789866318603)
-	res.Values[28][2] = "A History Of Floral Treasures"
-	res.Values[28][3] = "Chen Sen"
-	res.Values[28][4] = 1849
-	res.Values[28][5] = "Romance"
-*/
+// InsertTwentyEighthNovelResult 函式 🧚 为插入第二十八本小说到模拟数据库 九尾龟 (会分配到 Slice-0)
+func (r *Result) InsertTwentyEighthNovelResult() error {
+	// 新增 Value
+	tmp := make([]interface{}, 6)
+	tmp[0] = int64(28)
+	tmp[1] = int64(9789571435473)
+	tmp[2] = "Nine-Tailed Turtle"
+	tmp[3] = "Lu Can"
+	tmp[4] = 1551
+	tmp[5] = "Mythology"
+	r.Values = append(r.Values, tmp)
+
+	// 新增 RowDatas
+	r.RowDatas = append(r.RowDatas, []uint8{2, 50, 56, 13, 57, 55, 56, 57, 53, 55, 49, 52, 51, 53, 52, 55, 51, 18, 78, 105, 110, 101, 45, 84, 97, 105, 108, 101, 100, 32, 84, 117, 114, 116, 108, 101, 6, 76, 117, 32, 67, 97, 110, 4, 49, 53, 53, 49, 9, 77, 121, 116, 104, 111, 108, 111, 103, 121})
+
+	// 正常回传
+	return nil
+}
+
+// InsertTwentyNinethNovelResult 函式 🧚 为插入第二十九本小说到模拟数据库 品花宝鉴 (会分配到 Slice-1)
 func (r *Result) InsertTwentyNinethNovelResult() error {
 	// 新增 Value
 	tmp := make([]interface{}, 6)
