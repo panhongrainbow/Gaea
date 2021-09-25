@@ -80,13 +80,19 @@ func (n *novelData) InitData() error {
 
 // LoadData 函式 🧚 为 载入一些测试资料
 func (*novelData) LoadData() error {
+	// 载入二十九本小说的回传结果
+	tmp, err := mysql.SelectNovelResult()
+	if err != nil {
+		return err
+	}
+
 	// 编写测试资料
 	data := subFakeDB{
 		addr:     "192.168.122.2:3307",
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -103,7 +109,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -119,7 +125,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -135,7 +141,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -151,7 +157,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -167,7 +173,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
@@ -183,7 +189,7 @@ func (*novelData) LoadData() error {
 		user:     "panhong",
 		password: "12345",
 		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *mysql.SelectNovelResult(),
+		result:   *tmp,
 	}
 
 	// 载入测试资料
