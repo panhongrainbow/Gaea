@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/XiaoMi/Gaea/models"
@@ -590,9 +589,17 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 		// 执行数据库分库指令
 		res, err := p.ExecuteIn(reqCtx, se)
 		require.Equal(t, err, nil)
-		fmt.Println(res)
-		if test.sql == "SELECT * FROM novel.Book ORDER BY BookID" {
-			fmt.Println()
-		}
+
+		// >>>>> >>>>> >>>>> >>>>> >>>>>
+
+		// 检查数据库回传第 1 本书的资料
+		require.Equal(t, res.Resultset.Values[0][0].(int64), int64(1))
+		require.Equal(t, res.Resultset.Values[0][1].(int64), int64(9781517191276))
+		require.Equal(t, res.Resultset.Values[0][2].(string), "Romance Of The Three Kingdoms")
+
+		// 检查数据库回传第 28 本书的资料
+		require.Equal(t, res.Resultset.Values[28][0].(int64), int64(29))
+		require.Equal(t, res.Resultset.Values[28][1].(int64), int64(9789866318603))
+		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
 	}
 }
