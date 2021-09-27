@@ -2,18 +2,18 @@ package mysql
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 向数据库查询 29 本小说的回传结果
 
-// MakeNovelEmptyResult 回传没有任何一本小说库存
-func MakeNovelEmptyResult() (*Result, error) {
+// MakeNovelEmptyResult0 回传没有任何一本小说库存
+func MakeNovelEmptyResult0() (*Result, error) {
 	tmp := new(Result)
 	tmp.Status = 34
 	tmp.InsertID = 0
 	tmp.AffectedRows = 0
 
 	field0 := Field{}
-	field0.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field0.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field0.Table = []uint8{66, 111, 111, 107}
-	field0.OrgTable = []uint8{66, 111, 111, 107}
+	field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	field0.Schema = []uint8{110, 111, 118, 101, 108}
+	field0.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field0.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field0.Name = []uint8{66, 111, 111, 107, 73, 68}
 	field0.OrgName = []uint8{66, 111, 111, 107, 73, 68}
 	field0.Charset = 63
@@ -25,10 +25,10 @@ func MakeNovelEmptyResult() (*Result, error) {
 	field0.DefaultValue = nil
 
 	field1 := Field{}
-	field1.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
-	field1.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field1.Table = []uint8{66, 111, 111, 107}
-	field1.OrgTable = []uint8{66, 111, 111, 107}
+	field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
+	field1.Schema = []uint8{110, 111, 118, 101, 108}
+	field1.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field1.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field1.Name = []uint8{73, 115, 98, 110}
 	field1.OrgName = []uint8{73, 115, 98, 110}
 	field1.Charset = 63
@@ -40,10 +40,10 @@ func MakeNovelEmptyResult() (*Result, error) {
 	field1.DefaultValue = nil
 
 	field2 := Field{}
-	field2.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
-	field2.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field2.Table = []uint8{66, 111, 111, 107}
-	field2.OrgTable = []uint8{66, 111, 111, 107}
+	field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
+	field2.Schema = []uint8{110, 111, 118, 101, 108}
+	field2.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field2.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field2.Name = []uint8{84, 105, 116, 108, 101}
 	field2.OrgName = []uint8{84, 105, 116, 108, 101}
 	field2.Charset = 33
@@ -55,10 +55,10 @@ func MakeNovelEmptyResult() (*Result, error) {
 	field2.DefaultValue = nil
 
 	field3 := Field{}
-	field3.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
-	field3.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field3.Table = []uint8{66, 111, 111, 107}
-	field3.OrgTable = []uint8{66, 111, 111, 107}
+	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
+	field3.Schema = []uint8{110, 111, 118, 101, 108}
+	field3.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field3.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field3.Name = []uint8{65, 117, 116, 104, 111, 114}
 	field3.OrgName = []uint8{65, 117, 116, 104, 111, 114}
 	field3.Charset = 33
@@ -70,10 +70,10 @@ func MakeNovelEmptyResult() (*Result, error) {
 	field3.DefaultValue = nil
 
 	field4 := Field{}
-	field4.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
-	field4.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field4.Table = []uint8{66, 111, 111, 107}
-	field4.OrgTable = []uint8{66, 111, 111, 107}
+	field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
+	field4.Schema = []uint8{110, 111, 118, 101, 108}
+	field4.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field4.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field4.Name = []uint8{80, 117, 98, 108, 105, 115, 104}
 	field4.OrgName = []uint8{80, 117, 98, 108, 105, 115, 104}
 	field4.Charset = 63
@@ -85,10 +85,10 @@ func MakeNovelEmptyResult() (*Result, error) {
 	field4.DefaultValue = nil
 
 	field5 := Field{}
-	field5.Data = FieldData{3, 100, 101, 102, 7, 76, 105, 98, 114, 97, 114, 121, 4, 66, 111, 111, 107, 4, 66, 111, 111, 107, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
-	field5.Schema = []uint8{76, 105, 98, 114, 97, 114, 121}
-	field5.Table = []uint8{66, 111, 111, 107}
-	field5.OrgTable = []uint8{66, 111, 111, 107}
+	field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
+	field5.Schema = []uint8{110, 111, 118, 101, 108}
+	field5.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
+	field5.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field5.Name = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
 	field5.OrgName = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
 	field5.Charset = 33
@@ -108,9 +108,132 @@ func MakeNovelEmptyResult() (*Result, error) {
 	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field3)
 	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field4)
 	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field5)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field0)
 
 	tmp.FieldNames = make(map[string]int)
-	tmp.FieldNames["BookID"] = 0
+	tmp.FieldNames["BookID"] = 6
+	tmp.FieldNames["Isbn"] = 1
+	tmp.FieldNames["Title"] = 2
+	tmp.FieldNames["Author"] = 3
+	tmp.FieldNames["Publish"] = 4
+	tmp.FieldNames["Category"] = 5
+
+	tmp.Values = make([][]interface{}, 0, 29)
+	tmp.RowDatas = make([]RowData, 0, 29)
+
+	return tmp, nil
+}
+
+// MakeNovelEmptyResult1 回传没有任何一本小说库存
+func MakeNovelEmptyResult1() (*Result, error) {
+	tmp := new(Result)
+	tmp.Status = 34
+	tmp.InsertID = 0
+	tmp.AffectedRows = 0
+
+	field0 := Field{}
+	field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	field0.Schema = []uint8{110, 111, 118, 101, 108}
+	field0.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field0.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field0.Name = []uint8{66, 111, 111, 107, 73, 68}
+	field0.OrgName = []uint8{66, 111, 111, 107, 73, 68}
+	field0.Charset = 63
+	field0.ColumnLength = 11
+	field0.Type = 3
+	field0.Flag = 20483
+	field0.Decimal = 0
+	field0.DefaultValueLength = 0
+	field0.DefaultValue = nil
+
+	field1 := Field{}
+	field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
+	field1.Schema = []uint8{110, 111, 118, 101, 108}
+	field1.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field1.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field1.Name = []uint8{73, 115, 98, 110}
+	field1.OrgName = []uint8{73, 115, 98, 110}
+	field1.Charset = 63
+	field1.ColumnLength = 50
+	field1.Type = 8
+	field1.Flag = 4097
+	field1.Decimal = 0
+	field1.DefaultValueLength = 0
+	field1.DefaultValue = nil
+
+	field2 := Field{}
+	field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
+	field2.Schema = []uint8{110, 111, 118, 101, 108}
+	field2.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field2.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field2.Name = []uint8{84, 105, 116, 108, 101}
+	field2.OrgName = []uint8{84, 105, 116, 108, 101}
+	field2.Charset = 33
+	field2.ColumnLength = 300
+	field2.Type = 253
+	field2.Flag = 4097
+	field2.Decimal = 0
+	field2.DefaultValueLength = 0
+	field2.DefaultValue = nil
+
+	field3 := Field{}
+	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
+	field3.Schema = []uint8{110, 111, 118, 101, 108}
+	field3.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field3.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field3.Name = []uint8{65, 117, 116, 104, 111, 114}
+	field3.OrgName = []uint8{65, 117, 116, 104, 111, 114}
+	field3.Charset = 33
+	field3.ColumnLength = 90
+	field3.Type = 253
+	field3.Flag = 0
+	field3.Decimal = 0
+	field3.DefaultValueLength = 0
+	field3.DefaultValue = nil
+
+	field4 := Field{}
+	field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
+	field4.Schema = []uint8{110, 111, 118, 101, 108}
+	field4.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field4.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field4.Name = []uint8{80, 117, 98, 108, 105, 115, 104}
+	field4.OrgName = []uint8{80, 117, 98, 108, 105, 115, 104}
+	field4.Charset = 63
+	field4.ColumnLength = 4
+	field4.Type = 3
+	field4.Flag = 0
+	field4.Decimal = 0
+	field4.DefaultValueLength = 0
+	field4.DefaultValue = nil
+
+	field5 := Field{}
+	field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
+	field5.Schema = []uint8{110, 111, 118, 101, 108}
+	field5.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field5.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
+	field5.Name = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
+	field5.OrgName = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
+	field5.Charset = 33
+	field5.ColumnLength = 90
+	field5.Type = 253
+	field5.Flag = 4097
+	field5.Decimal = 0
+	field5.DefaultValueLength = 0
+	field5.DefaultValue = nil
+
+	resultset := Resultset{}
+	tmp.Resultset = &resultset
+	tmp.Resultset.Fields = []*Field{}
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field0)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field1)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field2)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field3)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field4)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field5)
+	tmp.Resultset.Fields = append(tmp.Resultset.Fields, &field0)
+
+	tmp.FieldNames = make(map[string]int)
+	tmp.FieldNames["BookID"] = 6
 	tmp.FieldNames["Isbn"] = 1
 	tmp.FieldNames["Title"] = 2
 	tmp.FieldNames["Author"] = 3
@@ -229,9 +352,10 @@ func SelectNovelResult() (*Result, error) {
 	res.Resultset.Fields = append(res.Resultset.Fields, &field3)
 	res.Resultset.Fields = append(res.Resultset.Fields, &field4)
 	res.Resultset.Fields = append(res.Resultset.Fields, &field5)
+	res.Resultset.Fields = append(res.Resultset.Fields, &field0)
 
 	res.FieldNames = make(map[string]int)
-	res.FieldNames["BookID"] = 0
+	res.FieldNames["BookID"] = 6
 	res.FieldNames["Isbn"] = 1
 	res.FieldNames["Title"] = 2
 	res.FieldNames["Author"] = 3

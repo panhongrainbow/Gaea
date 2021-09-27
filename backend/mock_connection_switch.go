@@ -42,8 +42,14 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]*mysql.Result, 0, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
 
 			for i := 0; i < 2; i++ {
-				tmp, _ := mysql.MakeNovelEmptyResult()
-				fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
+				if i == 0 {
+					tmp, _ := mysql.MakeNovelEmptyResult0()
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
+				}
+				if i == 1 {
+					tmp, _ := mysql.MakeNovelEmptyResult1()
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
+				}
 			}
 		}
 
