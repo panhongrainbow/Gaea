@@ -66,6 +66,11 @@ func newResultsetSorter(r *Resultset, sk []SortKey) (*ResultsetSorter, error) {
 }
 
 func newResultsetSorterWithoutColumnName(r *Resultset, sk []SortKey) *ResultsetSorter {
+	/*newR := Resultset{Fields: r.Fields, FieldNames: r.FieldNames, RowDatas: r.RowDatas, Values: [][]interface{}{r.Values[5], r.Values[0]}}
+	return &ResultsetSorter{
+		Resultset: &newR,
+		sk:        sk,
+	}*/
 	return &ResultsetSorter{
 		Resultset: r,
 		sk:        sk,
