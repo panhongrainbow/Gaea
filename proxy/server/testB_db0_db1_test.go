@@ -268,7 +268,8 @@ func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 // TestDb0db1PlanExecuteInSuite 函式是为了要让以下的单元测试有顺序性
 func TestDb0db1PlanExecuteInSuite(t *testing.T) {
 	TestDb0db1PlanExecuteInWrite(t) // 先向 Master 寫入 29 本小說
-	TestDb0db1PlanExecuteInRead(t)  // 再向四台 Slave 中的其中两台进行资料查询 (第二丛集和第三丛集各两台
+	// time.Sleep(20 * time.Second)    // 真实的测试数据库执行速度太慢，目前单元测试没有这个问题
+	TestDb0db1PlanExecuteInRead(t) // 再向四台 Slave 中的其中两台进行资料查询 (第二丛集和第三丛集各两台
 }
 
 // TestDb0db1PlanExecuteInWrite 函式 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库写入 29 本小说

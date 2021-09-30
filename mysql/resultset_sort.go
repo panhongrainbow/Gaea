@@ -66,11 +66,22 @@ func newResultsetSorter(r *Resultset, sk []SortKey) (*ResultsetSorter, error) {
 }
 
 func newResultsetSorterWithoutColumnName(r *Resultset, sk []SortKey) *ResultsetSorter {
-	/*newR := Resultset{Fields: r.Fields, FieldNames: r.FieldNames, RowDatas: r.RowDatas, Values: [][]interface{}{r.Values[5], r.Values[0]}}
-	return &ResultsetSorter{
-		Resultset: &newR,
-		sk:        sk,
-	}*/
+	/*
+			newR := Resultset{
+				Fields:     r.Fields,
+				FieldNames: r.FieldNames,
+				RowDatas:   r.RowDatas,
+				// 测试时,可以慢慢增加测试内容
+				// 例如 在 29 本小说数据库，增加内容由 r.Values[0] 至 r.Values[28]
+				Values: [][]interface{}{r.Values[1], r.Values[0]},
+			}
+			return &ResultsetSorter{
+				Resultset: &newR,
+				sk:        sk,
+			}
+
+		// 之后中断点设在 Sort With Column Name 函式的 sort.Sort(s) 这行，就可以观察数据库模拟资料无法排序的原因
+	*/
 	return &ResultsetSorter{
 		Resultset: r,
 		sk:        sk,
