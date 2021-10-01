@@ -1,6 +1,8 @@
 package mysql
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 向数据库查询 29 本小说的回传结果
 
@@ -11,8 +13,21 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	tmp.InsertID = 0
 	tmp.AffectedRows = 0
 
+	fd0 := fieldData{}
+	fd0.def = "def"
+	fd0.schema = "novel"
+	fd0.table = "Book_0000"
+	fd0.orgTable = "Book_0000"
+	fd0.name = "BookID"
+	fd0.orgName = "BookID"
+	fd0.charset = 63
+	fd0.columnLength = 11
+	fd0.fieldtype = 3
+	fd0.flag = 20483
+
 	field0 := Field{}
-	field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	field0.Data = FieldData(ConvertNovelFieldData2byte(fd0))
+	// field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
 	field0.Schema = []uint8{110, 111, 118, 101, 108}
 	field0.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field0.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
@@ -659,6 +674,54 @@ func SelectNovelResult() (*Result, error) {
 	res.RowDatas[28] = []uint8{2, 50, 57, 13, 57, 55, 56, 57, 56, 54, 54, 51, 49, 56, 54, 48, 51, 29, 65, 32, 72, 105, 115, 116, 111, 114, 121, 32, 79, 102, 32, 70, 108, 111, 114, 97, 108, 32, 84, 114, 101, 97, 115, 117, 114, 101, 115, 8, 67, 104, 101, 110, 32, 83, 101, 110, 4, 49, 56, 52, 57, 7, 82, 111, 109, 97, 110, 99, 101}
 
 	return &res, nil
+}
+
+type fieldData struct {
+	def          string
+	schema       string
+	table        string
+	orgTable     string
+	name         string
+	orgName      string
+	charset      uint8
+	columnLength uint8
+	fieldtype    uint8
+	flag         uint16
+}
+
+func ConvertNovelFieldData2byte(fd fieldData) []byte {
+	/*fd.def = "def"
+	fd.schema = "novel"
+	fd.table = "Book_0000"
+	fd.orgTable = "Book_0000"
+	fd.name = "BookID"
+	fd.orgName = "BookID"
+	fd.charset = 63
+	fd.columnLength = 11
+	fd.fieldtype = 3
+	fd.flag = 20483*/
+
+	ret := string(uint8(len(fd.def))) +
+		fd.def +
+		string(uint8(len(fd.schema))) +
+		fd.schema +
+		string(uint8(len(fd.table))) +
+		fd.table +
+		string(uint8(len(fd.orgTable))) +
+		fd.orgTable +
+		string(uint8(len(fd.name))) +
+		fd.name +
+		string(uint8(len(fd.orgName))) +
+		fd.orgName +
+		string(uint8(12)) +
+		string(fd.charset) +
+		string(uint8(0)) +
+		string(fd.columnLength) +
+		string(uint8(0)) + string(uint8(0)) + string(uint8(0)) +
+		string(uint8(fd.flag)) + string(uint8(fd.flag>>8)) +
+		string(uint8(0)) + string(uint8(0)) + string(uint8(0))
+
+	return []byte(ret)
 }
 
 func ConvertNovelData2byte(value []interface{}) []byte {
