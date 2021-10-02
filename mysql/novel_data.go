@@ -13,51 +13,60 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	tmp.InsertID = 0
 	tmp.AffectedRows = 0
 
-	fd0 := fieldData{}
-	fd0.def = "def"
-	fd0.schema = "novel"
-	fd0.table = "Book_0000"
-	fd0.orgTable = "Book_0000"
-	fd0.name = "BookID"
-	fd0.orgName = "BookID"
-	fd0.charset = 63
-	fd0.columnLength = 11
-	fd0.fieldtype = 3
-	fd0.flag = 20483
+	fdTest0 := fieldTestData{}
+	fdTest0.def = "def"
+	fdTest0.schema = "novel"
+	fdTest0.table = "Book_0000"
+	fdTest0.orgTable = "Book_0000"
+	fdTest0.name = "BookID"
+	fdTest0.orgName = "BookID"
+	fdTest0.charset = 63
+	fdTest0.columnLength = 11
+	fdTest0.fieldtype = 3
+	fdTest0.flag = 20483
 
 	field0 := Field{}
-	field0.Data = FieldData(ConvertNovelFieldData2byte(fd0))
-	// field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field0.Schema = []uint8{110, 111, 118, 101, 108}
-	field0.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field0.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field0.Name = []uint8{66, 111, 111, 107, 73, 68}
-	field0.OrgName = []uint8{66, 111, 111, 107, 73, 68}
-	field0.Charset = 63
-	field0.ColumnLength = 11
-	field0.Type = 3
-	field0.Flag = 20483
-	field0.Decimal = 0
-	field0.DefaultValueLength = 0
-	field0.DefaultValue = nil
+	field0.ConvertFieldTest2Field(fdTest0)
+
+	/*
+		field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	*/
+
+	fdTest1 := fieldTestData{}
+	fdTest1.def = "def"
+	fdTest1.schema = "novel"
+	fdTest1.table = "Book_0000"
+	fdTest1.orgTable = "Book_0000"
+	fdTest1.name = "Isbn"
+	fdTest1.orgName = "Isbn"
+	fdTest1.charset = 63
+	fdTest1.columnLength = 50
+	fdTest1.fieldtype = 8
+	fdTest1.flag = 4097
 
 	field1 := Field{}
-	field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
-	field1.Schema = []uint8{110, 111, 118, 101, 108}
-	field1.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field1.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field1.Name = []uint8{73, 115, 98, 110}
-	field1.OrgName = []uint8{73, 115, 98, 110}
-	field1.Charset = 63
-	field1.ColumnLength = 50
-	field1.Type = 8
-	field1.Flag = 4097
-	field1.Decimal = 0
-	field1.DefaultValueLength = 0
-	field1.DefaultValue = nil
+	field1.ConvertFieldTest2Field(fdTest1)
+
+	/*
+		field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
+	*/
+
+	fdTest2 := fieldTestData{}
+	fdTest2.def = "def"
+	fdTest2.schema = "novel"
+	fdTest2.table = "Book_0000"
+	fdTest2.orgTable = "Book_0000"
+	fdTest2.name = "Title"
+	fdTest2.orgName = "Title"
+	fdTest2.charset = 33
+	fdTest2.columnLength = 300
+	fdTest2.fieldtype = 253
+	fdTest2.flag = 4097
 
 	field2 := Field{}
-	field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
+	field2.ConvertFieldTest2Field(fdTest2)
+
+	/*field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
 	field2.Schema = []uint8{110, 111, 118, 101, 108}
 	field2.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
 	field2.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
@@ -69,7 +78,7 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	field2.Flag = 4097
 	field2.Decimal = 0
 	field2.DefaultValueLength = 0
-	field2.DefaultValue = nil
+	field2.DefaultValue = nil*/
 
 	field3 := Field{}
 	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
@@ -674,54 +683,6 @@ func SelectNovelResult() (*Result, error) {
 	res.RowDatas[28] = []uint8{2, 50, 57, 13, 57, 55, 56, 57, 56, 54, 54, 51, 49, 56, 54, 48, 51, 29, 65, 32, 72, 105, 115, 116, 111, 114, 121, 32, 79, 102, 32, 70, 108, 111, 114, 97, 108, 32, 84, 114, 101, 97, 115, 117, 114, 101, 115, 8, 67, 104, 101, 110, 32, 83, 101, 110, 4, 49, 56, 52, 57, 7, 82, 111, 109, 97, 110, 99, 101}
 
 	return &res, nil
-}
-
-type fieldData struct {
-	def          string
-	schema       string
-	table        string
-	orgTable     string
-	name         string
-	orgName      string
-	charset      uint8
-	columnLength uint8
-	fieldtype    uint8
-	flag         uint16
-}
-
-func ConvertNovelFieldData2byte(fd fieldData) []byte {
-	/*fd.def = "def"
-	fd.schema = "novel"
-	fd.table = "Book_0000"
-	fd.orgTable = "Book_0000"
-	fd.name = "BookID"
-	fd.orgName = "BookID"
-	fd.charset = 63
-	fd.columnLength = 11
-	fd.fieldtype = 3
-	fd.flag = 20483*/
-
-	ret := string(uint8(len(fd.def))) +
-		fd.def +
-		string(uint8(len(fd.schema))) +
-		fd.schema +
-		string(uint8(len(fd.table))) +
-		fd.table +
-		string(uint8(len(fd.orgTable))) +
-		fd.orgTable +
-		string(uint8(len(fd.name))) +
-		fd.name +
-		string(uint8(len(fd.orgName))) +
-		fd.orgName +
-		string(uint8(12)) +
-		string(fd.charset) +
-		string(uint8(0)) +
-		string(fd.columnLength) +
-		string(uint8(0)) + string(uint8(0)) + string(uint8(0)) +
-		string(uint8(fd.flag)) + string(uint8(fd.flag>>8)) +
-		string(uint8(0)) + string(uint8(0)) + string(uint8(0))
-
-	return []byte(ret)
 }
 
 func ConvertNovelData2byte(value []interface{}) []byte {

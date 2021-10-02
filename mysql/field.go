@@ -284,3 +284,70 @@ func mysqlTimeToBinaryResult(v TimeValue) []byte {
 	}
 	return t
 }
+
+// fieldTestData 资料 🧚 和其他资料不同，主要是用于单元测试用的
+// 这里先定义 数据库栏位资料，再转成 field 资料
+type fieldTestData struct {
+	def          string
+	schema       string
+	table        string
+	orgTable     string
+	name         string
+	orgName      string
+	charset      uint16
+	columnLength uint32
+	fieldtype    uint8
+	flag         uint16
+}
+
+// ConvertFieldTest2Field 函式 🧚 为先把预先定义的数据库资料转成 field 资料，供给后续测试
+func (fd *Field) ConvertFieldTest2Field(fdTest fieldTestData) {
+	// 组成 Data 资料
+	fieldData := string(uint8(len(fdTest.def))) +
+		fdTest.def +
+		string(uint8(len(fdTest.schema))) +
+		fdTest.schema +
+		string(uint8(len(fdTest.table))) +
+		fdTest.table +
+		string(uint8(len(fdTest.orgTable))) +
+		fdTest.orgTable +
+		string(uint8(len(fdTest.name))) +
+		fdTest.name +
+		string(uint8(len(fdTest.orgName))) +
+		fdTest.orgName +
+		string(uint8(12)) +
+		string(uint8(fdTest.charset)) + string(uint8(fdTest.charset>>8)) +
+		string(uint8(fdTest.columnLength)) + string(uint8(fdTest.columnLength>>8)) + string(uint8(fdTest.columnLength>>16)) + string(uint8(fdTest.columnLength>>24)) +
+		string(fdTest.fieldtype) +
+		string(uint8(fdTest.flag)) + string(uint8(fdTest.flag>>8)) +
+		string(uint8(0)) + string(uint8(0)) + string(uint8(0))
+
+	fd.Data = []byte(fieldData)
+
+	// 组成 Schema 资料
+	fd.Schema = []byte(fdTest.schema)
+
+	// 组成 Table 资料
+	fd.Table = []byte(fdTest.table)
+
+	// 组成 OrgTable 资料
+	fd.OrgTable = []byte(fdTest.orgTable)
+
+	// 组成 Name 资料
+	fd.Name = []byte(fdTest.name)
+
+	// 组成 OrgName 资料
+	fd.OrgName = []byte(fdTest.orgName)
+
+	// 组成 Charset
+	fd.Charset = fdTest.charset
+
+	// 组成 ColumnLength
+	fd.ColumnLength = fdTest.columnLength
+
+	// 组成 Type
+	fd.Type = fdTest.fieldtype
+
+	// 组成 flag
+	fd.Flag = fdTest.flag
+}
