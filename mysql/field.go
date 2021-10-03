@@ -296,7 +296,7 @@ type fieldTestData struct {
 	orgName      string
 	charset      uint16
 	columnLength uint32
-	fieldtype    uint8
+	fieldType    uint8
 	flag         uint16
 }
 
@@ -314,15 +314,28 @@ func (fd *Field) ConvertFieldTest2Field(fdTest fieldTestData) {
 		string(uint8(len(fdTest.name))) +
 		fdTest.name +
 		string(uint8(len(fdTest.orgName))) +
-		fdTest.orgName +
+		fdTest.orgName
+
+	// 以下做法很危险,参考以下资料进行修正
+	// https://golangbyexample.com/number-characters-string-golang/
+	// https://openhome.cc/Gossip/Go/PreDeclaredType.html
+	/*
 		string(uint8(12)) +
 		string(uint8(fdTest.charset)) + string(uint8(fdTest.charset>>8)) +
 		string(uint8(fdTest.columnLength)) + string(uint8(fdTest.columnLength>>8)) + string(uint8(fdTest.columnLength>>16)) + string(uint8(fdTest.columnLength>>24)) +
-		string(fdTest.fieldtype) +
+		string(fdTest.fieldType) +
 		string(uint8(fdTest.flag)) + string(uint8(fdTest.flag>>8)) +
 		string(uint8(0)) + string(uint8(0)) + string(uint8(0))
+	*/
 
-	fd.Data = []byte(fieldData)
+	fd.Data = append([]byte(fieldData),
+		uint8(12),
+		uint8(fdTest.charset), uint8(fdTest.charset>>8),
+		uint8(fdTest.columnLength), uint8(fdTest.columnLength>>8), uint8(fdTest.columnLength>>16), uint8(fdTest.columnLength>>24),
+		fdTest.fieldType,
+		uint8(fdTest.flag), uint8(fdTest.flag>>8),
+		uint8(0), uint8(0), uint8(0),
+	)
 
 	// 组成 Schema 资料
 	fd.Schema = []byte(fdTest.schema)
@@ -346,7 +359,7 @@ func (fd *Field) ConvertFieldTest2Field(fdTest fieldTestData) {
 	fd.ColumnLength = fdTest.columnLength
 
 	// 组成 Type
-	fd.Type = fdTest.fieldtype
+	fd.Type = fdTest.fieldType
 
 	// 组成 flag
 	fd.Flag = fdTest.flag

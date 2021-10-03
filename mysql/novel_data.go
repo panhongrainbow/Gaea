@@ -22,7 +22,7 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	fdTest0.orgName = "BookID"
 	fdTest0.charset = 63
 	fdTest0.columnLength = 11
-	fdTest0.fieldtype = 3
+	fdTest0.fieldType = 3
 	fdTest0.flag = 20483
 
 	field0 := Field{}
@@ -41,7 +41,7 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	fdTest1.orgName = "Isbn"
 	fdTest1.charset = 63
 	fdTest1.columnLength = 50
-	fdTest1.fieldtype = 8
+	fdTest1.fieldType = 8
 	fdTest1.flag = 4097
 
 	field1 := Field{}
@@ -60,25 +60,15 @@ func MakeNovelEmptyResult0() (*Result, error) {
 	fdTest2.orgName = "Title"
 	fdTest2.charset = 33
 	fdTest2.columnLength = 300
-	fdTest2.fieldtype = 253
+	fdTest2.fieldType = 253
 	fdTest2.flag = 4097
 
 	field2 := Field{}
 	field2.ConvertFieldTest2Field(fdTest2)
 
-	/*field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
-	field2.Schema = []uint8{110, 111, 118, 101, 108}
-	field2.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field2.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field2.Name = []uint8{84, 105, 116, 108, 101}
-	field2.OrgName = []uint8{84, 105, 116, 108, 101}
-	field2.Charset = 33
-	field2.ColumnLength = 300
-	field2.Type = 253
-	field2.Flag = 4097
-	field2.Decimal = 0
-	field2.DefaultValueLength = 0
-	field2.DefaultValue = nil*/
+	/*
+		field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
+	*/
 
 	field3 := Field{}
 	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
