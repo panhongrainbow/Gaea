@@ -70,65 +70,81 @@ func MakeNovelEmptyResult0() (*Result, error) {
 		field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
 	*/
 
+	fdTest3 := fieldTestData{}
+	fdTest3.def = "def"
+	fdTest3.schema = "novel"
+	fdTest3.table = "Book_0000"
+	fdTest3.orgTable = "Book_0000"
+	fdTest3.name = "Author"
+	fdTest3.orgName = "Author"
+	fdTest3.charset = 33
+	fdTest3.columnLength = 90
+	fdTest3.fieldType = 253
+	fdTest3.flag = 0
+
 	field3 := Field{}
-	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
-	field3.Schema = []uint8{110, 111, 118, 101, 108}
-	field3.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field3.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field3.Name = []uint8{65, 117, 116, 104, 111, 114}
-	field3.OrgName = []uint8{65, 117, 116, 104, 111, 114}
-	field3.Charset = 33
-	field3.ColumnLength = 90
-	field3.Type = 253
-	field3.Flag = 0
-	field3.Decimal = 0
-	field3.DefaultValueLength = 0
-	field3.DefaultValue = nil
+	field3.ConvertFieldTest2Field(fdTest3)
+
+	/*
+		field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
+	*/
+
+	fdTest4 := fieldTestData{}
+	fdTest4.def = "def"
+	fdTest4.schema = "novel"
+	fdTest4.table = "Book_0000"
+	fdTest4.orgTable = "Book_0000"
+	fdTest4.name = "Publish"
+	fdTest4.orgName = "Publish"
+	fdTest4.charset = 63
+	fdTest4.columnLength = 4
+	fdTest4.fieldType = 3
+	fdTest4.flag = 0
 
 	field4 := Field{}
-	field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
-	field4.Schema = []uint8{110, 111, 118, 101, 108}
-	field4.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field4.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field4.Name = []uint8{80, 117, 98, 108, 105, 115, 104}
-	field4.OrgName = []uint8{80, 117, 98, 108, 105, 115, 104}
-	field4.Charset = 63
-	field4.ColumnLength = 4
-	field4.Type = 3
-	field4.Flag = 0
-	field4.Decimal = 0
-	field4.DefaultValueLength = 0
-	field4.DefaultValue = nil
+	field4.ConvertFieldTest2Field(fdTest4)
+
+	/*
+		field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
+	*/
+
+	fdTest5 := fieldTestData{}
+	fdTest5.def = "def"
+	fdTest5.schema = "novel"
+	fdTest5.table = "Book_0000"
+	fdTest5.orgTable = "Book_0000"
+	fdTest5.name = "Category"
+	fdTest5.orgName = "Category"
+	fdTest5.charset = 33
+	fdTest5.columnLength = 90
+	fdTest5.fieldType = 253
+	fdTest5.flag = 4097
 
 	field5 := Field{}
-	field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
-	field5.Schema = []uint8{110, 111, 118, 101, 108}
-	field5.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field5.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field5.Name = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
-	field5.OrgName = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
-	field5.Charset = 33
-	field5.ColumnLength = 90
-	field5.Type = 253
-	field5.Flag = 4097
-	field5.Decimal = 0
-	field5.DefaultValueLength = 0
-	field5.DefaultValue = nil
+	field5.ConvertFieldTest2Field(fdTest5)
+
+	/*
+		field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
+	*/
+
+	fdTest6 := fieldTestData{}
+	fdTest6.def = "def"
+	fdTest6.schema = "novel"
+	fdTest6.table = "Book_0000"
+	fdTest6.orgTable = "Book_0000"
+	fdTest6.name = "BookID"
+	fdTest6.orgName = "BookID"
+	fdTest6.charset = 63
+	fdTest6.columnLength = 11
+	fdTest6.fieldType = 3
+	fdTest6.flag = 20483
 
 	field6 := Field{}
-	field6.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field6.Schema = []uint8{110, 111, 118, 101, 108}
-	field6.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field6.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 48}
-	field6.Name = []uint8{66, 111, 111, 107, 73, 68}
-	field6.OrgName = []uint8{66, 111, 111, 107, 73, 68}
-	field6.Charset = 63
-	field6.ColumnLength = 11
-	field6.Type = 3
-	field6.Flag = 20483
-	field6.Decimal = 0
-	field6.DefaultValueLength = 0
-	field6.DefaultValue = nil
+	field6.ConvertFieldTest2Field(fdTest6)
+
+	/*
+		field6.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	*/
 
 	resultset := Resultset{}
 	tmp.Resultset = &resultset
@@ -162,110 +178,138 @@ func MakeNovelEmptyResult1() (*Result, error) {
 	tmp.InsertID = 0
 	tmp.AffectedRows = 0
 
+	fdTest0 := fieldTestData{}
+	fdTest0.def = "def"
+	fdTest0.schema = "novel"
+	fdTest0.table = "Book_0001"
+	fdTest0.orgTable = "Book_0001"
+	fdTest0.name = "BookID"
+	fdTest0.orgName = "BookID"
+	fdTest0.charset = 63
+	fdTest0.columnLength = 11
+	fdTest0.fieldType = 3
+	fdTest0.flag = 20483
+
 	field0 := Field{}
-	field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field0.Schema = []uint8{110, 111, 118, 101, 108}
-	field0.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field0.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field0.Name = []uint8{66, 111, 111, 107, 73, 68}
-	field0.OrgName = []uint8{66, 111, 111, 107, 73, 68}
-	field0.Charset = 63
-	field0.ColumnLength = 11
-	field0.Type = 3
-	field0.Flag = 20483
-	field0.Decimal = 0
-	field0.DefaultValueLength = 0
-	field0.DefaultValue = nil
+	field0.ConvertFieldTest2Field(fdTest0)
+
+	/*
+		field0.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	*/
+
+	fdTest1 := fieldTestData{}
+	fdTest1.def = "def"
+	fdTest1.schema = "novel"
+	fdTest1.table = "Book_0001"
+	fdTest1.orgTable = "Book_0001"
+	fdTest1.name = "Isbn"
+	fdTest1.orgName = "Isbn"
+	fdTest1.charset = 63
+	fdTest1.columnLength = 50
+	fdTest1.fieldType = 8
+	fdTest1.flag = 4097
 
 	field1 := Field{}
-	field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
-	field1.Schema = []uint8{110, 111, 118, 101, 108}
-	field1.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field1.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field1.Name = []uint8{73, 115, 98, 110}
-	field1.OrgName = []uint8{73, 115, 98, 110}
-	field1.Charset = 63
-	field1.ColumnLength = 50
-	field1.Type = 8
-	field1.Flag = 4097
-	field1.Decimal = 0
-	field1.DefaultValueLength = 0
-	field1.DefaultValue = nil
+	field1.ConvertFieldTest2Field(fdTest1)
+
+	/*
+		field1.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 4, 73, 115, 98, 110, 4, 73, 115, 98, 110, 12, 63, 0, 50, 0, 0, 0, 8, 1, 16, 0, 0, 0}
+	*/
+
+	fdTest2 := fieldTestData{}
+	fdTest2.def = "def"
+	fdTest2.schema = "novel"
+	fdTest2.table = "Book_0001"
+	fdTest2.orgTable = "Book_0001"
+	fdTest2.name = "Title"
+	fdTest2.orgName = "Title"
+	fdTest2.charset = 33
+	fdTest2.columnLength = 300
+	fdTest2.fieldType = 253
+	fdTest2.flag = 4097
 
 	field2 := Field{}
-	field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
-	field2.Schema = []uint8{110, 111, 118, 101, 108}
-	field2.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field2.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field2.Name = []uint8{84, 105, 116, 108, 101}
-	field2.OrgName = []uint8{84, 105, 116, 108, 101}
-	field2.Charset = 33
-	field2.ColumnLength = 300
-	field2.Type = 253
-	field2.Flag = 4097
-	field2.Decimal = 0
-	field2.DefaultValueLength = 0
-	field2.DefaultValue = nil
+	field2.ConvertFieldTest2Field(fdTest2)
+
+	/*
+		field2.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 5, 84, 105, 116, 108, 101, 5, 84, 105, 116, 108, 101, 12, 33, 0, 44, 1, 0, 0, 253, 1, 16, 0, 0, 0}
+	*/
+
+	fdTest3 := fieldTestData{}
+	fdTest3.def = "def"
+	fdTest3.schema = "novel"
+	fdTest3.table = "Book_0001"
+	fdTest3.orgTable = "Book_0001"
+	fdTest3.name = "Author"
+	fdTest3.orgName = "Author"
+	fdTest3.charset = 33
+	fdTest3.columnLength = 90
+	fdTest3.fieldType = 253
+	fdTest3.flag = 0
 
 	field3 := Field{}
-	field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
-	field3.Schema = []uint8{110, 111, 118, 101, 108}
-	field3.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field3.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field3.Name = []uint8{65, 117, 116, 104, 111, 114}
-	field3.OrgName = []uint8{65, 117, 116, 104, 111, 114}
-	field3.Charset = 33
-	field3.ColumnLength = 90
-	field3.Type = 253
-	field3.Flag = 0
-	field3.Decimal = 0
-	field3.DefaultValueLength = 0
-	field3.DefaultValue = nil
+	field3.ConvertFieldTest2Field(fdTest3)
+
+	/*
+		field3.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 65, 117, 116, 104, 111, 114, 6, 65, 117, 116, 104, 111, 114, 12, 33, 0, 90, 0, 0, 0, 253, 0, 0, 0, 0, 0}
+	*/
+
+	fdTest4 := fieldTestData{}
+	fdTest4.def = "def"
+	fdTest4.schema = "novel"
+	fdTest4.table = "Book_0001"
+	fdTest4.orgTable = "Book_0001"
+	fdTest4.name = "Publish"
+	fdTest4.orgName = "Publish"
+	fdTest4.charset = 63
+	fdTest4.columnLength = 4
+	fdTest4.fieldType = 3
+	fdTest4.flag = 0
 
 	field4 := Field{}
-	field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
-	field4.Schema = []uint8{110, 111, 118, 101, 108}
-	field4.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field4.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field4.Name = []uint8{80, 117, 98, 108, 105, 115, 104}
-	field4.OrgName = []uint8{80, 117, 98, 108, 105, 115, 104}
-	field4.Charset = 63
-	field4.ColumnLength = 4
-	field4.Type = 3
-	field4.Flag = 0
-	field4.Decimal = 0
-	field4.DefaultValueLength = 0
-	field4.DefaultValue = nil
+	field4.ConvertFieldTest2Field(fdTest4)
+
+	/*
+		field4.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 7, 80, 117, 98, 108, 105, 115, 104, 7, 80, 117, 98, 108, 105, 115, 104, 12, 63, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0, 0}
+	*/
+
+	fdTest5 := fieldTestData{}
+	fdTest5.def = "def"
+	fdTest5.schema = "novel"
+	fdTest5.table = "Book_0001"
+	fdTest5.orgTable = "Book_0001"
+	fdTest5.name = "Category"
+	fdTest5.orgName = "Category"
+	fdTest5.charset = 33
+	fdTest5.columnLength = 90
+	fdTest5.fieldType = 253
+	fdTest5.flag = 4097
 
 	field5 := Field{}
-	field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
-	field5.Schema = []uint8{110, 111, 118, 101, 108}
-	field5.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field5.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field5.Name = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
-	field5.OrgName = []uint8{67, 97, 116, 101, 103, 111, 114, 121}
-	field5.Charset = 33
-	field5.ColumnLength = 90
-	field5.Type = 253
-	field5.Flag = 4097
-	field5.Decimal = 0
-	field5.DefaultValueLength = 0
-	field5.DefaultValue = nil
+	field5.ConvertFieldTest2Field(fdTest5)
+
+	/*
+		field5.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 8, 67, 97, 116, 101, 103, 111, 114, 121, 8, 67, 97, 116, 101, 103, 111, 114, 121, 12, 33, 0, 90, 0, 0, 0, 253, 1, 16, 0, 0, 0}
+	*/
+
+	fdTest6 := fieldTestData{}
+	fdTest6.def = "def"
+	fdTest6.schema = "novel"
+	fdTest6.table = "Book_0001"
+	fdTest6.orgTable = "Book_0001"
+	fdTest6.name = "BookID"
+	fdTest6.orgName = "BookID"
+	fdTest6.charset = 63
+	fdTest6.columnLength = 11
+	fdTest6.fieldType = 3
+	fdTest6.flag = 20483
 
 	field6 := Field{}
-	field6.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
-	field6.Schema = []uint8{110, 111, 118, 101, 108}
-	field6.Table = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field6.OrgTable = []uint8{66, 111, 111, 107, 95, 48, 48, 48, 49}
-	field6.Name = []uint8{66, 111, 111, 107, 73, 68}
-	field6.OrgName = []uint8{66, 111, 111, 107, 73, 68}
-	field6.Charset = 63
-	field6.ColumnLength = 11
-	field6.Type = 3
-	field6.Flag = 20483
-	field6.Decimal = 0
-	field6.DefaultValueLength = 0
-	field6.DefaultValue = nil
+	field6.ConvertFieldTest2Field(fdTest6)
+
+	/*
+		field6.Data = FieldData{3, 100, 101, 102, 5, 110, 111, 118, 101, 108, 9, 66, 111, 111, 107, 95, 48, 48, 48, 49, 9, 66, 111, 111, 107, 95, 48, 48, 48, 48, 6, 66, 111, 111, 107, 73, 68, 6, 66, 111, 111, 107, 73, 68, 12, 63, 0, 11, 0, 0, 0, 3, 3, 80, 0, 0, 0}
+	*/
 
 	resultset := Resultset{}
 	tmp.Resultset = &resultset
