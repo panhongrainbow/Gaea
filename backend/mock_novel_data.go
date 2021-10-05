@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 )
 
@@ -75,130 +74,6 @@ func (n *novelData) InitData() error {
 	// 载入测试资料
 	fakeDBInstance[n.GetFakeDB()] = new(fakeDB)
 	fakeDBInstance[n.GetFakeDB()].MockReAct = make(map[uint32]mysql.Result)
-	return nil
-}
-
-// LoadData 函式 🧚 为 载入一些测试资料
-func (*novelData) LoadData() error {
-	// 载入二十九本小说的回传结果
-	tmp, err := mysql.SelectNovelResult()
-	if err != nil {
-		return err
-	}
-
-	// 编写测试资料
-	data := subFakeDB{
-		addr:     "192.168.122.2:3307",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	fakeDBInstance[data.db] = new(fakeDB)
-	fakeDBInstance[data.db].MockReAct = make(map[uint32]mysql.Result)
-	key := fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3306",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3307",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3308",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0000`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3309",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3310",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
-	// 编写测试资料
-	data = subFakeDB{
-		addr:     "192.168.122.2:3311",
-		user:     "panhong",
-		password: "12345",
-		sql:      "SELECT * FROM `novel`.`Book_0001`",
-		result:   *tmp,
-	}
-
-	// 载入测试资料
-	// fakeDBInstance.MockReAct = make(map[uint32]mysql.Result)
-	key = fakeDBInstance[data.db].MakeMockResult(data)
-
-	// 显示测试资料序号并回传 nil
-	fmt.Printf("\u001B[35m 载入测试资料序号 Key: %d\n", key)
-
 	return nil
 }
 

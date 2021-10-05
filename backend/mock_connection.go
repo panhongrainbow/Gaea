@@ -27,7 +27,6 @@ type Transferred interface {
 	IsInited() bool         // 是否载入资料完成
 	MarkInited()            // 标记载入资料完成
 	UnMarkInited()          // 去除 载入资料完成 的标记
-	LoadData() error        // 进行测试资的载入资料
 	EmptyData() error       // 清空已载入的测试资料
 	GetFakeDB() string      // 取得登记后的数据库名称
 	UseFakeDB(string) error // 登记将要使用的数据库名称
