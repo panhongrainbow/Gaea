@@ -15,6 +15,7 @@ package router
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/XiaoMi/Gaea/models"
@@ -29,7 +30,10 @@ type Router struct {
 func (r *Router) PrintRouterRuleKeys() {
 	for db := range r.rules {
 		for table := range r.rules[db] {
-			fmt.Printf("\u001B[35m 在切片规则的资料库名称 %s 资料表名 %s \n", db, table)
+			tool := os.Getenv("IDE_TOOL")
+			if tool == "jetbrains" {
+				fmt.Printf("\u001B[35m 在切片规则的资料库名称 %s 资料表名 %s \n", db, table)
+			}
 		}
 	}
 }

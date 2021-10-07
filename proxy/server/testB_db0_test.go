@@ -1,3 +1,5 @@
+// +build hierarchy
+
 package server
 
 import (

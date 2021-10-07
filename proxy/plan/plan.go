@@ -17,6 +17,7 @@ package plan
 import (
 	"fmt"
 	"github.com/XiaoMi/Gaea/backend"
+	"os"
 	"strings"
 
 	"github.com/XiaoMi/Gaea/mysql"
@@ -135,7 +136,10 @@ func (s *Checker) hasShardTableInTableName(n *ast.TableName) bool {
 
 	// 在单元测试时，希望可以显示更多资讯
 	if backend.IsTakeOver() {
-		fmt.Printf("\u001B[35m 目前传入的数据库名称为 %s 数据库表为 %s \n", db, table)
+		tool := os.Getenv("IDE_TOOL")
+		if tool == "jetbrains" {
+			fmt.Printf("\u001B[35m 目前传入的数据库名称为 %s 数据库表为 %s \n", db, table)
+		}
 		s.router.PrintRouterRuleKeys()
 	}
 

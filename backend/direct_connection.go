@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 
 	sqlerr "github.com/XiaoMi/Gaea/core/errors"
@@ -472,10 +473,13 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 		dc.MockDC.MockKey = dc.MakeMockKey(sql)
 
 		// 显示 SQL 字串和 Key 之间的对应关系
-		fmt.Printf("\u001B[35m 数据库名称: %s\n", dc.db)
-		fmt.Printf("\u001B[35m 模拟数据库的网路位置: %s\n", dc.addr)
-		fmt.Printf("\u001B[35m 数据库执行字串: %s\n", sql)
-		fmt.Printf("\u001B[35m 数据库执行时所对应的 Key: %d\n", dc.MockDC.MockKey)
+		tool := os.Getenv("IDE_TOOL")
+		if tool == "jetbrains" {
+			fmt.Printf("\u001B[35m 数据库名称: %s\n", dc.db)
+			fmt.Printf("\u001B[35m 模拟数据库的网路位置: %s\n", dc.addr)
+			fmt.Printf("\u001B[35m 数据库执行字串: %s\n", sql)
+			fmt.Printf("\u001B[35m 数据库执行时所对应的 Key: %d\n", dc.MockDC.MockKey)
+		}
 
 		// 开始进行数据库回传数据模拟
 		res, err := fakeDBInstance[dc.db].switchMockResult(dc.db, dc.MockDC.MockKey)

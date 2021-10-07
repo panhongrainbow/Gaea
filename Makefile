@@ -26,6 +26,8 @@ test:
 	go tool cover -func=.coverage.out -o .coverage.func
 	tail -1 .coverage.func
 	go tool cover -html=.coverage.out -o .coverage.html
+	go test -c -tags hierarchy -o /tmp/___2TestDb0db1PlanExecuteInSuite.test github.com/XiaoMi/Gaea/proxy/server
+	go tool test2json -t /tmp/___2TestDb0db1PlanExecuteInSuite.test -test.v -test.paniconexit0 -test.run "TestDb0db1PlanExecuteInSuite" github.com/XiaoMi/Gaea/proxy/server
 
 build_with_coverage:
 	go test -c cmd/gaea/main.go cmd/gaea/main_test.go -coverpkg ./... -covermode=count -o bin/gaea
