@@ -595,12 +595,22 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 
 		// >>>>> >>>>> >>>>> >>>>> >>>>> 进行最后排序检查
 
-		// 检查数据库回传第 1 本书的资料
+		// 检查数据库回传第 1 本书的资料 (检查数据库开头笔数的资料)
 		require.Equal(t, res.Resultset.Values[0][0].(int64), int64(1))
 		require.Equal(t, res.Resultset.Values[0][1].(int64), int64(9781517191276))
 		require.Equal(t, res.Resultset.Values[0][2].(string), "Romance Of The Three Kingdoms")
 
-		// 检查数据库回传第 28 本书的资料
+		// 检查数据库回传第 14 本书的资料 (检查数据库中间笔数的资料)
+		require.Equal(t, res.Resultset.Values[13][0].(int64), int64(14))
+		require.Equal(t, res.Resultset.Values[13][1].(int64), int64(9789865700027))
+		require.Equal(t, res.Resultset.Values[13][2].(string), "Romance Of Sui And Tang Dynasties")
+
+		// 检查数据库回传第 15 本书的资料 (检查数据库中间笔数的资料)
+		require.Equal(t, res.Resultset.Values[14][0].(int64), int64(15))
+		require.Equal(t, res.Resultset.Values[14][1].(int64), int64(9789575709242))
+		require.Equal(t, res.Resultset.Values[14][2].(string), "The Seven Heroes And Five Gallants")
+
+		// 检查数据库回传第 29 本书的资料 (检查数据库末端笔数的资料)
 		require.Equal(t, res.Resultset.Values[28][0].(int64), int64(29))
 		require.Equal(t, res.Resultset.Values[28][1].(int64), int64(9789866318603))
 		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
