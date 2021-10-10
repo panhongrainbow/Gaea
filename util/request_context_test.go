@@ -27,8 +27,8 @@ func Benchmark_RequestContext_Get(b *testing.B) {
 	}
 }
 
-// Test_RequestContext_Set 函式是用来测试多读单写中其中写的特性
-func Test_RequestContext_Set(t *testing.T) {
+// Test_RequestContext_Set_And_Get 函式是用来测试多读单写中其中写的特性
+func Test_RequestContext_Set_And_Get(t *testing.T) {
 	// 产生一个内含多读单写物件
 	var rctx = NewRequestContext()
 
@@ -94,4 +94,50 @@ func Test_RequestContext_Set(t *testing.T) {
 	value := rctx.Get("key")
 	// 检查写入的值是否正确
 	require.Equal(t, value.(int), 10000)
+}
+
+// Benchmark_RequestContext_Set_RWLock 是用来测试多读单写中读的性能比较，这次着重在多读单写
+func Benchmark_RequestContext_Set_RWLock(b *testing.B) {
+	// 产生一个内含多读单写物件
+	var rctx = NewRequestContext()
+
+	// 一开始 key 值归 0
+	rctx.Set("key", 0)
+
+	funcRWLock := func(reqCtx *RequestContext, key string) interface{} { // 27.01 ns/op
+		reqCtx.lock.RLock()
+		v, ok := reqCtx.ctx[key]
+		reqCtx.lock.RUnlock()
+		if ok {
+			return v
+		}
+		return nil
+	}
+
+	for i := 0; i < b.N; i++ {
+		funcRWLock(rctx, "key")
+	}
+}
+
+// Benchmark_RequestContext_Lock_Set 是用来测试多读单写中读的性能比较，这次着重在单读单写
+func Benchmark_RequestContext_Set_Lock(b *testing.B) {
+	// 产生一个内含多读单写物件
+	var rctx = NewRequestContext()
+
+	// 一开始 key 值归 0
+	rctx.Set("key", 0)
+
+	funcLock := func(reqCtx *RequestContext, key string) interface{} { // 44.51 ns/op
+		reqCtx.lock.Lock()
+		v, ok := reqCtx.ctx[key]
+		reqCtx.lock.Unlock()
+		if ok {
+			return v
+		}
+		return nil
+	}
+
+	for i := 0; i < b.N; i++ {
+		funcLock(rctx, "key")
+	}
 }
