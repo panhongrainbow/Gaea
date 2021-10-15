@@ -11,7 +11,7 @@ import (
 // TestPooledConnect 函式 🧚 测试 是用测试 连接池 的连接
 func TestPooledConnect(t *testing.T) {
 	// 开启单元测试
-	MarkTakeOver()
+	// MarkTakeOver()
 
 	// 载入设定档
 	s := new(Slice)
@@ -93,5 +93,5 @@ func TestPooledConnect(t *testing.T) {
 	pcM.Recycle()
 
 	// 关闭单元测试
-	UnmarkTakeOver()
+	// UnmarkTakeOver()
 }
