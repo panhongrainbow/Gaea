@@ -2,13 +2,12 @@ package backend
 
 import (
 	"context"
-	"fmt"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
-// TestPooledConnect 函式 🧚 测试 是用测试 连接池 的连接
+// TestPooledConnect 函式 🧚 是测试 连接池 的连接
 func TestPooledConnect(t *testing.T) {
 	// 开启单元测试
 	// MarkTakeOver()
@@ -83,15 +82,20 @@ func TestPooledConnect(t *testing.T) {
 	// 检查 Slave1 Pool Connection
 	require.Equal(t, pcS1.GetAddr(), "192.168.122.2:3311")
 
-	// pcM.Close()
+	// 使用 數據庫
+	err = pcM.UseDB("novel")
+	require.Equal(t, err, nil)
 
-	fmt.Println(pcM.IsClosed())
+	// 新增一筆資料
+	_, _ = pcM.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+	require.Equal(t, err, nil)
 
-	err3 := pcM.Reconnect()
-	fmt.Println(err3)
-
-	pcM.Recycle()
+	// 新增一筆資料
+	if !IsTakeOver() {
+		_, _ = pcM.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
+		require.Equal(t, err, nil)
+	}
 
 	// 关闭单元测试
-	// UnmarkTakeOver()
+	UnmarkTakeOver()
 }
