@@ -408,6 +408,12 @@ func (dc *DirectConnection) writeComFieldList(table string, wildcard string) err
 
 // Ping implements mysql ping command.
 func (dc *DirectConnection) Ping() error {
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		return nil // 立刻中断
+	}
+
+	// 以下保持原有程式
 	dc.conn.SetSequence(0)
 	if err := dc.writePacket([]byte{mysql.ComPing}); err != nil {
 		return err
@@ -432,6 +438,7 @@ func (dc *DirectConnection) UseDB(dbName string) error {
 		return nil // 立刻中断
 	}
 
+	// 以下保持原有程式
 	dc.conn.SetSequence(0)
 	if dc.db == dbName || len(dbName) == 0 {
 		return nil

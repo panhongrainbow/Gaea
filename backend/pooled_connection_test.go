@@ -10,7 +10,7 @@ import (
 // TestPooledConnect 函式 🧚 是测试 连接池 的连接
 func TestPooledConnect(t *testing.T) {
 	// 开启单元测试
-	// MarkTakeOver()
+	MarkTakeOver()
 
 	// 载入设定档
 	s := new(Slice)
