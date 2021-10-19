@@ -215,13 +215,23 @@ func TestDcReadWrite(t *testing.T) {
 	require.Equal(t, result.AffectedRows, uint64(0x1))
 	require.Equal(t, result.InsertID, uint64(0x0))
 
-	// 写入数据库
-	// result, err := dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
 
-	// 检查数据库写入结果
-	/*require.Equal(t, err, nil)
-	require.Equal(t, result.AffectedRows, uint64(0x1))
-	require.Equal(t, result.InsertID, uint64(0x0))*/
+	// 检查数据库读取结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x0))
+
+	// 检查数据库读取结果细节
+	require.Equal(t, result.Resultset.Values[0][0].(int64), int64(2))
+	require.Equal(t, result.Resultset.Values[0][1].(int64), int64(9789869442060))
+	require.Equal(t, result.Resultset.Values[0][2].(string), "Water Margin")
+
+	// 删除一笔资料
+	if !IsTakeOver() {
+		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
+		require.Equal(t, err, nil)
+	}
 
 	// 关闭单元测试的开关
 	UnmarkTakeOver()

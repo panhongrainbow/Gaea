@@ -22,7 +22,7 @@ func (fdb *fakeDB) switchMockResult(db string, key uint32) (*mysql.Result, error
 func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 	switch key {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 向多台数据库进行查询
-	case 3717314451, 1196547673, 4270781616:
+	case 3717314451, 1196547673, 4270781616, 3210257868, 3606398974:
 		/*
 			向第一个切片进行查询
 			所对应各切片 SQL 执行字串 以及 切片相关资讯

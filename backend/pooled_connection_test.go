@@ -82,17 +82,31 @@ func TestPooledConnect(t *testing.T) {
 	// 检查 Slave1 Pool Connection
 	require.Equal(t, pcS1.GetAddr(), "192.168.122.2:3311")
 
-	// 使用 數據庫
+	// 使用 数据库
 	err = pcM.UseDB("novel")
 	require.Equal(t, err, nil)
 
-	// 新增一筆資料
-	_, _ = pcM.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
-	require.Equal(t, err, nil)
+	// 新增一笔资料
+	result, err := pcM.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+	require.Equal(t, err1, nil)
 
-	// 新增一筆資料
+	// 检查数据库写入结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x1))
+	require.Equal(t, result.InsertID, uint64(0x0))
+
+	// 查询一笔资料
+	result, err = pcS0.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err1, nil)
+
+	// 检查数据库读取结果
+	require.Equal(t, result.Resultset.Values[0][0].(int64), int64(2))
+	require.Equal(t, result.Resultset.Values[0][1].(int64), int64(9789869442060))
+	require.Equal(t, result.Resultset.Values[0][2].(string), "Water Margin")
+
+	// 删除一笔资料
 	if !IsTakeOver() {
-		_, _ = pcM.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
+		_, err = pcM.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
 		require.Equal(t, err, nil)
 	}
 
