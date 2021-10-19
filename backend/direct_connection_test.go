@@ -44,11 +44,15 @@ func TestAppendSetVariable2(t *testing.T) {
 // TestDc 函式 🧚 是用来測試所有的直連 DC 的基本動作
 func TestDc(t *testing.T) {
 	// 直连 DC 的单元测试是否能正常启动
-	TestDcTakeOver(t)
+	// TestDcTakeOver(t)
 	// 直连 DC 的新建连线
-	TestDcNewDirectConnection(t)
+	// TestDcNewDirectConnection(t)
 	// 重新建立直连 DC 连线
-	TestDcReCreateConnection(t)
+	// TestDcReCreateConnection(t)
+	// 初始化直连 DC 连线
+	// TestDcUseDB(t)
+	// 初始化直连 DC 连线
+	TestDcReadWrite(t)
 }
 
 // TestDcTakeOver 函式 🧚 是用来测试直连 DC 的单元测试是否能正常启动
@@ -71,7 +75,8 @@ func TestDcNewDirectConnection(t *testing.T) {
 	// 启动单元测试的开关
 	MarkTakeOver()
 
-	// 直接在這裡建立新的直连 DC 連線
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
 	dcConn, err := NewDirectConnection(
 		"192.168.122.2:3309",
 		"panhong",
@@ -81,7 +86,7 @@ func TestDcNewDirectConnection(t *testing.T) {
 		46,
 	)
 
-	// 檢查測試直連 DC 的連線是否成功建立
+	// 检查测试直连 DC 的连线是否成功建立
 	require.Equal(t, err, nil)
 
 	// 用于测试直连 DC 的所有基本动作
@@ -111,7 +116,8 @@ func TestDcReCreateConnection(t *testing.T) {
 	// 启动单元测试的开关
 	MarkTakeOver()
 
-	// 直接在這裡建立新的直连 DC 連線
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
 	dcConn, err := NewDirectConnection(
 		"192.168.122.2:3309",
 		"panhong",
@@ -121,13 +127,13 @@ func TestDcReCreateConnection(t *testing.T) {
 		46,
 	)
 
-	// 檢查測試直連 DC 的連線是否成功建立
+	// 检查测试直连 DC 的连线是否成功建立
 	require.Equal(t, err, nil)
 
 	// 第 1 步，先关闭连线
 	dcConn.Close()
 
-	// 檢查連線是否已經關閉，應要為 True
+	// 检查连线是否已经关闭，应要为 True
 	require.Equal(t, dcConn.IsClosed(), true)
 	require.Equal(t, dcConn.closed.Get(), true)
 
@@ -141,12 +147,81 @@ func TestDcReCreateConnection(t *testing.T) {
 		46,
 	)
 
-	// 檢查測試直連 DC 的連線是否成功建立
+	// 检查测试直连 DC 的连线是否成功建立
 	require.Equal(t, err, nil)
 
-	// 檢查連線是否已經關閉，應要為 False
+	// 检查连线是否已经关闭，应要为 False
 	require.Equal(t, dcConn.IsClosed(), false)
 	require.Equal(t, dcConn.closed.Get(), false)
+
+	// 关闭单元测试的开关
+	UnmarkTakeOver()
+}
+
+// TestDcUseDB 函式 🧚 是用来测试使用数据库
+func TestDcUseDB(t *testing.T) {
+	// 启动单元测试的开关
+	MarkTakeOver()
+
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
+	dcConn, err := NewDirectConnection(
+		"192.168.122.2:3309",
+		"panhong",
+		"12345",
+		"novel",
+		"utf8mb4",
+		46,
+	)
+
+	// 检查测试直连 DC 的连线是否成功建立
+	require.Equal(t, err, nil)
+
+	// 使用数据库
+	err = dcConn.UseDB("novel")
+	require.Equal(t, err, nil)
+
+	// 测试使用数据库的结果
+	require.Equal(t, dcConn.GetDB(), "novel")
+
+	// 关闭单元测试的开关
+	UnmarkTakeOver()
+}
+
+// TestDcReadWrite 函式 🧚 是用来测试数据库的读写
+func TestDcReadWrite(t *testing.T) {
+	// 启动单元测试的开关
+	MarkTakeOver()
+
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
+	dcConn, err := NewDirectConnection(
+		"192.168.122.2:3309",
+		"panhong",
+		"12345",
+		"novel",
+		"utf8mb4",
+		46,
+	)
+
+	// 检查测试直连 DC 的连线是否成功建立
+	require.Equal(t, err, nil)
+
+	// 写入数据库
+	result, err := dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+
+	// 检查数据库写入结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x1))
+	require.Equal(t, result.InsertID, uint64(0x0))
+
+	// 写入数据库
+	// result, err := dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+
+	// 检查数据库写入结果
+	/*require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x1))
+	require.Equal(t, result.InsertID, uint64(0x0))*/
 
 	// 关闭单元测试的开关
 	UnmarkTakeOver()

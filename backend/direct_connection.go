@@ -435,7 +435,8 @@ func (dc *DirectConnection) Ping() error {
 func (dc *DirectConnection) UseDB(dbName string) error {
 	// 🧚 直接由单元测试接管
 	if IsTakeOver() {
-		return nil // 立刻中断
+		dc.db = dbName // 指定所使用的数据库
+		return nil     // 立刻中断
 	}
 
 	// 以下保持原有程式
