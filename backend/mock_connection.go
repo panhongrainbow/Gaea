@@ -1,9 +1,17 @@
 package backend
 
 import (
+	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 	"hash/fnv"
 	"sync"
+)
+
+const (
+	transactionAutoCommit int = iota // 解析出的数值为 0
+	transactionBegin                 // 解析出的数值为 1
+	transactionCommit                // 解析出的数值为 2
+	transactionRollback              // 解析出的数值为 3
 )
 
 // TakeOver >>>>> >>>>> >>>>> >>>>> >>>>> 单元测试的指示灯
@@ -19,8 +27,12 @@ type fakeDB struct {
 	MockDataInDB []fakeSlice             // 模拟在数据库里的资料
 }
 
+// 進行交易 Transaction
+// 当执行交易时，会暂存在 transaction 变数里，当 Commit 之后，才会移到 result
 type fakeSlice struct {
-	result *mysql.Result
+	transaction int
+	result      *mysql.Result // 已存入数据库的资料
+	resultTmp   *mysql.Result // 进行交易 Transaction
 }
 
 var fakeDBInstance = make(map[string]*fakeDB) // 启动一个模拟的数据库实例
@@ -85,4 +97,90 @@ func (fdb *fakeDB) MakeMockResult(data subFakeDB) uint32 {
 	fakeDBInstance[data.db].MockReAct[h.Sum32()] = data.result // 转成数值，运算速度较快
 
 	return h.Sum32() // 回传登记的数值
+}
+
+// Begin 函式 🧚 是用来开始进行事务操作
+//    会把状态由 AutoCommit 变成 Begin
+func (fdb *fakeDB) Begin() error {
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 先检查所有切片数据库的状态是不是 "自动 Commit"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		if fdb.MockDataInDB[i].transaction != transactionAutoCommit {
+			return fmt.Errorf("cannot begin")
+		}
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成检查才能进行下一步
+
+	// 修改所有的切片数据库的状态为 "交易开始"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		fdb.MockDataInDB[i].transaction = transactionBegin
+	}
+
+	// 回传无错误
+	return nil
+}
+
+// Commit 函式 🧚 是用来完成进行事务操作
+//    会把状态由 Begin 变成 Commit，再由 Commit 變成 AutoCommit
+//    那就直接由 Begin 变成 AutoCommit
+func (fdb *fakeDB) Commit() error {
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 先检查所有切片数据库的状态是不是 "事务开始"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		if fdb.MockDataInDB[i].transaction != transactionBegin {
+			return fmt.Errorf("cannot commit")
+		}
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成检查后，才能搬移资料
+
+	for i := 0; i < len(fdb.MockDataInDB); i++ { // 先复制
+		for i := 0; i < len(fdb.MockDataInDB); i++ {
+			for j := 0; j < len(fdb.MockDataInDB[i].resultTmp.RowDatas); j++ {
+				fdb.MockDataInDB[i].result.RowDatas = append(fdb.MockDataInDB[i].result.RowDatas, fdb.MockDataInDB[i].resultTmp.RowDatas[j])
+			}
+			for k := 0; k < len(fdb.MockDataInDB[i].resultTmp.Values); k++ {
+				fdb.MockDataInDB[i].result.Values = append(fdb.MockDataInDB[i].result.Values, fdb.MockDataInDB[i].resultTmp.Values[k])
+			}
+		}
+	}
+	for i := 0; i < len(fdb.MockDataInDB); i++ { // 再删除
+		fdb.MockDataInDB[i].resultTmp = new(mysql.Result)
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成资料搬移后，才能改变状态
+
+	// 修改所有的切片数据库的状态为 "交易结束"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		fdb.MockDataInDB[i].transaction = transactionAutoCommit
+	}
+
+	// 回传无错误
+	return nil
+}
+
+// Rollback 函式 🧚 是用来彻回进行事务操作
+//    会把状态由 Begin 变成 Rollback，再由 Rollback 變成 AutoCommit
+//    那就直接由 Begin 变成 AutoCommit
+func (fdb *fakeDB) Rollback() error {
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 先检查所有切片数据库的状态是不是 "事务开始"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		if fdb.MockDataInDB[i].transaction != transactionBegin {
+			return fmt.Errorf("cannot commit")
+		}
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成检查后，删除要彻回的资料
+	for i := 0; i < len(fdb.MockDataInDB); i++ { // 再删除
+		fdb.MockDataInDB[i].resultTmp = new(mysql.Result)
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成资料搬移后，才能改变状态
+
+	// 修改所有的切片数据库的状态为 "交易结束"
+	for i := 0; i < len(fdb.MockDataInDB); i++ {
+		fdb.MockDataInDB[i].transaction = transactionAutoCommit
+	}
+
+	// 回传无错误
+	return nil
 }
