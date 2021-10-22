@@ -16,7 +16,11 @@ type fakeDB struct {
 	sync.Mutex
 	Loaded       bool
 	MockReAct    map[uint32]mysql.Result // 模拟数据库的回应，当有一串 SQL 传入时，先计算出特征值，再对应出应有的回应
-	MockDataInDB []*mysql.Result         // 模拟在数据库里的资料
+	MockDataInDB []fakeSlice             // 模拟在数据库里的资料
+}
+
+type fakeSlice struct {
+	result *mysql.Result
 }
 
 var fakeDBInstance = make(map[string]*fakeDB) // 启动一个模拟的数据库实例

@@ -38,7 +38,8 @@ type MockDcClient struct {
 // MarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的标记函式 (设定)
 // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 func MarkTakeOver() {
-	TakeOver = true // 单元测试之后可以直接进行接管
+	fakeDBInstance = make(map[string]*fakeDB) // 要清空不然会有残留
+	TakeOver = true                           // 单元测试之后可以直接进行接管
 }
 
 // IsTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的确认函式 (设定)
@@ -48,7 +49,8 @@ func IsTakeOver() bool {
 
 // UnmarkTakeOver 函式 🧚 为 MockDcClient 资料执行单元测试数据库直连的反标记函式 (设定)
 func UnmarkTakeOver() {
-	TakeOver = false // 解除单元测试的接管状态
+	fakeDBInstance = make(map[string]*fakeDB) // 要清空不然会有残留
+	TakeOver = false                          // 解除单元测试的接管状态
 }
 
 // DirectConnection means connection to backend mysql

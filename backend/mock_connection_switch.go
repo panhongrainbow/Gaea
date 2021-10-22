@@ -39,16 +39,16 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 		// 看 fakeDBInstance map 里的 key 存不存在就知道模拟数据是否有初始化完成
 		if _, ok := fakeDBInstance[dc.Trans.GetFakeDB()]; !ok {
 			fakeDBInstance[dc.Trans.GetFakeDB()] = new(fakeDB)
-			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]*mysql.Result, 0, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
+			fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = make([]fakeSlice, 0, 2) // Slice 不用在扩张了，小说资料只会被分成两个切片
 
 			for i := 0; i < 2; i++ {
 				if i == 0 {
 					tmp, _ := mysql.MakeNovelFieldData("Book_0000")
-					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{tmp})
 				}
 				if i == 1 {
 					tmp, _ := mysql.MakeNovelFieldData("Book_0001")
-					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, tmp)
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{tmp})
 				}
 			}
 		}

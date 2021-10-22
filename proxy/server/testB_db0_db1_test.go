@@ -1,3 +1,4 @@
+//go:build hierarchy
 // +build hierarchy
 
 package server
@@ -537,12 +538,15 @@ func TestDb0db1PlanExecuteInWrite(t *testing.T) {
 		require.Equal(t, p.(*plan.InsertPlan).GetRouteResult().GetShardIndexes(), []int{test.shardIndex})
 		// require.Equal(t, res.AffectedRows, uint64(0x1)) // 明天要調整修改這裡!
 	}
+
+	// 关闭单元测试
+	// backend.UnmarkTakeOver()
 }
 
 // TestDb0db1PlanExecuteInRead 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库查询 29 本小说
 func TestDb0db1PlanExecuteInRead(t *testing.T) {
 	// 初始化单元测试程式
-	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
+	// backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
 	se, err := prepareDb0db1PlanSessionExecutorForCluster()
@@ -615,4 +619,7 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 		require.Equal(t, res.Resultset.Values[28][1].(int64), int64(9789866318603))
 		require.Equal(t, res.Resultset.Values[28][2].(string), "A History Of Floral Treasures")
 	}
+
+	// 关闭单元测试
+	backend.UnmarkTakeOver()
 }

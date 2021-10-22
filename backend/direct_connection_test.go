@@ -44,15 +44,17 @@ func TestAppendSetVariable2(t *testing.T) {
 // TestDc 函式 🧚 是用来測試所有的直連 DC 的基本動作
 func TestDc(t *testing.T) {
 	// 直连 DC 的单元测试是否能正常启动
-	// TestDcTakeOver(t)
+	TestDcTakeOver(t)
 	// 直连 DC 的新建连线
-	// TestDcNewDirectConnection(t)
+	TestDcNewDirectConnection(t)
 	// 重新建立直连 DC 连线
-	// TestDcReCreateConnection(t)
+	TestDcReCreateConnection(t)
 	// 初始化直连 DC 连线
-	// TestDcUseDB(t)
+	TestDcUseDB(t)
 	// 初始化直连 DC 连线
 	TestDcReadWrite(t)
+	// 用来测试数据库的交易事件
+	TestDcTransaction(t)
 }
 
 // TestDcTakeOver 函式 🧚 是用来测试直连 DC 的单元测试是否能正常启动
@@ -232,6 +234,95 @@ func TestDcReadWrite(t *testing.T) {
 		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
 		require.Equal(t, err, nil)
 	}
+
+	// 关闭单元测试的开关
+	UnmarkTakeOver()
+}
+
+// TestDcTransaction 函式 🧚 是用来测试数据库的交易事件
+func TestDcTransaction(t *testing.T) {
+	// 启动单元测试的开关
+	MarkTakeOver()
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 建立连线
+
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
+	dcConn, err := NewDirectConnection(
+		"192.168.122.2:3309",
+		"panhong",
+		"12345",
+		"novel",
+		"utf8mb4",
+		46,
+	)
+
+	// 检查测试直连 DC 的连线是否成功建立
+	require.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 插入第一笔资料
+
+	// 写入数据库
+	result, err := dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (2,9789869442060,'Water Margin','Shi Nai an',1589,'Historical fiction')", 100)
+
+	// 检查数据库写入结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x1))
+	require.Equal(t, result.InsertID, uint64(0x0))
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+
+	// 检查数据库读取结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x0))
+
+	// 检查数据库读取结果细节
+	require.Equal(t, result.Resultset.Values[0][0].(int64), int64(2))
+	require.Equal(t, result.Resultset.Values[0][1].(int64), int64(9789869442060))
+	require.Equal(t, result.Resultset.Values[0][2].(string), "Water Margin")
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 插入第二笔资料
+
+	// 事务开始
+	/*err = dcConn.Begin()
+	require.Equal(t, err, nil)*/
+
+	// 写入数据库
+	result, err = dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", 100)
+
+	// 检查数据库写入结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x1))
+	require.Equal(t, result.InsertID, uint64(0x0))
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+
+	// 检查数据库读取结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x0))
+
+	// 检查数据库读取结果细节
+	require.Equal(t, result.Resultset.Values[1][0].(int64), int64(4))
+	require.Equal(t, result.Resultset.Values[1][1].(int64), int64(9789865975364))
+	require.Equal(t, result.Resultset.Values[1][2].(string), "Dream Of The Red Chamber")
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 删除资料
+
+	// 删除第一笔资料
+	if !IsTakeOver() {
+		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
+		require.Equal(t, err, nil)
+	}
+
+	// 删除第二笔资料
+	if !IsTakeOver() {
+		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=4;", 100)
+		require.Equal(t, err, nil)
+	}
+
+	// 删除第二笔资料，第二笔资料不用删，因为没有被 Commit
 
 	// 关闭单元测试的开关
 	UnmarkTakeOver()
