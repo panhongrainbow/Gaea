@@ -95,6 +95,17 @@ func MakeNovelFieldData(tableSlice string) (*Result, error) {
 	return ret, nil
 }
 
+// MakeNovelFieldDataTmp 函式 🧚 是用来产生初始回传数据库的暂存栏位资料
+func MakeNovelFieldDataTmp() (*Result, error) {
+	// MakeNovelFieldData 函式内容精简
+	ret := new(Result)
+	resultset := Resultset{}
+	ret.Resultset = &resultset
+	ret.Values = make([][]interface{}, 0, 29)
+	ret.RowDatas = make([]RowData, 0, 29)
+	return ret, nil
+}
+
 func ConvertNovelData2byte(value []interface{}) []byte {
 	bookid := value[0].(int64)
 	bookidStr := strconv.FormatInt(bookid, 10)

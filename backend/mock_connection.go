@@ -103,6 +103,7 @@ func (fdb *fakeDB) MakeMockResult(data subFakeDB) uint32 {
 //    会把状态由 AutoCommit 变成 Begin
 func (fdb *fakeDB) Begin() error {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 先检查所有切片数据库的状态是不是 "自动 Commit"
+
 	for i := 0; i < len(fdb.MockDataInDB); i++ {
 		if fdb.MockDataInDB[i].transaction != transactionAutoCommit {
 			return fmt.Errorf("cannot begin")

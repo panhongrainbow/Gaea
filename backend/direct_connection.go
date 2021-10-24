@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 
 	sqlerr "github.com/XiaoMi/Gaea/core/errors"
@@ -502,19 +503,82 @@ func (dc *DirectConnection) Execute(sql string, maxRows int) (*mysql.Result, err
 
 // Begin send ComQuery with 'begin' to backend mysql to start transaction
 func (dc *DirectConnection) Begin() error {
-	_, err := dc.exec("begin", 0)
+	// 由网路位置取出埠号
+	tmp := strings.Split(dc.addr, ":")
+	port, err := strconv.Atoi(tmp[1])
+	if err != nil {
+		return err
+	}
+
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		switch {
+		// 使用埠号去分判要载入的模拟资料
+		case (3309 <= port) && (port <= 3314):
+			if err := fakeDBInstance["novel"].Begin(); err != nil {
+				return err
+			}
+		}
+		// 回传没有错误
+		return nil
+	}
+
+	// 以下保留原有的程式码
+	_, err = dc.exec("begin", 0)
 	return err
 }
 
 // Commit send ComQuery with 'commit' to backend mysql to commit transaction
 func (dc *DirectConnection) Commit() error {
-	_, err := dc.exec("commit", 0)
+	// 由网路位置取出埠号
+	tmp := strings.Split(dc.addr, ":")
+	port, err := strconv.Atoi(tmp[1])
+	if err != nil {
+		return err
+	}
+
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		switch {
+		// 使用埠号去分判要载入的模拟资料
+		case (3309 <= port) && (port <= 3314):
+			if err := fakeDBInstance["novel"].Commit(); err != nil {
+				return err
+			}
+		}
+		// 回传没有错误
+		return nil
+	}
+
+	// 以下保留原有的程式码
+	_, err = dc.exec("commit", 0)
 	return err
 }
 
 // Rollback send ComQuery with 'rollback' to backend mysql to rollback transaction
 func (dc *DirectConnection) Rollback() error {
-	_, err := dc.exec("rollback", 0)
+	// 由网路位置取出埠号
+	tmp := strings.Split(dc.addr, ":")
+	port, err := strconv.Atoi(tmp[1])
+	if err != nil {
+		return err
+	}
+
+	// 🧚 直接由单元测试接管
+	if IsTakeOver() {
+		switch {
+		// 使用埠号去分判要载入的模拟资料
+		case (3309 <= port) && (port <= 3314):
+			if err := fakeDBInstance["novel"].Rollback(); err != nil {
+				return err
+			}
+		}
+		// 回传没有错误
+		return nil
+	}
+
+	// 以下保留原有的程式码
+	_, err = dc.exec("rollback", 0)
 	return err
 }
 

@@ -82,9 +82,20 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		return ret, nil
 	case 4273731942: // 写入第四本小说到数据库 红楼梦 (会分配到 Slice-0)
-		ret, err := fdb.MockDataInDB[0].result.InsertFourthNovelResult()
-		if err != nil {
-			return nil, err
+		ret := new(mysql.Result)
+		if fdb.MockDataInDB[0].transaction == transactionBegin {
+			tmp, err := fdb.MockDataInDB[0].resultTmp.InsertFourthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
+		}
+		if fdb.MockDataInDB[0].transaction == transactionAutoCommit {
+			tmp, err := fdb.MockDataInDB[0].result.InsertFourthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
 		}
 		tool := os.Getenv("IDE_TOOL")
 		if tool == "jetbrains" {

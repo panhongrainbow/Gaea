@@ -44,11 +44,13 @@ func (dc *DirectConnection) initSwitchTrans() (string, error) {
 			for i := 0; i < 2; i++ {
 				if i == 0 {
 					tmp, _ := mysql.MakeNovelFieldData("Book_0000")
-					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{result: tmp})
+					tmp1, _ := mysql.MakeNovelFieldDataTmp()
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{result: tmp, resultTmp: tmp1})
 				}
 				if i == 1 {
 					tmp, _ := mysql.MakeNovelFieldData("Book_0001")
-					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{result: tmp})
+					tmp1, _ := mysql.MakeNovelFieldDataTmp()
+					fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB = append(fakeDBInstance[dc.Trans.GetFakeDB()].MockDataInDB, fakeSlice{result: tmp, resultTmp: tmp1})
 				}
 			}
 		}
