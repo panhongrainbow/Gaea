@@ -135,13 +135,11 @@ func (fdb *fakeDB) Commit() error {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成检查后，才能搬移资料
 
 	for i := 0; i < len(fdb.MockDataInDB); i++ { // 先复制
-		for i := 0; i < len(fdb.MockDataInDB); i++ {
-			for j := 0; j < len(fdb.MockDataInDB[i].resultTmp.RowDatas); j++ {
-				fdb.MockDataInDB[i].result.RowDatas = append(fdb.MockDataInDB[i].result.RowDatas, fdb.MockDataInDB[i].resultTmp.RowDatas[j])
-			}
-			for k := 0; k < len(fdb.MockDataInDB[i].resultTmp.Values); k++ {
-				fdb.MockDataInDB[i].result.Values = append(fdb.MockDataInDB[i].result.Values, fdb.MockDataInDB[i].resultTmp.Values[k])
-			}
+		for j := 0; j < len(fdb.MockDataInDB[i].resultTmp.RowDatas); j++ {
+			fdb.MockDataInDB[i].result.RowDatas = append(fdb.MockDataInDB[i].result.RowDatas, fdb.MockDataInDB[i].resultTmp.RowDatas[j])
+		}
+		for k := 0; k < len(fdb.MockDataInDB[i].resultTmp.Values); k++ {
+			fdb.MockDataInDB[i].result.Values = append(fdb.MockDataInDB[i].result.Values, fdb.MockDataInDB[i].resultTmp.Values[k])
 		}
 	}
 	for i := 0; i < len(fdb.MockDataInDB); i++ { // 再删除

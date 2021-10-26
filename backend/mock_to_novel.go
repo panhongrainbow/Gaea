@@ -577,9 +577,20 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		return ret, nil
 	case 4020693348: // 写入第二十六本小说到数据库 浮生六记 (会分配到 Slice-0)
-		ret, err := fdb.MockDataInDB[0].result.InsertTwentySixthNovelResult()
-		if err != nil {
-			return nil, err
+		ret := new(mysql.Result)
+		if fdb.MockDataInDB[0].transaction == transactionBegin {
+			tmp, err := fdb.MockDataInDB[0].resultTmp.InsertTwentySixthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
+		}
+		if fdb.MockDataInDB[0].transaction == transactionAutoCommit {
+			tmp, err := fdb.MockDataInDB[0].result.InsertTwentySixthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
 		}
 		tool := os.Getenv("IDE_TOOL")
 		if tool == "jetbrains" {
@@ -587,9 +598,20 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		return ret, nil
 	case 2745523730: // 写入第二十七本小说到数据库 野叟曝言 (会分配到 Slice-1)
-		ret, err := fdb.MockDataInDB[1].result.InsertTwentySeventhNovelResult()
-		if err != nil {
-			return nil, err
+		ret := new(mysql.Result)
+		if fdb.MockDataInDB[1].transaction == transactionBegin {
+			tmp, err := fdb.MockDataInDB[1].resultTmp.InsertTwentySeventhNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
+		}
+		if fdb.MockDataInDB[1].transaction == transactionAutoCommit {
+			tmp, err := fdb.MockDataInDB[1].result.InsertTwentySeventhNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
 		}
 		tool := os.Getenv("IDE_TOOL")
 		if tool == "jetbrains" {
@@ -597,9 +619,20 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		return ret, nil
 	case 1776512190: // 写入第二十八本小说到数据库 九尾龟 (会分配到 Slice-0)
-		ret, err := fdb.MockDataInDB[0].result.InsertTwentyEighthNovelResult()
-		if err != nil {
-			return nil, err
+		ret := new(mysql.Result)
+		if fdb.MockDataInDB[0].transaction == transactionBegin {
+			tmp, err := fdb.MockDataInDB[0].resultTmp.InsertTwentyEighthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
+		}
+		if fdb.MockDataInDB[0].transaction == transactionAutoCommit {
+			tmp, err := fdb.MockDataInDB[0].result.InsertTwentyEighthNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
 		}
 		tool := os.Getenv("IDE_TOOL")
 		if tool == "jetbrains" {
@@ -607,9 +640,20 @@ func (fdb *fakeDB) switchNovelResult(key uint32) (*mysql.Result, error) {
 		}
 		return ret, nil
 	case 424563096: // 写入第二十九本小说到数据库 品花宝鉴 (会分配到 Slice-1)
-		ret, err := fdb.MockDataInDB[1].result.InsertTwentyNinethNovelResult()
-		if err != nil {
-			return nil, err
+		ret := new(mysql.Result)
+		if fdb.MockDataInDB[1].transaction == transactionBegin {
+			tmp, err := fdb.MockDataInDB[1].resultTmp.InsertTwentyNinethNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
+		}
+		if fdb.MockDataInDB[1].transaction == transactionAutoCommit {
+			tmp, err := fdb.MockDataInDB[1].result.InsertTwentyNinethNovelResult()
+			if err != nil {
+				return nil, err
+			}
+			ret = tmp
 		}
 		tool := os.Getenv("IDE_TOOL")
 		if tool == "jetbrains" {

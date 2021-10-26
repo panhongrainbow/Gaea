@@ -296,36 +296,57 @@ func TestDcTransaction(t *testing.T) {
 	require.Equal(t, result.AffectedRows, uint64(0x1))
 	require.Equal(t, result.InsertID, uint64(0x0))
 
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 事务 Commit 前进行查询
+
 	// 读取数据库
 	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err, nil)
+	require.Equal(t, len(result.Resultset.Values), 1) // Commit 前，数据库资料只能有 1 笔
 
 	// 检查数据库读取结果
 	require.Equal(t, err, nil)
 	require.Equal(t, result.AffectedRows, uint64(0x0))
 
 	// 检查数据库读取结果细节
-	/*
-		require.Equal(t, result.Resultset.Values[1][0].(int64), int64(4))
-		require.Equal(t, result.Resultset.Values[1][1].(int64), int64(9789865975364))
-		require.Equal(t, result.Resultset.Values[1][2].(string), "Dream Of The Red Chamber")
-	*/
+	require.Equal(t, result.Resultset.Values[0][0].(int64), int64(2))
+	require.Equal(t, result.Resultset.Values[0][1].(int64), int64(9789869442060))
+	require.Equal(t, result.Resultset.Values[0][2].(string), "Water Margin")
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 事务 Commit
+
+	// 事务写入结束
+	err = dcConn.Commit()
+	require.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 事务 Commit 前进行查询
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err, nil)
+	require.Equal(t, len(result.Resultset.Values), 2) // Commit 前，数据库资料要有 1 笔
+
+	// 检查数据库读取结果
+	require.Equal(t, err, nil)
+	require.Equal(t, result.AffectedRows, uint64(0x0))
+
+	// 检查数据库读取结果细节
+	require.Equal(t, result.Resultset.Values[1][0].(int64), int64(4))
+	require.Equal(t, result.Resultset.Values[1][1].(int64), int64(9789865975364))
+	require.Equal(t, result.Resultset.Values[1][2].(string), "Dream Of The Red Chamber")
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 删除资料
 
-	// 删除第一笔资料
+	// 复原数据库
 	if !IsTakeOver() {
+		// 删除第一笔资料
 		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=2;", 100)
 		require.Equal(t, err, nil)
-	}
 
-	// 删除第二笔资料
-	if !IsTakeOver() {
+		// 删除第二笔资料
 		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=4;", 100)
 		require.Equal(t, err, nil)
 	}
 
-	// 删除第二笔资料，第二笔资料不用删，因为没有被 Commit
-
-	// 关闭单元测试的开关
+	// 关闭单元测试的开关，这时会把数据库模拟资料全部清除
 	UnmarkTakeOver()
 }
