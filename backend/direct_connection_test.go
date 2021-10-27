@@ -53,8 +53,10 @@ func TestDc(t *testing.T) {
 	TestDcUseDB(t)
 	// 初始化直连 DC 连线
 	TestDcReadWrite(t)
-	// 用来测试数据库的交易事件
-	TestDcTransaction(t)
+	// 用来测试数据库的交易 Commit 事件
+	TestDcCommit(t)
+	// 用来测试数据库的交易 Rollback 事件
+	TestDcRollback(t)
 }
 
 // TestDcTakeOver 函式 🧚 是用来测试直连 DC 的单元测试是否能正常启动
@@ -239,8 +241,8 @@ func TestDcReadWrite(t *testing.T) {
 	UnmarkTakeOver()
 }
 
-// TestDcTransaction 函式 🧚 是用来测试数据库的交易事件
-func TestDcTransaction(t *testing.T) {
+// TestDcCommit 函式 🧚 是用来测试 数据库的交易 Commit 事件
+func TestDcCommit(t *testing.T) {
 	// 启动单元测试的开关
 	MarkTakeOver()
 
@@ -346,6 +348,64 @@ func TestDcTransaction(t *testing.T) {
 		_, err = dcConn.Execute("DELETE FROM novel.Book_0000 WHERE BookID=4;", 100)
 		require.Equal(t, err, nil)
 	}
+
+	// 关闭单元测试的开关，这时会把数据库模拟资料全部清除
+	UnmarkTakeOver()
+}
+
+// TestDcRollback 函式 🧚 是用来测试 数据库的交易 Rollback 事件
+func TestDcRollback(t *testing.T) {
+	// 启动单元测试的开关
+	MarkTakeOver()
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 建立连线
+
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
+	dcConn, err := NewDirectConnection(
+		"192.168.122.2:3309",
+		"panhong",
+		"12345",
+		"novel",
+		"utf8mb4",
+		46,
+	)
+
+	// 检查测试直连 DC 的连线是否成功建立
+	require.Equal(t, err, nil)
+
+	// 事务开始
+	err = dcConn.Begin()
+	require.Equal(t, err, nil)
+
+	// 写入数据库
+	result, err := dcConn.Execute("INSERT INTO `novel`.`Book_0000` (`BookID`,`Isbn`,`Title`,`Author`,`Publish`,`Category`) VALUES (4,9789865975364,'Dream Of The Red Chamber','Cao Xueqin',1791,'Family Saga')", 100)
+	require.Equal(t, err, nil)
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err, nil)
+	require.Equal(t, len(result.Resultset.Values), 0) // Rollback 前，数据库不能有任何资料
+
+	// 事务回滚
+	err = dcConn.Rollback()
+	require.Equal(t, err, nil)
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err, nil)
+	require.Equal(t, len(result.Resultset.Values), 0) // Rollback 后，数据库也不能有任何资料
+
+	// 再一次进行事务的开始 Begin 和写入 Commit
+	err = dcConn.Begin()
+	require.Equal(t, err, nil)
+	err = dcConn.Commit()
+	require.Equal(t, err, nil)
+
+	// 读取数据库
+	result, err = dcConn.Execute("SELECT * FROM `novel`.`Book_0000`", 100)
+	require.Equal(t, err, nil)
+	require.Equal(t, len(result.Resultset.Values), 0) // Rollback 后，数据库也不能有任何资料
 
 	// 关闭单元测试的开关，这时会把数据库模拟资料全部清除
 	UnmarkTakeOver()

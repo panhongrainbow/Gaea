@@ -143,7 +143,8 @@ func (fdb *fakeDB) Commit() error {
 		}
 	}
 	for i := 0; i < len(fdb.MockDataInDB); i++ { // 再删除
-		fdb.MockDataInDB[i].resultTmp = new(mysql.Result)
+		tmp1, _ := mysql.MakeNovelFieldDataTmp()
+		fdb.MockDataInDB[i].resultTmp = tmp1
 	}
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成资料搬移后，才能改变状态
@@ -170,7 +171,8 @@ func (fdb *fakeDB) Rollback() error {
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成检查后，删除要彻回的资料
 	for i := 0; i < len(fdb.MockDataInDB); i++ { // 再删除
-		fdb.MockDataInDB[i].resultTmp = new(mysql.Result)
+		tmp1, _ := mysql.MakeNovelFieldDataTmp()
+		fdb.MockDataInDB[i].resultTmp = tmp1
 	}
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 完成资料搬移后，才能改变状态
