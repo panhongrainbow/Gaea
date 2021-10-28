@@ -165,7 +165,7 @@ func (fdb *fakeDB) Rollback() error {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 先检查所有切片数据库的状态是不是 "事务开始"
 	for i := 0; i < len(fdb.MockDataInDB); i++ {
 		if fdb.MockDataInDB[i].transaction != transactionBegin {
-			return fmt.Errorf("cannot commit")
+			return fmt.Errorf("cannot rollback")
 		}
 	}
 

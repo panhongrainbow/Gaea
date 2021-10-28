@@ -57,6 +57,8 @@ func TestDc(t *testing.T) {
 	TestDcCommit(t)
 	// 用来测试数据库的交易 Rollback 事件
 	TestDcRollback(t)
+	// 测试错误的事误处理顺序
+	TestDcTransaction(t)
 }
 
 // TestDcTakeOver 函式 🧚 是用来测试直连 DC 的单元测试是否能正常启动
@@ -409,4 +411,55 @@ func TestDcRollback(t *testing.T) {
 
 	// 关闭单元测试的开关，这时会把数据库模拟资料全部清除
 	UnmarkTakeOver()
+}
+
+// TestDcTransaction 函式 🧚 是用来测试 测试错误的事误处理顺序
+func TestDcTransaction(t *testing.T) {
+	// 启动单元测试的开关
+	MarkTakeOver()
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 建立连线
+
+	// 直接在这里建立新的直连 DC 连线
+	//     内部会执行 connect() 函式(非专用)
+	dcConn, err := NewDirectConnection(
+		"192.168.122.2:3309",
+		"panhong",
+		"12345",
+		"novel",
+		"utf8mb4",
+		46,
+	)
+
+	// 检查测试直连 DC 的连线是否成功建立
+	require.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 先进行错误操作
+
+	// 直接进行交易写入，会发生错误，因之前没有执行 Begin 函式
+	err = dcConn.Commit()
+	require.Equal(t, err.Error(), "cannot commit")
+
+	// 直接進行交易回滚，会发生错误，因之前没有执行 Begin 函式
+	err = dcConn.Rollback()
+	require.Equal(t, err.Error(), "cannot rollback")
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 再进行正确操作
+
+	// 都有新执行 Begin 函式
+	err = dcConn.Begin()
+	require.Equal(t, err, nil)
+
+	// 直接进行交易写入，会发生错误，因之前没有执行 Begin 函式
+	err = dcConn.Commit()
+	require.Equal(t, err, nil)
+
+	// 都有新执行 Begin 函式
+	err = dcConn.Begin()
+	require.Equal(t, err, nil)
+
+	// 直接進行交易回滚，会发生错误，因之前没有执行 Begin 函式
+	err = dcConn.Rollback()
+	require.Equal(t, err, nil)
+
 }
