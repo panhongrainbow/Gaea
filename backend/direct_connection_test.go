@@ -461,5 +461,4 @@ func TestDcTransaction(t *testing.T) {
 	// 直接進行交易回滚，会发生错误，因之前没有执行 Begin 函式
 	err = dcConn.Rollback()
 	require.Equal(t, err, nil)
-
 }
