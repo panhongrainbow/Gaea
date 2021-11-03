@@ -271,8 +271,8 @@ func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 // TestDb0db1PlanExecuteInSuite 函式是为了要让以下的单元测试有顺序性
 func TestDb0db1PlanExecuteInSuite(t *testing.T) {
 	TestDb0db1PlanExecuteInWrite(t) // 先向 Master 寫入 29 本小說
-	// time.Sleep(20 * time.Second)    // 真实的测试数据库执行速度太慢，目前单元测试没有这个问题
-	TestDb0db1PlanExecuteInRead(t) // 再向四台 Slave 中的其中两台进行资料查询 (第二丛集和第三丛集各两台
+	// time.Sleep(20 * time.Second)    // 真实的容器测试数据库执行速度太慢，目前单元测试没有这个问题
+	TestDb0db1PlanExecuteInRead(t) // 再向四台 Slave 中的其中两台进行资料查询 (第二丛集和第三丛集各两台)
 }
 
 // TestDb0db1PlanExecuteInWrite 函式 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库写入 29 本小说
@@ -531,12 +531,12 @@ func TestDb0db1PlanExecuteInWrite(t *testing.T) {
 		reqCtx.Set(util.FromSlave, test.fromSlave) // 这里都是向 Master 写入资料,所以 from Slave 的值都要为 0
 
 		// 执行数据库分库指令
-		_, err = p.ExecuteIn(reqCtx, se)
+		res, err := p.ExecuteIn(reqCtx, se)
 
 		// 单元测试进行最后检查
 		require.Equal(t, err, nil)
 		require.Equal(t, p.(*plan.InsertPlan).GetRouteResult().GetShardIndexes(), []int{test.shardIndex})
-		// require.Equal(t, res.AffectedRows, uint64(0x1)) // 明天要調整修改這裡!
+		require.Equal(t, res.AffectedRows, uint64(0x1))
 	}
 
 	// 关闭单元测试
