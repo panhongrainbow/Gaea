@@ -1,3 +1,4 @@
+//go:build hierarchy
 // +build hierarchy
 
 package server
@@ -293,7 +294,7 @@ func TestDb0PlanExecuteInWrite(t *testing.T) {
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
-	se, err := prepareDb0db1PlanSessionExecutorForCluster()
+	se, err := prepareDb0PlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
 	db, err := se.GetNamespace().GetDefaultPhyDB("novel")
 	require.Equal(t, err, nil)

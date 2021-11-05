@@ -85,8 +85,8 @@ import (
 
 */
 
-// prepareDb0db1NamespaceManagerForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的设定档
-func prepareDb0db1NamespaceManagerForCluster() (*Manager, error) {
+// prepareDb1db2NamespaceManagerForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的设定档
+func prepareDb1db2NamespaceManagerForCluster() (*Manager, error) {
 	// 服务器设定档
 	proxyCfg := `
 ; config type, etcd/file, you can test gaea with file type, you shoud use etcd in production
@@ -137,10 +137,10 @@ stats_interval=10
 encrypt_key=1234abcd5678efg*
 `
 
-	// 针对 db0 db0-0 db0-1 丛集的设定档
+	// 针对 丛集 db1 db1-0 db1-1 和 丛集 db2 db2-0 db2-1 的设定档
 	nsCfg := `
 {
-  "name": "db0_db1_cluster_namespace",
+  "name": "db1_db2_cluster_namespace",
   "online": true,
   "read_only": false,
   "allowed_dbs": {
@@ -195,7 +195,7 @@ encrypt_key=1234abcd5678efg*
     {
       "user_name": "panhong",
       "password": "12345",
-      "namespace": "db0_db1_cluster_namespace",
+      "namespace": "db1_db2_cluster_namespace",
       "rw_flag": 2,
       "rw_split": 1,
       "other_property": 0
@@ -218,7 +218,7 @@ encrypt_key=1234abcd5678efg*
 	}
 
 	// 加载 namespace 配置
-	namespaceName := "db0_db1_cluster_namespace"
+	namespaceName := "db1_db2_cluster_namespace"
 	namespaceConfig := &models.Namespace{}
 	// namespaceConfig Unmarshal 到 nsCfg
 	if err := json.Unmarshal([]byte(nsCfg), namespaceConfig); err != nil {
@@ -247,13 +247,13 @@ encrypt_key=1234abcd5678efg*
 	return m, nil
 }
 
-// prepareDb0db1PlanSessionExecutorForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的 Plan Session
-func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
+// prepareDb1db2PlanSessionExecutorForCluster 函式 产生针对 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 的 Plan Session
+func prepareDb1db2PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	var userName = "panhong"
-	var namespaceName = "db0_db1_cluster_namespace"
+	var namespaceName = "db1_db2_cluster_namespace"
 	var database = "novel"
 
-	m, err := prepareDb0db1NamespaceManagerForCluster()
+	m, err := prepareDb1db2NamespaceManagerForCluster()
 	if err != nil {
 		return nil, err
 	}
@@ -268,21 +268,21 @@ func prepareDb0db1PlanSessionExecutorForCluster() (*SessionExecutor, error) {
 	return executor, nil
 }
 
-// TestDb0db1PlanExecuteInSuite 函式是为了要让以下的单元测试有顺序性
-func TestDb0db1PlanExecuteInSuite(t *testing.T) {
-	TestDb0db1PlanExecuteInWrite(t) // 先向 Master 寫入 29 本小說
+// TestDb1db2PlanExecuteInSuite 函式是为了要让以下的单元测试有顺序性
+func TestDb1db2PlanExecuteInSuite(t *testing.T) {
+	TestDb1db2PlanExecuteInWrite(t) // 先向 Master 寫入 29 本小說
 	// time.Sleep(20 * time.Second)    // 真实的容器测试数据库执行速度太慢，目前单元测试没有这个问题
 	TestDb0db1PlanExecuteInRead(t) // 再向四台 Slave 中的其中两台进行资料查询 (第二丛集和第三丛集各两台)
 }
 
-// TestDb0db1PlanExecuteInWrite 函式 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库写入 29 本小说
+// TestDb1db2PlanExecuteInWrite 函式 为向 Cluster (db1 db1-0 db1-1) (db2 db2-0 db2-1) 图书馆数据库写入 29 本小说
 // 開始會分庫，但是事先要知道資料會跑到那一個資料庫
-func TestDb0db1PlanExecuteInWrite(t *testing.T) {
+func TestDb1db2PlanExecuteInWrite(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
-	se, err := prepareDb0db1PlanSessionExecutorForCluster()
+	se, err := prepareDb1db2PlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
 	db, err := se.GetNamespace().GetDefaultPhyDB("novel")
 	require.Equal(t, err, nil)
@@ -549,7 +549,7 @@ func TestDb0db1PlanExecuteInRead(t *testing.T) {
 	// backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
 	// 载入 Session Executor
-	se, err := prepareDb0db1PlanSessionExecutorForCluster()
+	se, err := prepareDb1db2PlanSessionExecutorForCluster()
 	require.Equal(t, err, nil)
 	db, err := se.GetNamespace().GetDefaultPhyDB("novel")
 	require.Equal(t, err, nil)
