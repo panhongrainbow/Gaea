@@ -3,6 +3,8 @@ package server
 import (
 	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/models"
+	"github.com/XiaoMi/Gaea/parser"
+	"github.com/XiaoMi/Gaea/proxy/plan"
 	"github.com/XiaoMi/Gaea/proxy/router"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -160,6 +162,7 @@ func TestNameSpaceSlice(t *testing.T) {
 }
 
 // TestNameSpaceRouter 函式 🧚 是用来测试建立 NameSpace 的路由 Router 规则
+// 要组成 NameSpace 路由，需要在模组里先组成 (1)切片模组 (2)预设路由 ，和 (3)路由模组
 func TestNameSpaceRouter(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
@@ -167,10 +170,12 @@ func TestNameSpaceRouter(t *testing.T) {
 	// 建立 NameSpace 物件
 	ns := new(Namespace)
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 处理 NameSpace 切片 设定模组
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 开始组合所有的设定模组
 
 	// 先建立一个空的 NameSpace 设定模组
 	cfgNs := new(models.Namespace)
+
+	// >>>>> >>>>> >>>>> 先组成 (1)切片模组
 
 	// 先建立对于切片 Slice-0 的 models Slice 设定档
 	cfgSlice0 := models.Slice{
@@ -209,16 +214,11 @@ func TestNameSpaceRouter(t *testing.T) {
 	cfgSliceS = append(cfgSliceS, &cfgSlice0)
 	cfgSliceS = append(cfgSliceS, &cfgSlice1)
 
-	// 建立 NameSpace 物件的 切片阵列
-	tmp, err := parseSlices(cfgSliceS, "utf8mb4", 46)
-	require.Equal(t, err, nil)
-	ns.slices = tmp
+	// >>>>> >>>>> >>>>> 再组成 (2)预设路由
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 处理 NameSpace 预设路由 设定模组
 	cfgNs.DefaultSlice = "slice-0"
-	cfgNs.Slices = cfgSliceS
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 处理 NameSpace 路由规则 设定模组
+	// >>>>> >>>>> >>>>> 再组成 (3)路由模组
 
 	// 再建立 路由规则 设定模组
 	cfgRouter := models.Shard{
@@ -236,10 +236,45 @@ func TestNameSpaceRouter(t *testing.T) {
 	cfgNs.ShardRules = make([]*models.Shard, 0)
 	cfgNs.ShardRules = append(cfgNs.ShardRules, &cfgRouter)
 
+	// >>>>> >>>>> >>>>> 把所有的模组组合完成后，建立 NameSpace 物件的 路由 和 切片阵列
+
+	// 建立 NameSpace 物件的 切片阵列
+	tmp, err := parseSlices(cfgSliceS, "utf8mb4", 46)
+	require.Equal(t, err, nil)
+	ns.slices = tmp
+	cfgNs.Slices = cfgSliceS
+
 	// 建立 NameSpace 物件的 路由
 	tmp1, err := router.NewRouter(cfgNs)
 	require.Equal(t, err, nil)
 	ns.router = tmp1
+
+	// 开始进行路由操作
+	rule := ns.router.GetRule("novel", "book")
+	require.Equal(t, rule.GetDB(), "novel")
+	require.Equal(t, rule.GetTable(), "book")
+
+	// >>>>> >>>>> >>>>> 进行路由的延申操作
+	checker := plan.NewChecker("novel", ns.router)
+	newParser := parser.New()
+	newStmts, _, err := newParser.Parse("INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", "", "")
+	require.Equal(t, err, nil)
+	_, ok := newStmts[0].Accept(checker)
+	require.Equal(t, ok, false)
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 以下待确认
+
+	/*var sb strings.Builder
+	err = newNode.Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
+	require.Equal(t, err, nil)
+
+	test2 := make(map[string]string)
+	test2["novel"] = "novel"
+
+	p, err := plan.BuildPlan(newStmts[0], test2, "novel", "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", ns.GetRouter(), ns.GetSequences())
+	require.Equal(t, err, nil)
+
+	fmt.Println(p)*/
 
 	// 关闭单元测试
 	backend.UnmarkTakeOver()
