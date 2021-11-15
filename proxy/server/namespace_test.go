@@ -13,15 +13,15 @@ import (
 // TestSlice 函式 🧚 是用来测试 NameSpace 的创造和运行
 func TestNameSpace(t *testing.T) {
 	// 测试整个 Slice 切片的创造、连线和读写数据库
-	TestSliceConnect(t)
+	TestNovelSliceConnect(t)
 	// 测试建立 NameSpace 的切片 Slice
-	TestNameSpaceSlice(t)
+	TestNovelNameSpaceSlice(t)
 	// 测试建立 NameSpace 的路由 Router 规则
-	TestNameSpaceRouter(t)
+	TestNovelNameSpaceRouter(t)
 }
 
-// TestSliceConnect 函式 🧚 是用来测试整个 Slice 切片的创造、连线和读写数据库
-func TestSliceConnect(t *testing.T) {
+// TestNovelSliceConnect 函式 🧚 是用来测试整个 Slice 切片的创造、连线和读写数据库
+func TestNovelSliceConnect(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
@@ -82,8 +82,8 @@ func TestSliceConnect(t *testing.T) {
 	backend.UnmarkTakeOver()
 }
 
-// TestNameSpaceSlice 函式 🧚 是用来测试建立 NameSpace 的切片 Slice
-func TestNameSpaceSlice(t *testing.T) {
+// TestNovelNameSpaceSlice 函式 🧚 是用来测试建立 NameSpace 的切片 Slice
+func TestNovelNameSpaceSlice(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
@@ -161,9 +161,9 @@ func TestNameSpaceSlice(t *testing.T) {
 	backend.UnmarkTakeOver()
 }
 
-// TestNameSpaceRouter 函式 🧚 是用来测试建立 NameSpace 的路由 Router 规则
+// TestNovelNameSpaceRouter 函式 🧚 是用来测试  建立 NameSpace 的路由 Router 规则
 // 要组成 NameSpace 路由，需要在模组里先组成 (1)切片模组 (2)预设路由 ，和 (3)路由模组
-func TestNameSpaceRouter(t *testing.T) {
+func TestNovelNameSpaceRouter(t *testing.T) {
 	// 初始化单元测试程式 (只要注解 Mark TakeOver() 就会使用真的资料库，不然就会跑单元测试)
 	backend.MarkTakeOver() // MarkTakeOver 函式一定要放在单元测试最前面，因为可以提早启动一些 DEBUG 除错机制
 
@@ -254,35 +254,26 @@ func TestNameSpaceRouter(t *testing.T) {
 	require.Equal(t, rule.GetDB(), "novel")
 	require.Equal(t, rule.GetTable(), "book")
 
-	// >>>>> >>>>> >>>>> 进行路由的延申操作
+	// >>>>> >>>>> >>>>> 进行 Select 的 Parser 操作
 	// checker := plan.NewChecker("novel", ns.router)
-	newParser := parser.New()
-	newStmts, _, err := newParser.Parse("INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", "", "")
-	require.Equal(t, newStmts[0].(*ast.InsertStmt).Lists[0][0].GetFlag(), uint64(0x0))
-
-	// 检查 Parser 后的 SQL 字串
-	/*
-		require.Equal(t, err, nil)
-		_, ok := newStmts[0].Accept(checker)
-		require.Equal(t, ok, false)
-		var sb strings.Builder
-		err = test.(*ast.InsertStmt).Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
-		require.Equal(t, err, nil)
-		fmt.Println(sb.String())*/
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 以下待确认
-
-	/*var sb strings.Builder
-	err = newNode.Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
+	newParser0 := parser.New()
+	newStmts0, _, err := newParser0.Parse("SELECT MIN(Publish) FROM novel.Book;", "", "")
 	require.Equal(t, err, nil)
 
-	test2 := make(map[string]string)
-	test2["novel"] = "novel"
+	// >>>>> >>>>> >>>>> 检查 Select 操作的旗标
+	expr := newStmts0[0].(*ast.SelectStmt).Fields.Fields[0].Expr
+	require.Equal(t, expr.GetFlag(), uint64(0x18))
+	// FlagHasReference 值为 8
+	// FlagHasAggregateFunc 值为 16
+	// 两者值相加为 8 + 16 = 24 (十进位) 等同于 18 (十六进位)
 
-	p, err := plan.BuildPlan(newStmts[0], test2, "novel", "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", ns.GetRouter(), ns.GetSequences())
+	// >>>>> >>>>> >>>>> 进行 Insert 的 Parser 操作
+	newParser1 := parser.New()
+	_, _, err = newParser1.Parse("INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", "", "")
 	require.Equal(t, err, nil)
 
-	fmt.Println(p)*/
+	// >>>>> >>>>> >>>>> 检查 Insert 操作的旗标
+	// (略过) 因为 Insert 好像没有旗标
 
 	// 关闭单元测试
 	backend.UnmarkTakeOver()
