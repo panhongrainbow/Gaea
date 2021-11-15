@@ -4,7 +4,7 @@ import (
 	"github.com/XiaoMi/Gaea/backend"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/XiaoMi/Gaea/parser"
-	"github.com/XiaoMi/Gaea/proxy/plan"
+	"github.com/XiaoMi/Gaea/parser/ast"
 	"github.com/XiaoMi/Gaea/proxy/router"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -255,12 +255,20 @@ func TestNameSpaceRouter(t *testing.T) {
 	require.Equal(t, rule.GetTable(), "book")
 
 	// >>>>> >>>>> >>>>> 进行路由的延申操作
-	checker := plan.NewChecker("novel", ns.router)
+	// checker := plan.NewChecker("novel", ns.router)
 	newParser := parser.New()
 	newStmts, _, err := newParser.Parse("INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');", "", "")
-	require.Equal(t, err, nil)
-	_, ok := newStmts[0].Accept(checker)
-	require.Equal(t, ok, false)
+	require.Equal(t, newStmts[0].(*ast.InsertStmt).Lists[0][0].GetFlag(), uint64(0x0))
+
+	// 检查 Parser 后的 SQL 字串
+	/*
+		require.Equal(t, err, nil)
+		_, ok := newStmts[0].Accept(checker)
+		require.Equal(t, ok, false)
+		var sb strings.Builder
+		err = test.(*ast.InsertStmt).Restore(format.NewRestoreCtx(format.DefaultRestoreFlags, &sb))
+		require.Equal(t, err, nil)
+		fmt.Println(sb.String())*/
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 以下待确认
 
