@@ -316,7 +316,7 @@ func TestNovelRouterModDateDay(t *testing.T) {
 	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
 }
 
-// TestNovelRouterModMyCat 函式 🧚 是用来测试小說数据库的 mycat 路由
+// TestNovelRouterModMyCat 函式 🧚 是用来测试小說数据库的 MyCat 路由
 func TestNovelRouterModMyCat(t *testing.T) {
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
@@ -375,4 +375,70 @@ func TestNovelRouterModMyCat(t *testing.T) {
 	// 检查 MyCat 的路由设定值
 	require.Equal(t, rule.mycatDatabases, []string{"db_mycat_0", "db_mycat_1", "db_mycat_2"})
 	require.Equal(t, rule.mycatDatabaseToTableIndexMap, map[string]int{"db_mycat_0": 0, "db_mycat_1": 1, "db_mycat_2": 2})
+}
+
+// TestNovelRouterModMyCatLong 函式 🧚 是用来测试小說数据库的 MyCat Long 路由 (固定hash分片算法)
+func TestNovelRouterModMyCatLong(t *testing.T) {
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
+	// 在第 1 台 Master 数据库有数据表 Book_0000
+	// 在第 2 台 Master 数据库有数据表 Book_0001
+
+	// 再建立 路由规则 设定模组
+	cfgRouter := models.Shard{
+		DB:              "novel",
+		Table:           "Book",
+		ParentTable:     "",
+		Type:            "mycat_long",
+		Key:             "bookid",
+		Locations:       []int{1, 1},
+		Slices:          []string{"slice-0", "slice-1"},
+		Databases:       []string{"db_mycat_[0-1]"},
+		TableRowLimit:   0,
+		PartitionCount:  "2",   // 此值为 Locations 阵列里的 1+1
+		PartitionLength: "512", // 此值为 1024 / 2 = 512
+	}
+
+	// 直接产生路由规则
+	rule, err := parseRule(&cfgRouter)
+	require.Equal(t, err, nil)
+
+	// 检查目前的路由设定值
+	require.Equal(t, rule.ruleType, "mycat_long")
+	require.Equal(t, rule.db, "novel")
+	require.Equal(t, rule.table, "book")
+	require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
+	require.Equal(t, rule.shard.(*MycatPartitionLongShard).shardNum, 2)
+	require.Equal(t, rule.shardingColumn, "bookid")
+
+	// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
+	require.Equal(t, rule.subTableIndexes, []int{0, 1})
+	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1})
+
+	// 检查 MyCat 的路由设定值
+	require.Equal(t, rule.mycatDatabases, []string{"db_mycat_0", "db_mycat_1"})
+	require.Equal(t, rule.mycatDatabaseToTableIndexMap, map[string]int{"db_mycat_0": 0, "db_mycat_1": 1})
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
+	// 在第 1 台 Master 数据库有数据表 Book_0000
+	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
+
+	// 修改 路由规则 设定模组
+	cfgRouter.Locations = []int{2, 2}
+	cfgRouter.Databases = []string{"db_mycat_[0-3]"}
+	cfgRouter.PartitionCount = "4"    // 此值为 Locations 阵列里的 2+2
+	cfgRouter.PartitionLength = "256" // 此值为 1024 / 4 = 256
+	// cfgRouter.Locations = []int{1, 2} 这种设定不存在，因为 1024 不能被 3 整除
+
+	// 直接产生路由规则
+	rule, err = parseRule(&cfgRouter)
+	require.Equal(t, err, nil)
+
+	// 检查目前的路由设定值
+	require.Equal(t, rule.subTableIndexes, []int{0, 1, 2, 3})
+	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 0, 2: 1, 3: 1})
+
+	// 检查 MyCat 的路由设定值
+	require.Equal(t, rule.mycatDatabases, []string{"db_mycat_0", "db_mycat_1", "db_mycat_2", "db_mycat_3"})
+	require.Equal(t, rule.mycatDatabaseToTableIndexMap, map[string]int{"db_mycat_0": 0, "db_mycat_1": 1, "db_mycat_2": 2, "db_mycat_3": 3})
 }
