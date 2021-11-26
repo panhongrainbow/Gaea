@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -61,6 +62,16 @@ func TestNovelRouterHashType(t *testing.T) {
 	// 检查目前的路由设定值
 	require.Equal(t, rule.subTableIndexes, []int{0, 1, 2})
 	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1, 2: 1})
+
+	// 直接建立路由
+	rt := new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m := make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	test, _ := rt.GetShardRule("novel", "book")
+	fmt.Println(test)
 }
 
 // TestNovelRouterModType 函式 🧚 是用来测试小說数据库的 mod 路由
