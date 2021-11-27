@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"github.com/XiaoMi/Gaea/models"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -9,6 +8,10 @@ import (
 
 // 参考文件一 https://github.com/XiaoMi/Gaea/blob/master/docs/shard-example.md#gaea_kingshard_mod
 // 参考文件二 https://github.com/XiaoMi/Gaea/blob/master/docs/shard.md
+
+var (
+	testSql = "INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Historical fiction');"
+)
 
 // TestNovelRouterHashType 函式 🧚 是用来测试小說数据库的 hash 路由
 func TestNovelRouterHashType(t *testing.T) {
@@ -48,6 +51,26 @@ func TestNovelRouterHashType(t *testing.T) {
 	require.Equal(t, len(rule.mycatDatabases), 0)
 	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
 
+	// 直接建立路由
+	rt := new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m := make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 直接建立预设路由
+	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+	// 建立 Stmt 结点
+	/*parser := parser2.New()
+	stmts, err := parser.ParseOneStmt(testSql, "", "")
+	require.Equal(t, err, nil)*/
+
+	// 再研究 ... ...
+	index, err := rt.rules[rule.db][rule.table].FindTableIndex(1)
+	require.Equal(t, err, nil)
+	require.Equal(t, index, 1)
+
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
 	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
@@ -64,14 +87,15 @@ func TestNovelRouterHashType(t *testing.T) {
 	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1, 2: 1})
 
 	// 直接建立路由
-	rt := new(Router)
+	rt = new(Router)
 	rt.rules = make(map[string]map[string]Rule)
-	m := make(map[string]Rule)
+	m = make(map[string]Rule)
 	rt.rules[rule.db] = m
 	rt.rules[rule.db][rule.table] = rule
 
-	test, _ := rt.GetShardRule("novel", "book")
-	fmt.Println(test)
+	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+	_, has := rt.GetShardRule(rule.db, rule.table)
+	require.Equal(t, has, true)
 }
 
 // TestNovelRouterModType 函式 🧚 是用来测试小說数据库的 mod 路由
