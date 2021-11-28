@@ -61,15 +61,10 @@ func TestNovelRouterHashType(t *testing.T) {
 	// 直接建立预设路由
 	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
 
-	// 建立 Stmt 结点
-	/*parser := parser2.New()
-	stmts, err := parser.ParseOneStmt(testSql, "", "")
-	require.Equal(t, err, nil)*/
-
-	// 再研究 ... ...
-	index, err := rt.rules[rule.db][rule.table].FindTableIndex(1)
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
 	require.Equal(t, err, nil)
-	require.Equal(t, index, 1)
+	require.Equal(t, insertIndex, 1) // insertIndex 为 1 是指插入的数据表为 Book_0001
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
