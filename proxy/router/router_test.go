@@ -61,10 +61,18 @@ func TestNovelRouterHashType(t *testing.T) {
 	// 直接建立预设路由
 	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
 
+	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+	_, has := rt.GetShardRule(rule.db, rule.table)
+	require.Equal(t, has, true)
+
 	// 由路由推算出要插入到那一个切片的表
 	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
 	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1) // insertIndex 为 1 是指插入的数据表为 Book_0001
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0000
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
@@ -88,9 +96,14 @@ func TestNovelRouterHashType(t *testing.T) {
 	rt.rules[rule.db] = m
 	rt.rules[rule.db][rule.table] = rule
 
-	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
-	_, has := rt.GetShardRule(rule.db, rule.table)
-	require.Equal(t, has, true)
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
 }
 
 // TestNovelRouterModType 函式 🧚 是用来测试小說数据库的 mod 路由
@@ -131,6 +144,29 @@ func TestNovelRouterModType(t *testing.T) {
 	require.Equal(t, len(rule.mycatDatabases), 0)
 	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
 
+	// 直接建立路由
+	rt := new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m := make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 直接建立预设路由
+	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+	_, has := rt.GetShardRule(rule.db, rule.table)
+	require.Equal(t, has, true)
+
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0000
+
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
 	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
@@ -145,6 +181,31 @@ func TestNovelRouterModType(t *testing.T) {
 	// 检查目前的路由设定值
 	require.Equal(t, rule.subTableIndexes, []int{0, 1, 2})
 	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1, 2: 1})
+
+	// 直接建立路由
+	rt = new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m = make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+
+	// 前面看起来 mod 和 hash 没有不同，但是差在 mod 路由可以处理负值
+	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(-1) // 数值 -1 是值 SQL 字串中的 bookid 为 -1，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 1)                                  // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(-2) // 数值 -2 是值 SQL 字串中的 bookid 为 -2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                  // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(-3) // 数值 -3 是值 SQL 字串中的 bookid 为 -3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                  // insertIndex 为 0 是指插入的数据表为 Book_0000
 }
 
 // TestNovelRouterRangeType 函式 🧚 是用来测试小說数据库的 range 路由
