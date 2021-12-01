@@ -72,7 +72,7 @@ func TestNovelRouterHashType(t *testing.T) {
 	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
 	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
 	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0000
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
@@ -165,7 +165,7 @@ func TestNovelRouterModType(t *testing.T) {
 	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
 	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
 	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0000
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
@@ -254,6 +254,37 @@ func TestNovelRouterRangeType(t *testing.T) {
 	require.Equal(t, len(rule.mycatDatabases), 0)
 	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
 
+	// 直接建立路由
+	rt := new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m := make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 直接建立预设路由
+	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+	_, has := rt.GetShardRule(rule.db, rule.table)
+	require.Equal(t, has, true)
+
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(0) // 数值 0 是值 SQL 字串中的 bookid 为 0，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(4) // 数值 4 是值 SQL 字串中的 bookid 为 4，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(5) // 数值 5 是值 SQL 字串中的 bookid 为 5，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(6) // 数值 6 是值 SQL 字串中的 bookid 为 6，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, -1)                                // 当 insertIndex 为 -1 时，代表出现错误，超过所有数据库数据表的 Range 范围
+
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
 	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
@@ -277,6 +308,36 @@ func TestNovelRouterRangeType(t *testing.T) {
 	require.Equal(t, rule.shard.(*NumRangeShard).Shards[1].End, int64(6))
 	require.Equal(t, rule.shard.(*NumRangeShard).Shards[2].Start, int64(6))
 	require.Equal(t, rule.shard.(*NumRangeShard).Shards[2].End, int64(9))
+
+	// 直接建立路由
+	rt = new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m = make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 由路由推算出要插入到那一个切片的表
+	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(0) // 数值 0 是值 SQL 字串中的 bookid 为 0，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(4) // 数值 4 是值 SQL 字串中的 bookid 为 4，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(5) // 数值 5 是值 SQL 字串中的 bookid 为 5，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(6) // 数值 6 是值 SQL 字串中的 bookid 为 6，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(7) // 数值 7 是值 SQL 字串中的 bookid 为 7，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(8) // 数值 8 是值 SQL 字串中的 bookid 为 8，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
+	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(9) // 数值 9 是值 SQL 字串中的 bookid 为 9，这是经由 parser 传入的值
+	require.Equal(t, insertIndex, -1)                                // 当 insertIndex 为 -1 时，代表出现错误，超过所有数据库数据表的 Range 范围
 }
 
 // TestNovelRouterModDateYear 函式 🧚 是用来测试小說数据库的 date year 路由
