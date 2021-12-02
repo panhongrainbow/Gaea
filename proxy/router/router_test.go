@@ -381,6 +381,30 @@ func TestNovelRouterModDateYear(t *testing.T) {
 
 	require.Equal(t, len(rule.mycatDatabases), 0)
 	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
+
+	// 直接建立路由
+	rt := new(Router)
+	rt.rules = make(map[string]map[string]Rule)
+	m := make(map[string]Rule)
+	rt.rules[rule.db] = m
+	rt.rules[rule.db][rule.table] = rule
+
+	// 由路由推算出要插入到那一个切片的表
+	insertTableIndex, err := rt.rules[rule.db][rule.table].FindTableIndex("1500") // 数值 1500 是值 SQL 字串中的 publish 为 1500，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertTableIndex, 1500) // 数据表的 index 為 1500
+
+	// 由多个数据表组成切片，所以可以由 数据表的 index 转成 切片的 index
+	insertSliceIndex := rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(insertTableIndex)
+	require.Equal(t, insertSliceIndex, 0) // 数据表的 index 為 1500 所对应的切片 index 为 0，插入的数据表为 Book_0000
+
+	insertTableIndex, err = rt.rules[rule.db][rule.table].FindTableIndex("1601") // 数值 1601 是值 SQL 字串中的 publish 为 1601，这是经由 parser 传入的值
+	require.Equal(t, err, nil)
+	require.Equal(t, insertTableIndex, 1601) // 数据表的 index 為 1500
+
+	// 由多个数据表组成切片，所以可以由 数据表的 index 转成 切片的 index
+	insertSliceIndex = rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(insertTableIndex)
+	require.Equal(t, insertSliceIndex, 1) // 数据表的 index 為 1601 所对应的切片 index 为 1，插入的数据表为 Book_0001
 }
 
 // TestNovelRouterModDateMonth 函式 🧚 是用来测试小說数据库的 date month 路由
