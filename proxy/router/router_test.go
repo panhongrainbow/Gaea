@@ -15,6 +15,112 @@ var (
 
 // TestNovelRouterHashType 函式 🧚 是用来测试小說数据库的 hash 路由
 func TestNovelRouterHashType(t *testing.T) {
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 1 cfgShard1
+	// 在第 1 台 Master 数据库有数据表 Book_0000
+	// 在第 2 台 Master 数据库有数据表 Book_0001
+
+	// 再建立 路由规则 设定模组
+	cfgShard1 := models.Shard{
+		DB:            "novel",
+		Table:         "Book",
+		ParentTable:   "",
+		Type:          "hash",
+		Key:           "BookID",
+		Locations:     []int{1, 1}, // 切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 1 张
+		Slices:        []string{"slice-0", "slice-1"},
+		TableRowLimit: 0,
+	}
+
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 2 cfgShard2
+	// 在第 1 台 Master 数据库有数据表 Book_0000
+	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
+
+	cfgShard2 := models.Shard{
+		DB:            "novel",
+		Table:         "Book",
+		ParentTable:   "",
+		Type:          "hash",
+		Key:           "BookID",
+		Locations:     []int{1, 2}, // 只修改这里，代表切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 2 张
+		Slices:        []string{"slice-0", "slice-1"},
+		TableRowLimit: 0,
+	}
+
+	tests := []struct {
+		cfgShard        models.Shard // 路由设定档
+		shardNum        int          // 切片的数量
+		subTableIndexes []int        // 在路由规则里数据表的 Index
+		tableToSlice    map[int]int  // 在路由规则里切片的 Index
+		insertBookID    []int        // 插入数据库的 BookID 的值
+		tableIndex      []int        // 数据表的 Index
+		sliceIndex      []int        // 切片的 Index
+	}{
+		{
+			cfgShard:        cfgShard1,
+			shardNum:        2,
+			subTableIndexes: []int{0, 1},
+			tableToSlice:    map[int]int{0: 0, 1: 1},
+			insertBookID:    []int{1, 2, 3},
+			tableIndex:      []int{1, 0, 1},
+			sliceIndex:      []int{1, 0, 1},
+		},
+		{
+			cfgShard:        cfgShard2,
+			shardNum:        3,
+			subTableIndexes: []int{0, 1, 2},
+			tableToSlice:    map[int]int{0: 0, 1: 1, 2: 1},
+			insertBookID:    []int{1, 2, 3},
+			tableIndex:      []int{1, 2, 0},
+			sliceIndex:      []int{1, 2, 0},
+		},
+	}
+
+	for i := 0; i < len(tests); i++ {
+		// 直接产生路由规则
+		rule, err := parseRule(&tests[i].cfgShard)
+		require.Equal(t, err, nil)
+
+		// 检查目前的路由设定值
+		require.Equal(t, rule.ruleType, "hash")
+		require.Equal(t, rule.db, "novel")
+		require.Equal(t, rule.table, "book")
+		require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
+		require.Equal(t, rule.shard.(*HashShard).ShardNum, tests[i].shardNum)
+		require.Equal(t, rule.shardingColumn, "bookid")
+
+		// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
+		require.Equal(t, rule.subTableIndexes, tests[i].subTableIndexes)
+		require.Equal(t, rule.tableToSlice, tests[i].tableToSlice)
+
+		require.Equal(t, len(rule.mycatDatabases), 0)
+		require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
+
+		// 直接建立路由
+		rt := new(Router)
+		rt.rules = make(map[string]map[string]Rule)
+		m := make(map[string]Rule)
+		rt.rules[rule.db] = m
+		rt.rules[rule.db][rule.table] = rule
+
+		// 直接建立预设路由
+		rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+		// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+		_, has := rt.GetShardRule(rule.db, rule.table)
+		require.Equal(t, has, true)
+
+		// 检查插入的 BookID 和路由规则进行组合
+		for j := 0; j < len(tests[i].insertBookID); j++ {
+			// 由路由推算出要插入到那一个切片的表
+			tableIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(tests[i].insertBookID[j])
+			require.Equal(t, err, nil)
+			require.Equal(t, tableIndex, tests[i].tableIndex[j])
+		}
+	}
+}
+
+// TestNovelRouterHashType2 函式 🧚 是用来测试小說数据库的 hash 路由
+func TestNovelRouterHashType2(t *testing.T) {
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
 	// 在第 1 台 Master 数据库有数据表 Book_0000
