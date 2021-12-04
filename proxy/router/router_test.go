@@ -21,14 +21,14 @@ func TestNovelRouterHashType(t *testing.T) {
 
 	// 再建立 路由规则 设定模组
 	cfgShard1 := models.Shard{
-		DB:            "novel",
-		Table:         "Book",
-		ParentTable:   "",
-		Type:          "hash",
-		Key:           "BookID",
-		Locations:     []int{1, 1}, // 切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 1 张
-		Slices:        []string{"slice-0", "slice-1"},
-		TableRowLimit: 0,
+		DB:            "novel",                        // 数据库
+		Table:         "Book",                         // 数据表
+		ParentTable:   "",                             // 暂不设定
+		Type:          "hash",                         // hash 路由规则
+		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
+		Locations:     []int{1, 1},                    // 切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 1 张
+		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
+		TableRowLimit: 0,                              // 暂不设定
 	}
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 2 cfgShard2
@@ -36,16 +36,17 @@ func TestNovelRouterHashType(t *testing.T) {
 	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
 
 	cfgShard2 := models.Shard{
-		DB:            "novel",
-		Table:         "Book",
-		ParentTable:   "",
-		Type:          "hash",
-		Key:           "BookID",
-		Locations:     []int{1, 2}, // 只修改这里，代表切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 2 张
-		Slices:        []string{"slice-0", "slice-1"},
-		TableRowLimit: 0,
+		DB:            "novel",                        // 数据库
+		Table:         "Book",                         // 数据表
+		ParentTable:   "",                             // 暂不设定
+		Type:          "hash",                         // hash 路由规则
+		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
+		Locations:     []int{1, 2},                    // 只修改这里，代表切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 2 张
+		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
+		TableRowLimit: 0,                              // 暂不设定
 	}
 
+	// 建立测试资料
 	tests := []struct {
 		cfgShard        models.Shard // 路由设定档
 		shardNum        int          // 切片的数量
@@ -53,28 +54,29 @@ func TestNovelRouterHashType(t *testing.T) {
 		tableToSlice    map[int]int  // 在路由规则里切片的 Index
 		insertBookID    []int        // 插入数据库的 BookID 的值
 		tableIndex      []int        // 数据表的 Index
-		sliceIndex      []int        // 切片的 Index
+		sliceIndex      []int        // 数据表的 Index 和 切片的 Index 的对应
 	}{
 		{
-			cfgShard:        cfgShard1,
-			shardNum:        2,
-			subTableIndexes: []int{0, 1},
-			tableToSlice:    map[int]int{0: 0, 1: 1},
-			insertBookID:    []int{1, 2, 3},
-			tableIndex:      []int{1, 0, 1},
-			sliceIndex:      []int{1, 0, 1},
+			cfgShard:        cfgShard1,               // 路由规则变数 cfgShard1
+			shardNum:        2,                       // 数据表的数量为 2
+			subTableIndexes: []int{0, 1},             // 0，1 分别对应到数据表的 Book_0000，Book_0001
+			tableToSlice:    map[int]int{0: 0, 1: 1}, // 数据表 Book_0000，Book_0001 分别对应到 Slice-0，Slice-1
+			insertBookID:    []int{1, 2, 3},          // 在数据库分别插入 BookID 为 1，2 和 3 的资料
+			tableIndex:      []int{1, 0, 1},          // BookID 为 1，2 和 3 的资料分别会插入 Book_0001，Book_0000 和 Book_0001
+			sliceIndex:      []int{1, 0, 1},          // BookID 为 1，2 和 3 的资料分别会插入 slice-1，slice-0 和 slice-1
 		},
 		{
-			cfgShard:        cfgShard2,
-			shardNum:        3,
-			subTableIndexes: []int{0, 1, 2},
-			tableToSlice:    map[int]int{0: 0, 1: 1, 2: 1},
-			insertBookID:    []int{1, 2, 3},
-			tableIndex:      []int{1, 2, 0},
-			sliceIndex:      []int{1, 2, 0},
+			cfgShard:        cfgShard2,                     // 路由规则变数 cfgShard2
+			shardNum:        3,                             // 数据表的数量为 3
+			subTableIndexes: []int{0, 1, 2},                // 0，1 和 2 分别对应到数据表的 Book_0000，Book_0001 和 Book_0002
+			tableToSlice:    map[int]int{0: 0, 1: 1, 2: 1}, // 数据表 Book_0000，Book_0001 和 Book_0002 分别对应到 Slice-0，Slice-1 和 Slice-1
+			insertBookID:    []int{1, 2, 3},                // 在数据库分别插入 BookID 为 1，2 和 3 的资料
+			tableIndex:      []int{1, 2, 0},                // BookID 为 1，2 和 3 的资料分别会插入 Book_0001，Book_0002 和 Book_0000
+			sliceIndex:      []int{1, 1, 0},                // BookID 为 1，2 和 3 的资料分别会插入 slice-1，slice-1 和 slice-0
 		},
 	}
 
+	// 开始进行测试
 	for i := 0; i < len(tests); i++ {
 		// 直接产生路由规则
 		rule, err := parseRule(&tests[i].cfgShard)
@@ -114,204 +116,141 @@ func TestNovelRouterHashType(t *testing.T) {
 			// 由路由推算出要插入到那一个切片的表
 			tableIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(tests[i].insertBookID[j])
 			require.Equal(t, err, nil)
-			require.Equal(t, tableIndex, tests[i].tableIndex[j])
+			require.Equal(t, tableIndex, tests[i].tableIndex[j]) // 检查插入的表编号
+			sliceIndex := rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(tableIndex)
+			require.Equal(t, sliceIndex, tests[i].sliceIndex[j]) // 检查插入的切片编号
 		}
 	}
 }
 
-// TestNovelRouterHashType2 函式 🧚 是用来测试小說数据库的 hash 路由
-func TestNovelRouterHashType2(t *testing.T) {
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
-	// 在第 1 台 Master 数据库有数据表 Book_0000
-	// 在第 2 台 Master 数据库有数据表 Book_0001
-
-	// 再建立 路由规则 设定模组
-	cfgRouter := models.Shard{
-		DB:            "novel",
-		Table:         "Book",
-		ParentTable:   "",
-		Type:          "hash",
-		Key:           "BookID",
-		Locations:     []int{1, 1},
-		Slices:        []string{"slice-0", "slice-1"},
-		TableRowLimit: 0,
-	}
-
-	// 直接产生路由规则
-	rule, err := parseRule(&cfgRouter)
-	require.Equal(t, err, nil)
-
-	// 检查目前的路由设定值
-	require.Equal(t, rule.ruleType, "hash")
-	require.Equal(t, rule.db, "novel")
-	require.Equal(t, rule.table, "book")
-	require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
-	require.Equal(t, rule.shard.(*HashShard).ShardNum, 2)
-	require.Equal(t, rule.shardingColumn, "bookid")
-
-	// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
-	require.Equal(t, rule.subTableIndexes, []int{0, 1})
-	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1})
-
-	require.Equal(t, len(rule.mycatDatabases), 0)
-	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
-
-	// 直接建立路由
-	rt := new(Router)
-	rt.rules = make(map[string]map[string]Rule)
-	m := make(map[string]Rule)
-	rt.rules[rule.db] = m
-	rt.rules[rule.db][rule.table] = rule
-
-	// 直接建立预设路由
-	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
-
-	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
-	_, has := rt.GetShardRule(rule.db, rule.table)
-	require.Equal(t, has, true)
-
-	// 由路由推算出要插入到那一个切片的表
-	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
-	// 在第 1 台 Master 数据库有数据表 Book_0000
-	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
-
-	// 修改 路由规则 设定模组
-	cfgRouter.Locations = []int{1, 2}
-
-	// 直接产生路由规则
-	rule, err = parseRule(&cfgRouter)
-	require.Equal(t, err, nil)
-
-	// 检查目前的路由设定值
-	require.Equal(t, rule.subTableIndexes, []int{0, 1, 2})
-	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1, 2: 1})
-
-	// 直接建立路由
-	rt = new(Router)
-	rt.rules = make(map[string]map[string]Rule)
-	m = make(map[string]Rule)
-	rt.rules[rule.db] = m
-	rt.rules[rule.db][rule.table] = rule
-
-	// 由路由推算出要插入到那一个切片的表
-	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
-}
-
 // TestNovelRouterModType 函式 🧚 是用来测试小說数据库的 mod 路由
 func TestNovelRouterModType(t *testing.T) {
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 1 cfgShard1
 	// 在第 1 台 Master 数据库有数据表 Book_0000
 	// 在第 2 台 Master 数据库有数据表 Book_0001
 
 	// 再建立 路由规则 设定模组
-	cfgRouter := models.Shard{
-		DB:            "novel",
-		Table:         "Book",
-		ParentTable:   "",
-		Type:          "mod",
-		Key:           "BookID",
-		Locations:     []int{1, 1},
-		Slices:        []string{"slice-0", "slice-1"},
-		TableRowLimit: 0,
+	cfgShard1 := models.Shard{
+		DB:            "novel",                        // 数据库
+		Table:         "Book",                         // 数据表
+		ParentTable:   "",                             // 暂不设定
+		Type:          "mod",                          // mod 路由规则
+		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
+		Locations:     []int{1, 1},                    // 切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 1 张
+		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
+		TableRowLimit: 0,                              // 暂不设定
 	}
 
-	// 直接产生路由规则
-	rule, err := parseRule(&cfgRouter)
-	require.Equal(t, err, nil)
-
-	// 检查目前的路由设定值
-	require.Equal(t, rule.ruleType, "mod")
-	require.Equal(t, rule.db, "novel")
-	require.Equal(t, rule.table, "book")
-	require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
-	require.Equal(t, rule.shard.(*ModShard).ShardNum, 2)
-	require.Equal(t, rule.shardingColumn, "bookid")
-
-	// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
-	require.Equal(t, rule.subTableIndexes, []int{0, 1})
-	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1})
-
-	require.Equal(t, len(rule.mycatDatabases), 0)
-	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
-
-	// 直接建立路由
-	rt := new(Router)
-	rt.rules = make(map[string]map[string]Rule)
-	m := make(map[string]Rule)
-	rt.rules[rule.db] = m
-	rt.rules[rule.db][rule.table] = rule
-
-	// 直接建立预设路由
-	rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
-
-	// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
-	_, has := rt.GetShardRule(rule.db, rule.table)
-	require.Equal(t, has, true)
-
-	// 由路由推算出要插入到那一个切片的表
-	insertIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例2
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 2 cfgShard2
 	// 在第 1 台 Master 数据库有数据表 Book_0000
 	// 在第 2 台 Master 数据库有数据表 Book_0001 Book_0002
 
-	// 修改 路由规则 设定模组
-	cfgRouter.Locations = []int{1, 2}
+	cfgShard2 := models.Shard{
+		DB:            "novel",                        // 数据库
+		Table:         "Book",                         // 数据表
+		ParentTable:   "",                             // 暂不设定
+		Type:          "mod",                          // mod 路由规则
+		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
+		Locations:     []int{1, 2},                    // 只修改这里，代表切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 2 张
+		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
+		TableRowLimit: 0,                              // 暂不设定
+	}
 
-	// 直接产生路由规则
-	rule, err = parseRule(&cfgRouter)
-	require.Equal(t, err, nil)
+	// 建立测试资料
+	tests := []struct {
+		cfgShard        models.Shard // 路由设定档
+		shardNum        int          // 切片的数量
+		subTableIndexes []int        // 在路由规则里数据表的 Index
+		tableToSlice    map[int]int  // 在路由规则里切片的 Index
+		insertBookID    []int        // 插入数据库的 BookID 的值
+		tableIndex      []int        // 数据表的 Index
+		sliceIndex      []int        // 数据表的 Index 和 切片的 Index 的对应
+	}{
+		// 插入的 BookID 为正值
+		{
+			cfgShard:        cfgShard1,               // 路由规则变数 cfgShard1
+			shardNum:        2,                       // 数据表的数量为 2
+			subTableIndexes: []int{0, 1},             // 0，1 分别对应到数据表的 Book_0000，Book_0001
+			tableToSlice:    map[int]int{0: 0, 1: 1}, // 数据表 Book_0000，Book_0001 分别对应到 Slice-0，Slice-1
+			insertBookID:    []int{1, 2, 3},          // 在数据库分别插入 BookID 为 1，2 和 3 的资料
+			tableIndex:      []int{1, 0, 1},          // BookID 为 1，2 和 3 的资料分别会插入 Book_0001，Book_0000 和 Book_0001
+			sliceIndex:      []int{1, 0, 1},          // BookID 为 1，2 和 3 的资料分别会插入 slice-1，slice-0 和 slice-1
+		},
+		{ // 插入的 BookID 为正值
+			cfgShard:        cfgShard2,                     // 路由规则变数 cfgShard2
+			shardNum:        3,                             // 数据表的数量为 3
+			subTableIndexes: []int{0, 1, 2},                // 0，1 和 2 分别对应到数据表的 Book_0000，Book_0001 和 Book_0002
+			tableToSlice:    map[int]int{0: 0, 1: 1, 2: 1}, // 数据表 Book_0000，Book_0001 和 Book_0002 分别对应到 Slice-0，Slice-1 和 Slice-1
+			insertBookID:    []int{1, 2, 3},                // 在数据库分别插入 BookID 为 1，2 和 3 的资料
+			tableIndex:      []int{1, 2, 0},                // BookID 为 1，2 和 3 的资料分别会插入 Book_0001，Book_0002 和 Book_0000
+			sliceIndex:      []int{1, 1, 0},                // BookID 为 1，2 和 3 的资料分别会插入 slice-1，slice-1 和 slice-0
+		},
+		// 插入的 BookID 为负值 (路由规则 mod 可以处理负值的插入键值)
+		{
+			cfgShard:        cfgShard1,               // 路由规则变数 cfgShard1
+			shardNum:        2,                       // 数据表的数量为 2
+			subTableIndexes: []int{0, 1},             // 0，1 分别对应到数据表的 Book_0000，Book_0001
+			tableToSlice:    map[int]int{0: 0, 1: 1}, // 数据表 Book_0000，Book_0001 分别对应到 Slice-0，Slice-1
+			insertBookID:    []int{-1, -2, -3},       // 在数据库分别插入 BookID 为 -1，-2 和 -3 的资料
+			tableIndex:      []int{1, 0, 1},          // BookID 为 -1，-2 和 -3 的资料分别会插入 Book_0001，Book_0000 和 Book_0001
+			sliceIndex:      []int{1, 0, 1},          // BookID 为 -1，-2 和 -3 的资料分别会插入 slice-1，slice-0 和 slice-1
+		},
+		{ // 插入的 BookID 为负值 (路由规则 mod 可以处理负值的插入键值)
+			cfgShard:        cfgShard2,                     // 路由规则变数 cfgShard2
+			shardNum:        3,                             // 数据表的数量为 3
+			subTableIndexes: []int{0, 1, 2},                // 0，1 和 2 分别对应到数据表的 Book_0000，Book_0001 和 Book_0002
+			tableToSlice:    map[int]int{0: 0, 1: 1, 2: 1}, // 数据表 Book_0000，Book_0001 和 Book_0002 分别对应到 Slice-0，Slice-1 和 Slice-1
+			insertBookID:    []int{-1, -2, -3},             // 在数据库分别插入 BookID 为 -1，-2 和 -3 的资料
+			tableIndex:      []int{1, 2, 0},                // BookID 为 -1，-2 和 -3 的资料分别会插入 Book_0001，Book_0002 和 Book_0000
+			sliceIndex:      []int{1, 1, 0},                // BookID 为 -1，-2 和 -3 的资料分别会插入 slice-1，slice-1 和 slice-0
+		},
+	}
 
-	// 检查目前的路由设定值
-	require.Equal(t, rule.subTableIndexes, []int{0, 1, 2})
-	require.Equal(t, rule.tableToSlice, map[int]int{0: 0, 1: 1, 2: 1})
+	// 开始进行测试
+	for i := 0; i < len(tests); i++ {
+		// 直接产生路由规则
+		rule, err := parseRule(&tests[i].cfgShard)
+		require.Equal(t, err, nil)
 
-	// 直接建立路由
-	rt = new(Router)
-	rt.rules = make(map[string]map[string]Rule)
-	m = make(map[string]Rule)
-	rt.rules[rule.db] = m
-	rt.rules[rule.db][rule.table] = rule
+		// 检查目前的路由设定值
+		require.Equal(t, rule.ruleType, "mod")
+		require.Equal(t, rule.db, "novel")
+		require.Equal(t, rule.table, "book")
+		require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
+		require.Equal(t, rule.shard.(*ModShard).ShardNum, tests[i].shardNum)
+		require.Equal(t, rule.shardingColumn, "bookid")
 
-	// 由路由推算出要插入到那一个切片的表
-	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(1) // 数值 1 是值 SQL 字串中的 bookid 为 1，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1)                                 // insertIndex 为 1 是指插入的数据表为 Book_0001
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(2) // 数值 2 是值 SQL 字串中的 bookid 为 2，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 2)                                 // insertIndex 为 2 是指插入的数据表为 Book_0002
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(3) // 数值 3 是值 SQL 字串中的 bookid 为 3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 0)                                 // insertIndex 为 0 是指插入的数据表为 Book_0000
+		// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
+		require.Equal(t, rule.subTableIndexes, tests[i].subTableIndexes)
+		require.Equal(t, rule.tableToSlice, tests[i].tableToSlice)
 
-	// 前面看起来 mod 和 hash 没有不同，但是差在 mod 路由可以处理负值
-	insertIndex, err = rt.rules[rule.db][rule.table].FindTableIndex(-1) // 数值 -1 是值 SQL 字串中的 bookid 为 -1，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertIndex, 1)                                  // insertIndex 为 1 是指插入的数据表为 Book_0001
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(-2) // 数值 -2 是值 SQL 字串中的 bookid 为 -2，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 2)                                  // insertIndex 为 2 是指插入的数据表为 Book_0002
-	insertIndex, _ = rt.rules[rule.db][rule.table].FindTableIndex(-3) // 数值 -3 是值 SQL 字串中的 bookid 为 -3，这是经由 parser 传入的值
-	require.Equal(t, insertIndex, 0)                                  // insertIndex 为 0 是指插入的数据表为 Book_0000
+		require.Equal(t, len(rule.mycatDatabases), 0)
+		require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
+
+		// 直接建立路由
+		rt := new(Router)
+		rt.rules = make(map[string]map[string]Rule)
+		m := make(map[string]Rule)
+		rt.rules[rule.db] = m
+		rt.rules[rule.db][rule.table] = rule
+
+		// 直接建立预设路由
+		rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+		// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+		_, has := rt.GetShardRule(rule.db, rule.table)
+		require.Equal(t, has, true)
+
+		// 检查插入的 BookID 和路由规则进行组合
+		for j := 0; j < len(tests[i].insertBookID); j++ {
+			// 由路由推算出要插入到那一个切片的表
+			tableIndex, err := rt.rules[rule.db][rule.table].FindTableIndex(tests[i].insertBookID[j])
+			require.Equal(t, err, nil)
+			require.Equal(t, tableIndex, tests[i].tableIndex[j]) // 检查插入的表编号
+			sliceIndex := rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(tableIndex)
+			require.Equal(t, sliceIndex, tests[i].sliceIndex[j]) // 检查插入的切片编号
+		}
+	}
 }
 
 // TestNovelRouterRangeType 函式 🧚 是用来测试小說数据库的 range 路由
