@@ -84,7 +84,7 @@ func TestNovelRouterHashType(t *testing.T) {
 		require.Equal(t, err, nil)
 
 		// 检查目前的路由设定值
-		require.Equal(t, rule.ruleType, "hash")
+		require.Equal(t, rule.ruleType, "hash") // 路由规则模式 为 hash
 		require.Equal(t, rule.db, "novel")
 		require.Equal(t, rule.table, "book")
 		require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
@@ -215,7 +215,7 @@ func TestNovelRouterModType(t *testing.T) {
 		require.Equal(t, err, nil)
 
 		// 检查目前的路由设定值
-		require.Equal(t, rule.ruleType, "mod")
+		require.Equal(t, rule.ruleType, "mod") // 路由规则模式 为 mod
 		require.Equal(t, rule.db, "novel")
 		require.Equal(t, rule.table, "book")
 		require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
@@ -270,7 +270,7 @@ func TestNovelRouterRangeType(t *testing.T) {
 		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
 		Locations:     []int{1, 1},                    // 切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 1 张
 		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
-		TableRowLimit: 3,                              // 暂不设定
+		TableRowLimit: 3,                              // 每一張資料表可以插入 bookID 的容許數量
 	}
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 2 cfgShard2
@@ -286,7 +286,7 @@ func TestNovelRouterRangeType(t *testing.T) {
 		Key:           "BookID",                       // 以 BookID 栏位作为分表的依据
 		Locations:     []int{1, 2},                    // 只修改这里，代表切片 slice-0 的数据表有 1 张，而 slice-1 的数据表有 2 张
 		Slices:        []string{"slice-0", "slice-1"}, // 切片 Slice-0 和 Slice-1
-		TableRowLimit: 3,                              // 暂不设定
+		TableRowLimit: 3,                              // 每一張資料表可以插入 bookID 的容許數量
 	}
 
 	// 建立测试资料
@@ -294,7 +294,7 @@ func TestNovelRouterRangeType(t *testing.T) {
 		cfgShard        models.Shard   // 路由设定档
 		shardNum        int            // 切片的数量
 		subTableIndexes []int          // 在路由规则里数据表的 Index
-		tableToSlice    map[int]int    // 在路由规则里切片的 Index
+		tableToSlice    map[int]int    // 在路由规则里，数据表 和 切片 Index
 		shardsStartEnd  map[int][2]int // 数据表资料的上下界限范围
 		insertBookID    []int          // 插入数据库的 BookID 的值
 		tableIndex      []int          // 数据表的 Index
@@ -329,7 +329,7 @@ func TestNovelRouterRangeType(t *testing.T) {
 		require.Equal(t, err, nil)
 
 		// 检查目前的路由设定值
-		require.Equal(t, rule.ruleType, "range")
+		require.Equal(t, rule.ruleType, "range") // 路由规则模式 为 range
 		require.Equal(t, rule.db, "novel")
 		require.Equal(t, rule.table, "book")
 		require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
@@ -383,69 +383,124 @@ func TestNovelRouterRangeType(t *testing.T) {
 
 // TestNovelRouterModDateYear 函式 🧚 是用来测试小說数据库的 date year 路由
 func TestNovelRouterModDateYear(t *testing.T) {
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 1 cfgShard1
+	// 在第 1 台 Master 数据库有数据表 Book，一个切片 slice-0 和一个数据表 Book，存放年份的资料为 2020 年至 2023
+	// 在第 2 台 Master 数据库有数据表 Book，一个切片 slice-1 和一个数据表 Book，存放年份的资料为 2024 年至 2027
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 案例1
-	// 在第 1 台 Master 数据库有数据表 Book_0000
-	// 在第 2 台 Master 数据库有数据表 Book_0001
-
-	// 再建立 路由规则 设定模组
-	cfgRouter := models.Shard{
-		DB:          "novel",
-		Table:       "Book",
-		ParentTable: "",
-		Type:        "date_year",
-		Key:         "Publish",
-		// Locations:     []int{1, 1}, // 路由规则模式 date_year 不使用 Locations
-		Slices:        []string{"slice-0", "slice-1"},
-		DateRange:     []string{"1500-1600", "1601-1700"}, // 路由规则模式 DateRange 使用 date_year
-		TableRowLimit: 0,
+	// 建立 路由规则 设定模组 cfgShard1
+	cfgShard1 := models.Shard{
+		DB:          "novel",     // 数据库
+		Table:       "Book",      // 数据表
+		ParentTable: "",          // 暂不设定
+		Type:        "date_year", // date_year 路由规则
+		Key:         "Publish",   // 以 Publish 栏位作为分表的依据
+		// Locations:     []int{1, 2},                     // date_year 路由规则，不使用 location
+		Slices:        []string{"slice-0", "slice-1"},     // 切片 Slice-0 和 Slice-1，范围 range 有几个，切片 slice 也会对应有几个
+		DateRange:     []string{"2020-2023", "2024-2027"}, // 路由规则模式 使用 DateRange
+		TableRowLimit: 0,                                  // 暂不设定
 	}
 
-	// 直接产生路由规则
-	rule, err := parseRule(&cfgRouter)
-	require.Equal(t, err, nil)
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 设定档 2 cfgShard2
+	// 在第 1 台 Master 数据库有数据表 Book，一个切片 slice-0 和一个数据表 Book，存放年份的资料为 2020 年至 2023
+	// 在第 2 台 Master 数据库有数据表 Book，一个切片 slice-1 和一个数据表 Book，存放年份的资料为 2024 年至 2027
+	// 在第 3 台 Master 数据库有数据表 Book，一个切片 slice-2 和一个数据表 Book，存放年份的资料为 2028 年至 2031
 
-	// 检查目前的路由设定值
-	require.Equal(t, rule.ruleType, "date_year")
-	require.Equal(t, rule.db, "novel")
-	require.Equal(t, rule.table, "book")
-	require.Equal(t, rule.slices, []string{"slice-0", "slice-1"})
-	// require.Equal(t, rule.shard.(*DateYearShard), rule.shard.(*DateYearShard))
-	require.Equal(t, rule.shardingColumn, "publish")
+	// 建立 路由规则 设定模组 cfgShard2
+	cfgShard2 := models.Shard{
+		DB:          "novel",     // 数据库
+		Table:       "Book",      // 数据表
+		ParentTable: "",          // 暂不设定
+		Type:        "date_year", // date_year 路由规则
+		Key:         "Publish",   // 以 Publish 栏位作为分表的依据
+		// Locations:     []int{1, 2, 3},                               // date_year 路由规则，不使用 location
+		Slices:        []string{"slice-0", "slice-1", "slice-2"},       // 切片 Slice-0，Slice-1 和 Slice-2
+		DateRange:     []string{"2020-2023", "2024-2027", "2028-2031"}, // 路由规则模式 使用 DateRange
+		TableRowLimit: 0,                                               // 暂不设定
+	}
 
-	// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
-	require.Equal(t, rule.subTableIndexes[0], 1500)
-	require.Equal(t, rule.subTableIndexes[101], 1601) // 都同时加上 101
-	require.Equal(t, rule.tableToSlice[1500], 0)      // 第一个范围的开头
-	require.Equal(t, rule.tableToSlice[1600], 0)      // 第一個范围的结尾
-	require.Equal(t, rule.tableToSlice[1601], 1)      // 加上 101 之后，进入下一个切片
+	// 建立测试资料
+	tests := []struct {
+		cfgShard models.Shard // 路由设定档
+		// shardNum        int      // date_year 路由规则 不会使用 shardNum 去计算所有 切片 的数据表 总合
+		slice           []string    // 组成的切片名称
+		subTableIndexes []int       // 在路由规则里数据表的 Index
+		tableToSlice    map[int]int // 在路由规则里切片的 Index
+		insertPublish   []string    // 插入数据库的 BookID 的值
+		tableIndex      []int       // 数据表的 Index
+		sliceIndex      []int       // 数据表的 Index 和 切片的 Index 的对应
+	}{
+		{
+			cfgShard:        cfgShard1,                                                                           // 路由规则变数 cfgShard1
+			slice:           []string{"slice-0", "slice-1"},                                                      // 由两张切片所组成
+			subTableIndexes: []int{2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027},                               // 列出目前路由规则可以处理的年份，如 2020，2021 等等
+			tableToSlice:    map[int]int{2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 1, 2025: 1, 2026: 1, 2027: 1}, // 年份 2020，2021，2022，2023 和 2024 等等 分别对应到 Slice-0，Slice-0，Slice-0，Slice-0 和 Slice-1 等等
+			insertPublish:   []string{"2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028"},    // 在数据库分别插入 Publish 为 2020，2021 和 2022 等等 的资料
+			tableIndex:      []int{2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028},                         // 直接把插入 Publish 的年份，由字串转型成常数，比如 "2020" 字串 转成 2020 常数
+			sliceIndex:      []int{0, 0, 0, 0, 1, 1, 1, 1, -1},                                                   // Publish 为 2020，2021，2022 和 2023 等等 的资料分别会插入 slice-0 和 slice-1 任两张表的其中一张
+			//                                                                                                    // 元素值为 0 是指插入切片 Slice-0，元素值为 1 是指插入切片 Slice-1，-1 是指发生错误，插入的资料超过年份范围
+		},
+		{
+			cfgShard:        cfgShard2,                                                                                                               // 路由规则变数 cfgShard2
+			slice:           []string{"slice-0", "slice-1", "slice-2"},                                                                               // 由三张切片所组成
+			subTableIndexes: []int{2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031},                                           // 列出目前路由规则可以处理的年份，如 2020，2021 等等
+			tableToSlice:    map[int]int{2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 1, 2025: 1, 2026: 1, 2027: 1, 2028: 2, 2029: 2, 2030: 2, 2031: 2}, // 年份 2020，2021，2022，2023 和 2024 等等 分别对应到 Slice-0，Slice-0，Slice-0，Slice-0 和 Slice-1 等等
+			insertPublish:   []string{"2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030", "2031", "2032"},        // 在数据库分别插入 Publish 为 2020，2021 和 2022 等等 的资料
+			tableIndex:      []int{2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032},                                     // 直接把插入 Publish 的年份，由字串转型成常数，比如 "2020" 字串 转成 2020 常数
+			sliceIndex:      []int{0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, -1},                                                                           // Publish 为 2020，2021，2022 和 2023 等等 的资料分别会插入 slice-0，slice-1 和 slice-2 任三张表的其中一张
+			//                                                                                                                                        // 元素值为 0 是指插入切片 Slice-0，元素值为 1 是指插入切片 Slice-1，元素值为 2 是指插入切片 Slice-2，-1 是指发生错误，插入的资料超过年份范围
+		},
+	}
 
-	require.Equal(t, len(rule.mycatDatabases), 0)
-	require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
+	// 开始进行测试
+	for i := 0; i < len(tests); i++ {
+		// 直接产生路由规则
+		rule, err := parseRule(&tests[i].cfgShard)
+		require.Equal(t, err, nil)
 
-	// 直接建立路由
-	rt := new(Router)
-	rt.rules = make(map[string]map[string]Rule)
-	m := make(map[string]Rule)
-	rt.rules[rule.db] = m
-	rt.rules[rule.db][rule.table] = rule
+		// 检查目前的路由设定值
+		require.Equal(t, rule.ruleType, "date_year") // 路由规则模式 为 date_year
+		require.Equal(t, rule.db, "novel")
+		require.Equal(t, rule.table, "book")
+		require.Equal(t, rule.slices, tests[i].slice)
+		require.Equal(t, rule.shard.(*DateYearShard), rule.shard.(*DateYearShard))
+		require.Equal(t, rule.shardingColumn, "publish")
 
-	// 由路由推算出要插入到那一个切片的表
-	insertTableIndex, err := rt.rules[rule.db][rule.table].FindTableIndex("1500") // 数值 1500 是值 SQL 字串中的 publish 为 1500，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertTableIndex, 1500) // 数据表的 index 為 1500
+		// 下面的 rule.subTableIndexes 和 rule.tableToSlice 是传输函式 parseHashRuleSliceInfos 以 models.Shard 的 Locations 和 Slices 为参数，产生输出得来的
+		require.Equal(t, rule.subTableIndexes, tests[i].subTableIndexes)
+		require.Equal(t, rule.tableToSlice, tests[i].tableToSlice)
 
-	// 由多个数据表组成切片，所以可以由 数据表的 index 转成 切片的 index
-	insertSliceIndex := rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(insertTableIndex)
-	require.Equal(t, insertSliceIndex, 0) // 数据表的 index 為 1500 所对应的切片 index 为 0，插入的数据表为 Book_0000
+		require.Equal(t, len(rule.mycatDatabases), 0)
+		require.Equal(t, len(rule.mycatDatabaseToTableIndexMap), 0)
 
-	insertTableIndex, err = rt.rules[rule.db][rule.table].FindTableIndex("1601") // 数值 1601 是值 SQL 字串中的 publish 为 1601，这是经由 parser 传入的值
-	require.Equal(t, err, nil)
-	require.Equal(t, insertTableIndex, 1601) // 数据表的 index 為 1500
+		// 直接建立路由
+		rt := new(Router)
+		rt.rules = make(map[string]map[string]Rule)
+		m := make(map[string]Rule)
+		rt.rules[rule.db] = m
+		rt.rules[rule.db][rule.table] = rule
 
-	// 由多个数据表组成切片，所以可以由 数据表的 index 转成 切片的 index
-	insertSliceIndex = rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(insertTableIndex)
-	require.Equal(t, insertSliceIndex, 1) // 数据表的 index 為 1601 所对应的切片 index 为 1，插入的数据表为 Book_0001
+		// 直接建立预设路由
+		rt.defaultRule = NewDefaultRule(rule.slices[0]) // 设定第一组切片为预设路由
+
+		// 会回传布林值显示路由规则是否存在，在路由中用一开始设定的资料库和资料表，就可以找到路由规则
+		_, has := rt.GetShardRule(rule.db, rule.table)
+		require.Equal(t, has, true)
+
+		// 检查插入的 BookID 和路由规则进行组合
+		for j := 0; j < len(tests[i].insertPublish); j++ {
+			// 由路由推算出要插入到那一个切片的表
+			tableIndex, _ := rt.rules[rule.db][rule.table].FindTableIndex(tests[i].insertPublish[j])
+			// require.Equal(t, err, nil)
+			// 当插入的 Publish 超过数据表的界限时，就会发生错误
+			// 比如 整个路由规则能处理的年份范围为 2020 年 到 2027 年
+			// 当插入 Publish 为 2028 年时，就会发生错误
+			// 但在 Publish 为 2020 年 至 2027 年 时，就不会发生错误
+			// 所以这里不能进行测试
+			require.Equal(t, tableIndex, tests[i].tableIndex[j]) // 检查插入的表编号
+			sliceIndex := rt.rules[rule.db][rule.table].GetSliceIndexFromTableIndex(tableIndex)
+			require.Equal(t, sliceIndex, tests[i].sliceIndex[j]) // 检查插入的切片编号
+		}
+	}
 }
 
 // TestNovelRouterModDateMonth 函式 🧚 是用来测试小說数据库的 date month 路由
