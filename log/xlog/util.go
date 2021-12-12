@@ -72,6 +72,23 @@ func LevelFromStr(level string) int {
 	return resultLevel
 }
 
+// FileFormatFromStr 可以从含有 :: 的字串中，分解出 日志档名 和 日志格式
+func FileFormatFromStr(format string) (string, string) {
+	// 拆分字串
+	arr := strings.Split(format, "::")
+
+	// 正确回传
+	if len(arr) == 2 {
+		return arr[0], arr[1] // 如果有两个元素就两个都回传
+	}
+	if len(arr) == 1 {
+		return "", arr[0] // 如果只有一个元素，就放在 format 的回传位置回传
+	}
+
+	// 错误回传
+	return "", ""
+}
+
 func getRuntimeInfo(skip int) (function, filename string, lineno int) {
 	function = "???"
 	pc, filename, lineno, ok := runtime.Caller(skip)

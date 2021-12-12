@@ -19,12 +19,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 // XFileLog is the file logger
-type XFileLog struct {
+type XFileLog struct { // 单档案的输出
 	filename string
 	path     string
 	level    int
@@ -47,8 +48,6 @@ const (
 )
 
 // NewXFileLog is the constructor of XFileLog
-//生成一个日志实例，service用来标识业务的服务名。
-//比如：logger := xlog.NewXFileLog("gaea")
 func NewXFileLog() XLogger {
 	return &XFileLog{
 		skip: XLogDefSkipNum,
@@ -149,17 +148,30 @@ func (p *XFileLog) SetSkip(skip int) {
 	p.skip = skip
 }
 
+// openFile 为开档并写档程式，如果在进行单元测试时，会把日志导到通道，并写入到通道
 func (p *XFileLog) openFile(filename string) (*os.File, error) {
-	file, err := os.OpenFile(filename,
-		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
-		0644,
-	)
+	// 判断是否在单元测试的执行环境中，进行不同的动件
+	switch strings.HasSuffix(os.Args[0], ".test") {
+	case true:
+		// 正确回传，在单元单试的执行环境下
+		return nil, nil // 就不执行任何动作，直接回传
+	case false:
+		// 以下保留原程式码
+		file, err := os.OpenFile(filename,
+			os.O_CREATE|os.O_APPEND|os.O_WRONLY,
+			0644,
+		)
 
-	if err != nil {
-		return nil, newError("open %s failed, err:%v", filename, err)
+		if err != nil {
+			return nil, newError("open %s failed, err:%v", filename, err)
+		}
+
+		// 正确回传，不是 在单元单试的执行环境下
+		return file, err
 	}
 
-	return file, err
+	// 错误回传
+	return nil, nil
 }
 
 func delayClose(fp *os.File) {
@@ -230,6 +242,8 @@ func (p *XFileLog) rename(shuffix string) (err error) {
 }
 
 // ReOpen implements XLogger
+// 用于重新开档的函式，在这里会真的把所有的日志档案开启
+// 如果是在单元测试，会检查所有的模拟的双向通道是否存在
 func (p *XFileLog) ReOpen() error {
 	go delayClose(p.file)
 	go delayClose(p.errFile)
@@ -274,7 +288,7 @@ func (p *XFileLog) warnx(logID, format string, a ...interface{}) error {
 	logText := formatValue(format, a...)
 	fun, filename, lineno := getRuntimeInfo(p.skip)
 	logText = formatLineInfo(p.runtime, fun, filepath.Base(filename), logText, lineno)
-	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(filename), lineno, logText)
+	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
 	return p.write(WarnLevel, &logText, logID)
 }
@@ -301,7 +315,7 @@ func (p *XFileLog) fatalx(logID, format string, a ...interface{}) error {
 	logText := formatValue(format, a...)
 	fun, filename, lineno := getRuntimeInfo(p.skip)
 	logText = formatLineInfo(p.runtime, fun, filepath.Base(filename), logText, lineno)
-	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(filename), lineno, logText)
+	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
 	return p.write(FatalLevel, &logText, logID)
 }
@@ -348,7 +362,7 @@ func (p *XFileLog) tracex(logID, format string, a ...interface{}) error {
 	logText := formatValue(format, a...)
 	fun, filename, lineno := getRuntimeInfo(p.skip)
 	logText = formatLineInfo(p.runtime, fun, filepath.Base(filename), logText, lineno)
-	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(filename), lineno, logText)
+	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
 	return p.write(TraceLevel, &logText, logID)
 }
@@ -356,6 +370,11 @@ func (p *XFileLog) tracex(logID, format string, a ...interface{}) error {
 // Debug implements XLogger
 func (p *XFileLog) Debug(format string, a ...interface{}) error {
 	return p.debugx(XFileLogDefaultLogID, format, a...)
+}
+
+// Debugx implements XLogger
+func (p *XFileLog) Debugx(logID, format string, a ...interface{}) error {
+	return p.debugx(logID, format, a...)
 }
 
 func (p *XFileLog) debugx(logID, format string, a ...interface{}) error {
@@ -368,11 +387,6 @@ func (p *XFileLog) debugx(logID, format string, a ...interface{}) error {
 	logText = formatLineInfo(p.runtime, fun, filepath.Base(filename), logText, lineno)
 
 	return p.write(DebugLevel, &logText, logID)
-}
-
-// Debugx implements XLogger
-func (p *XFileLog) Debugx(logID, format string, a ...interface{}) error {
-	return p.debugx(logID, format, a...)
 }
 
 // Close implements XLogger
@@ -395,6 +409,8 @@ func (p *XFileLog) GetHost() string {
 	return p.hostname
 }
 
+// write 为最后的写入函式，会把日志写入档案
+// 如果是在单元测试，会把日志写入模拟的双向通道内
 func (p *XFileLog) write(level int, msg *string, logID string) error {
 	levelText := levelTextArray[level]
 	time := time.Now().Format("2006-01-02 15:04:05")
@@ -405,7 +421,23 @@ func (p *XFileLog) write(level int, msg *string, logID string) error {
 		file = p.errFile
 	}
 
-	file.Write([]byte(logText))
+	// 判断是否在单元测试的执行环境中，进行不同的动件
+	switch strings.HasSuffix(os.Args[0], ".test") {
+	case true:
+		// 如果 是 在单元测试的状况下，就把日志传送到双向通道
+		mockChan, err := p.GetChan(p.filename)
+		if err != nil {
+			// 错误回传
+			return fmt.Errorf("not found xwrite channel [%s]", p.filename)
+		}
+		mockChan <- logText // 把日志传送到双向通道
+	case false:
+		// 这里会尽量保持原有的程式码
+		// 如果 不是 在单元测试的状况下，就直接把日志写入档案
+		file.Write([]byte(logText)) // 保持原程式码
+	}
+
+	// 正确回传
 	return nil
 }
 
@@ -415,4 +447,10 @@ func isDir(path string) (bool, error) {
 		return false, err
 	}
 	return stat.IsDir(), nil
+}
+
+// GetChan 为 XMultiFileLog，XFileLog 和 XWrite 三者都要新增的函式，目的是要把日志传到应要传送的双向通道
+func (p *XFileLog) GetChan(fileName string) (chan string, error) {
+	// 由 getChan 函式接手进行后续处理
+	return getChan(fileName)
 }

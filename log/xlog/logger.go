@@ -83,8 +83,12 @@ func (l *LogManager) Init(name string, config map[string]string, source ...strin
 		return err
 	}
 
+	if err := l.RegisterLogger("multiFile", NewXMultiFileLog()); err != nil {
+		return err
+	}
+
 	err = l.initLogger(name, config)
-	//关闭自动注入的logger
+	//关闭自动注入的 logger
 	for _, v := range l.loggers {
 		if v.logger == nil || !v.enable {
 			continue

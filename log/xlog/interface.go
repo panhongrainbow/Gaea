@@ -16,48 +16,48 @@ package xlog
 
 // XLogger declares method that log instance should implement.
 type XLogger interface {
-	// init logger
+	// Init logger
 	Init(config map[string]string) error
 
-	// reopen logger
+	// ReOpen logger
 	ReOpen() error
 
-	//设置日志级别, 级别如下: "Debug", "Trace", "Notice", "Warn", "Fatal", "None"
+	// SetLevel 为设置日志级别, 级别如下: "Debug", "Trace", "Notice", "Warn", "Fatal", "None"
 	SetLevel(level string)
 
-	// set skip
+	// SetSkip 为 set skip
 	SetSkip(skip int)
 
-	// 打印Debug日志. 当日志级别大于Debug时, 不会输出任何日志
+	// Debug 为打印 Debug 日志. 当日志级别大于 Debug 时, 不会输出任何日志
 	Debug(format string, a ...interface{}) error
 
-	// 打印Trace日志. 当日志级别大于Trace时, 不会输出任何日志
+	// Trace 为打印 Trace 日志. 当日志级别大于 Trace 时, 不会输出任何日志
 	Trace(format string, a ...interface{}) error
 
-	// 打印Notice日志. 当日志级别大于Notice时, 不会输出任何日志
+	// Notice 为打印 Notice 日志. 当日志级别大于 Notice 时, 不会输出任何日志
 	Notice(format string, a ...interface{}) error
 
-	// 打印Warn日志. 当日志级别大于Warn时, 不会输出任何日志
+	// Warn 为打印 Warn 日志. 当日志级别大于 Warn 时, 不会输出任何日志
 	Warn(format string, a ...interface{}) error
 
-	// 打印Fatal日志. 当日志级别大于Fatal时, 不会输出任何日志
+	// Fatal 为打印 Fatal 日志. 当日志级别大于 Fatal 时, 不会输出任何日志
 	Fatal(format string, a ...interface{}) error
 
-	// 打印Debug日志, 需要传入logID. 当日志级别大于Debug时, 不会输出任何日志
+	// Debugx 为打印 Debug 日志, 需要传入 logID. 当日志级别大于 Debug 时, 不会输出任何日志
 	Debugx(logID, format string, a ...interface{}) error
 
-	// 打印Trace日志, 需要传入logID. 当日志级别大于Trace时, 不会输出任何日志
+	// Tracex 为打印 Trace 日志, 需要传入 logID. 当日志级别大于 Trace 时, 不会输出任何日志
 	Tracex(logID, format string, a ...interface{}) error
 
-	// 打印Notice日志, 需要传入logID. 当日志级别大于Notice时, 不会输出任何日志
+	// Noticex 为打 印Notice 日志, 需要传入 logID. 当日志级别大于 Notice 时, 不会输出任何日志
 	Noticex(logID, format string, a ...interface{}) error
 
-	// 打印Warn日志, 需要传入logID. 当日志级别大于Warn时, 不会输出任何日志
+	// Warnx 为打印 Warn 日志, 需要传入 logID. 当日志级别大于 Warn 时, 不会输出任何日志
 	Warnx(logID, format string, a ...interface{}) error
 
-	// 打印Fatal日志, 需要传入logID. 当日志级别大于Fatal时, 不会输出任何日志
+	// Fatalx 为打印 Fatal 日志, 需要传入 logID. 当日志级别大于 Fatal 时, 不会输出任何日志
 	Fatalx(logID, format string, a ...interface{}) error
 
-	// 关闭日志库. 注意: 如果没有调用Close()关闭日志库的话, 将会造成文件句柄泄露
+	// Close 为关闭日志库. 注意: 如果没有调用 Close() 关闭日志库的话, 将会造成文件句柄泄露
 	Close()
 }
