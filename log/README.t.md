@@ -99,7 +99,7 @@ err = ps.Notice("log2::record3") // 有指定寫入日誌檔 log2.log，但是 l
 
 ### 1-2 程式的設計邏輯
 
-#### 日誌編號的問題
+#### 1-2-1 日誌編號的問題
 
 不管是 (1) 終端機 console 、(2) 檔案 file 還是 (3) 多檔案輸出 multiFile，都會有日誌編號
 
@@ -115,13 +115,59 @@ err = ps.Notice("log2::record3") // 有指定寫入日誌檔 log2.log，但是 l
 雖然 多檔輸出 multiFile 的程式碼是依附在 檔案 file，但是日誌編號還是依然可以正常指定，因為原本程式就有預留可以把傳入 日誌編號 參數的地方
 
 ```go
+// Notice 显示 Notice 的资讯，格式为 档名::日志格式为第一个参数
+func (ps *XMultiFileLog) Notice(format string, a ...interface{}) error {
+    // >>>>> >>>>> >>>>> >>>>> >>>>> 預先處理的部份
+    
+	// 先拆分 format 字串
+	logFile, newFormat := ps.prepareMultiFile(format)
+    
+    // >>>>> >>>>> >>>>> >>>>> >>>>> 保留原程式的部份
+
+	// 以下程式码尽量保留
+	if ps.multi[logFile].level > NoticeLevel {
+		return nil
+	}
+
+    // 传入新的 newFormat 参数 (最後在這裡指定日誌編號)
+	return ps.multi[logFile].noticex(XMultiFileLogDefaultLogID, newFormat, a...)
+}
 ```
 
+以上程式碼進行以下拆解
 
+- 預先處理的部份
+  在這個部份會把 format 字串，拆分成
 
+  ​     1 日誌檔案變數 logFile
+  ​     2 新的 format 格式字串 newFormat
 
+  之後做後續處理
 
+- 保留原程式的部份
+  在這個部份整個邏輯會和 file.go 的程式碼很像
+  就在最後 noticex 函式裡，會傳入日誌編號的參數 XMultiFileLogDefaultLogID 值為 1000000001
 
+#### 1-2-2 多檔輸出的物件設計
+
+物件的程式碼如下
+
+```go
+// XMultiFileLog is the multi file logger
+type XMultiFileLog struct {
+	// 这里设定预设写入日志的档名，不在这里作日志 Log 分流的相关设定，避免进行上锁
+	defaultXLog string               // 预设要写入的日志档案
+	multi       map[string]*XFileLog // 多档案的输出
+}
+```
+
+- 有一個 defaultXLog 會記錄預設要寫入的預設日誌檔案，當程式無法得知要寫入那個日誌檔案時，就會直接把日誌寫入日誌檔案裡
+
+- multi 元素把 檔案輸出 file 物件 和其檔案名稱做對應，
+
+  也就是 XMultiFileLog (多檔日誌輸出) 是由多個 XFileLog (單檔日誌輸出) 所組成的
+
+#### 1-2-3 多檔輸出的物件初始化
 
 
 
