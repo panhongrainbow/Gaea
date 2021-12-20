@@ -11,7 +11,11 @@
 
 這裡是要比較 把日誌寫入檔案 (在設定值為 log_output=file) 和 把日誌寫入檔案並分流  (在設定值為 log_output=multiFile)，在設定檔細節的不同
 
-#### 原設定值
+#### 1-1-1 temp
+
+//
+
+#### 1-1-2 原設定值
 
 在把 日誌寫入檔案 (在設定值為 log_output=file)，其設定檔如下 (在這次新增和修改程式碼後，持續支援此設定值)
 
@@ -27,7 +31,7 @@ log_output=file
 
 在把 日誌寫入檔案並分流 (在設定值為 log_output=multiFile)，其設定檔如下
 
-#### 新設定值 (版本一)
+#### 1-1-3 新設定值 (統一設定)
 
 一定要有兩個以上的設定檔，才能做日誌的分流，
 
@@ -42,14 +46,16 @@ log_output=file
 log_path=./logs
 log_level=Notice
 log_filename=default,log1
+service_name=svc1
 log_output=multiFile
 ```
 
-在這個設定檔，會自産生兩個日誌檔 logs/default.log 和 logs/log1.log，
+- 在這個設定檔，會自産生兩個日誌檔 logs/default.log 和 logs/log1.log，
 
-因為等級只有一個值為 Notice，所有的檔案都採用此值作為預設值，都為為 Notice
+- 因為等級只有一個值為 Notice，所有的檔案都採用此值作為預設值，都為為 Notice
+- 服務名稱為統一設定，logs/default.log 和 logs/log1.log 的服務名稱都為 svc1
 
-#### 新設定值 (版本二)
+#### 1-1-4 新設定值 (各別設定)
 
 一樣跟 版本一 一樣，要有兩個以上的設定檔，才能做日誌的分流
 
@@ -60,14 +66,15 @@ log_output=multiFile
 log_path=./logs
 log_level=Notice,debug
 log_filename=default,log1
+service_name=svc1,svc2
 log_output=multiFile
 ```
 
-這時會産生兩個日誌檔 logs/default.log 和 logs/log1.log，
+- 這時會産生兩個日誌檔 logs/default.log 和 logs/log1.log，
 
-但是這次不同，使用兩個等級，一個為 Notice，另一個為 Debug
-
-相對應，logs/default.log 就會使用等級 Notice，logs/log1.log 就會使用等級 Debug
+- 但是這次不同，使用兩個等級，一個為 Notice，另一個為 Debug
+  相對應，logs/default.log 就會使用等級 Notice，logs/log1.log 就會使用等級 Debug
+- 服務名稱為各別設定，logs/default.log 的服務名稱都為 svc1，logs/log1.log 的服務名稱都為 svc2
 
 #### 預設檔案
 
@@ -169,6 +176,62 @@ type XMultiFileLog struct {
 
 #### 1-2-3 多檔輸出的物件初始化
 
+主程式 main 會配有一個 副程式 initXLog，副程式 initXLog 的作用如下：
 
+- 整理和組成 init 函式的 config 參數
+- 把現在的 日誌設定值 設置 成全域變數
+
+#### 1-2-4 initXLog 程式碼如下
+
+- 將會組成 cfg 變數後，依照設定值會傳入任一個 console、file 和 multiFile 的 init 的方法
+- 所以知道單元測試的剖面會切在 副程式 initXLog 的後面
+- 其實一直會有想把 cfg["filename"] = filename 這一行中的 filename 字串改成駝峰式命名 fileName，也就是
+   cfg["filename"] = filename 改成 cfg["fileName"] = fileName，但後面看起來好像不協調，因為整個 initXLog 函式裡將會只有 filename 很明顯使用駝峰式命名 fileName，就先算了 
+
+```go
+func initXLog(output, path, filename, level, service string) error {
+	cfg := make(map[string]string)
+	cfg["path"] = path
+	cfg["filename"] = filename
+	cfg["level"] = level
+	cfg["service"] = service
+	cfg["skip"] = "5"
+    // 设置xlog打印方法堆栈需要跳过的层数, 5目前为调用log.Debug()等方法的方法名, 比xlog默认值多一层.
+
+	logger, err := xlog.CreateLogManager(output, cfg)
+	if err != nil {
+		return err
+	}
+
+	log.SetGlobalLogger(logger) // 設定成全域日誌變數
+	return nil
+}
+```
+
+#### 1-2-5 副程式 init 程式碼如下
+
+> 多檔輸出 multiFuile 的副程式 init 程式碼如下
+
+```go
+func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
+	// 先初始化 ps 的 multi 的对应 map
+	ps.multi = make(map[string]*XFileLog)
+
+	// 有三个设定值使用逗号，分别是 fileName，service 和 level，要特别处理
+
+	// 产生 fileName 阵列
+	var filename []string
+	fStr, ok := config["filename"] // 先确认 fileName 设定值是否存在
+	if ok {                        // 如果 fileName 值 存在
+		filename = strings.Split(fStr, ",") // 以逗点分隔开来
+	}
+	if !ok { // 如果 fileName 值 不 存在
+		err = fmt.Errorf("init XFileLog failed, not found filename")
+		return
+	}
+    
+    // 以下程式碼略過
+}
+```
 
 ## 2 單元測試的運作方式
