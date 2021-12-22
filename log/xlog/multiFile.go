@@ -33,7 +33,7 @@ func NewXMultiFileLog() XLogger {
 // "skip": "5"
 func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 	// 先初始化 ps 的 multi 的对应 map
-	ps.multi = make(map[string]*XFileLog)
+	// ps.multi = make(map[string]*XFileLog) // 移到后面才能确定初始化 multi map 的大小
 
 	// 有三个设定值使用逗号，分别是 fileName，service 和 level，要特别处理
 
@@ -47,6 +47,9 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 		err = fmt.Errorf("init XFileLog failed, not found filename")
 		return
 	}
+
+	// 先初始化 ps 的 multi 的对应 map
+	ps.multi = make(map[string]*XFileLog, len(filename)) // 直接指定 multi map 的大小
 
 	// 产生 service 阵列
 	var service []string
@@ -101,6 +104,7 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 			return
 		}
 
+		// service 设定值可以支援单值和多值
 		if len(service) >= len(filename) && (len(service[i]) > 0) {
 			p.service = service[i] // service 可以进行个别设定
 		}
@@ -132,6 +136,8 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 					return newError("Mkdir failed, err:%v", err)
 				}
 			}
+		case true: // 如果是在执行单元测试时，可能会需要执行其他操作，先保留
+			// (略过)
 		}
 
 		p.path = path
@@ -234,20 +240,20 @@ func (ps *XMultiFileLog) SetSkip(skip int) {
 	}
 }
 
-// preMultiFile 为和 XMultiFileLog 的预先处理函式
-// 有想到最壤的状况，如果 format 的参数会使 preMultiFile 发生错误，最后输出会是 file 为预设日志档案，newFormat 为空字串
-func (ps *XMultiFileLog) preMultiFile(format string) (string, string) {
+// prepareMultiFile 为和 XMultiFileLog 的预先处理函式
+// 有想到最壤的状况，如果 format 的参数会使 prepareMultiFile 发生错误，最后输出会是 file 为预设日志档案，newFormat 为空字串
+func (ps *XMultiFileLog) prepareMultiFile(format string) (string, string) {
 	// 先拆分 format 字串
-	key, newFormat := FileFormatFromStr(format) // key 值为档名，newFormat 为字串格式
+	logFile, newFormat := FileFormatFromStr(format) // logFile 值为档名，newFormat 为字串格式
 
 	// 检查拆分的结果
-	_, ok := ps.multi[key] // 检查 key 值是否存在
-	if key == "" || ok == false {
-		key = ps.defaultXLog // 如果 key 值为不存在就采预设值
+	_, ok := ps.multi[logFile] // 检查 logFile 值是否存在
+	if logFile == "" || ok == false {
+		logFile = ps.defaultXLog // 如果 logFile 值为不存在就采预设值
 	}
 
 	// 正确回传
-	return key, newFormat
+	return logFile, newFormat
 }
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 警告日志
@@ -255,10 +261,10 @@ func (ps *XMultiFileLog) preMultiFile(format string) (string, string) {
 // Warn 显示 Warn 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Warn(format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > WarnLevel {
+	if ps.multi[logFile].level > WarnLevel {
 		return nil
 	}
 
@@ -269,10 +275,10 @@ func (ps *XMultiFileLog) Warn(format string, a ...interface{}) error {
 // Warnx 显示 Warnx 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Warnx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > WarnLevel {
+	if ps.multi[logFile].level > WarnLevel {
 		return nil
 	}
 
@@ -283,15 +289,15 @@ func (ps *XMultiFileLog) Warnx(logID, format string, a ...interface{}) error {
 // warnx 为警告日志的写入函式
 func (ps *XMultiFileLog) warnx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
 	logText := formatValue(newFormat, a...) // 传入新的 newFormat 参数
-	fun, filename, lineno := getRuntimeInfo(ps.multi[key].skip)
-	logText = formatLineInfo(ps.multi[key].runtime, fun, filepath.Base(filename), logText, lineno)
+	fun, filename, lineno := getRuntimeInfo(ps.multi[logFile].skip)
+	logText = formatLineInfo(ps.multi[logFile].runtime, fun, filepath.Base(filename), logText, lineno)
 	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
-	return ps.multi[key].write(WarnLevel, &logText, logID)
+	return ps.multi[logFile].write(WarnLevel, &logText, logID)
 }
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 严重错误日志
@@ -299,10 +305,10 @@ func (ps *XMultiFileLog) warnx(logID, format string, a ...interface{}) error {
 // Fatal 显示 Fatal 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Fatal(format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > FatalLevel {
+	if ps.multi[logFile].level > FatalLevel {
 		return nil
 	}
 
@@ -313,10 +319,10 @@ func (ps *XMultiFileLog) Fatal(format string, a ...interface{}) error {
 // Fatalx 显示 Fatalx 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Fatalx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > FatalLevel {
+	if ps.multi[logFile].level > FatalLevel {
 		return nil
 	}
 
@@ -327,15 +333,15 @@ func (ps *XMultiFileLog) Fatalx(logID, format string, a ...interface{}) error {
 // fatalx 为严重错误日志的写入函式
 func (ps *XMultiFileLog) fatalx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
 	logText := formatValue(newFormat, a...) // 传入新的 newFormat 参数
-	fun, filename, lineno := getRuntimeInfo(ps.multi[key].skip)
-	logText = formatLineInfo(ps.multi[key].runtime, fun, filepath.Base(filename), logText, lineno)
+	fun, filename, lineno := getRuntimeInfo(ps.multi[logFile].skip)
+	logText = formatLineInfo(ps.multi[logFile].runtime, fun, filepath.Base(filename), logText, lineno)
 	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
-	return ps.multi[key].write(FatalLevel, &logText, logID)
+	return ps.multi[logFile].write(FatalLevel, &logText, logID)
 }
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 警告日志
@@ -343,24 +349,24 @@ func (ps *XMultiFileLog) fatalx(logID, format string, a ...interface{}) error {
 // Notice 显示 Notice 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Notice(format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > NoticeLevel {
+	if ps.multi[logFile].level > NoticeLevel {
 		return nil
 	}
 
 	// 传入新的 newFormat 参数
-	return ps.multi[key].noticex(XMultiFileLogDefaultLogID, newFormat, a...)
+	return ps.multi[logFile].noticex(XMultiFileLogDefaultLogID, newFormat, a...)
 }
 
 // Noticex 显示 Noticex 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Noticex(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > NoticeLevel {
+	if ps.multi[logFile].level > NoticeLevel {
 		return nil
 	}
 
@@ -371,15 +377,15 @@ func (ps *XMultiFileLog) Noticex(logID, format string, a ...interface{}) error {
 // noticex 为注意日志的写入函式
 func (ps *XMultiFileLog) noticex(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
 	logText := formatValue(newFormat, a...) // 传入新的 newFormat 参数
-	fun, filename, lineno := getRuntimeInfo(ps.multi[key].skip)
-	logText = formatLineInfo(ps.multi[key].runtime, fun, filepath.Base(filename), logText, lineno)
+	fun, filename, lineno := getRuntimeInfo(ps.multi[logFile].skip)
+	logText = formatLineInfo(ps.multi[logFile].runtime, fun, filepath.Base(filename), logText, lineno)
 
 	// 传入新的 newFormat 参数
-	return ps.multi[key].write(NoticeLevel, &logText, logID)
+	return ps.multi[logFile].write(NoticeLevel, &logText, logID)
 }
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 追踪日志
@@ -387,37 +393,37 @@ func (ps *XMultiFileLog) noticex(logID, format string, a ...interface{}) error {
 // Trace 显示 Trace 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Trace(format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	return ps.multi[key].tracex(XMultiFileLogDefaultLogID, newFormat, a...) // 传入新的 newFormat 参数s
+	return ps.multi[logFile].tracex(XMultiFileLogDefaultLogID, newFormat, a...) // 传入新的 newFormat 参数s
 }
 
 // Tracex 显示 Tracex 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Tracex(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	return ps.multi[key].tracex(logID, newFormat, a...) // 传入新的 newFormat 参数
+	return ps.multi[logFile].tracex(logID, newFormat, a...) // 传入新的 newFormat 参数
 }
 
 // tracex 为追踪日志的写入函式
 func (ps *XMultiFileLog) tracex(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > TraceLevel {
+	if ps.multi[logFile].level > TraceLevel {
 		return nil
 	}
 
 	logText := formatValue(newFormat, a...) // 传入新的 newFormat 参数
-	fun, filename, lineno := getRuntimeInfo(ps.multi[key].skip)
-	logText = formatLineInfo(ps.multi[key].runtime, fun, filepath.Base(filename), logText, lineno)
+	fun, filename, lineno := getRuntimeInfo(ps.multi[logFile].skip)
+	logText = formatLineInfo(ps.multi[logFile].runtime, fun, filepath.Base(filename), logText, lineno)
 	//logText = fmt.Sprintf("[%s:%s:%d] %s", fun, filepath.Base(fileName), lineno, logText)
 
-	return ps.multi[key].write(TraceLevel, &logText, logID)
+	return ps.multi[logFile].write(TraceLevel, &logText, logID)
 }
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 除错日志
@@ -425,36 +431,36 @@ func (ps *XMultiFileLog) tracex(logID, format string, a ...interface{}) error {
 // Debug 显示 Debug 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Debug(format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	return ps.multi[key].debugx(XMultiFileLogDefaultLogID, newFormat, a...) // 传入新的 newFormat 参数
+	return ps.multi[logFile].debugx(XMultiFileLogDefaultLogID, newFormat, a...) // 传入新的 newFormat 参数
 }
 
 // Debugx 显示 Debugx 的资讯，格式为 档名::日志格式为第一个参数
 func (ps *XMultiFileLog) Debugx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	return ps.multi[key].debugx(logID, newFormat, a...) // 传入新的 newFormat 参数
+	return ps.multi[logFile].debugx(logID, newFormat, a...) // 传入新的 newFormat 参数
 }
 
 // debugx 为除错日志的写入函式
 func (ps *XMultiFileLog) debugx(logID, format string, a ...interface{}) error {
 	// 先拆分 format 字串
-	key, newFormat := ps.preMultiFile(format)
+	logFile, newFormat := ps.prepareMultiFile(format)
 
 	// 以下程式码尽量保留
-	if ps.multi[key].level > DebugLevel {
+	if ps.multi[logFile].level > DebugLevel {
 		return nil
 	}
 
 	logText := formatValue(newFormat, a...) // 传入新的 newFormat 参数
-	fun, filename, lineno := getRuntimeInfo(ps.multi[key].skip)
-	logText = formatLineInfo(ps.multi[key].runtime, fun, filepath.Base(filename), logText, lineno)
+	fun, filename, lineno := getRuntimeInfo(ps.multi[logFile].skip)
+	logText = formatLineInfo(ps.multi[logFile].runtime, fun, filepath.Base(filename), logText, lineno)
 
-	return ps.multi[key].write(DebugLevel, &logText, logID)
+	return ps.multi[logFile].write(DebugLevel, &logText, logID)
 }
 
 // Close  可以关闭所有档案

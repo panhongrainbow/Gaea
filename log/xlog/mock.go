@@ -22,7 +22,7 @@ var xWrite XWrite
 type XWrite interface {
 	// Init 以后的函式为 XMultiFileLog，XFileLog 和 XWrite 共用的部份
 	Init(config map[string]string) error // 进行初始化工作，部份取代 XLogger 的功能
-	Open() error                       // 重新开启日志输出，全部取代 XLogger 的功能
+	Open() error                         // 重新开启日志输出，全部取代 XLogger 的功能
 	Close()                              // 关闭日志输出，全部取代 XLogger 的功能
 	// GetChan 为 XMultiFileLog，XFileLog 和 XWrite 三者要新增的函式，目的是要把日志传到应要传送的双向通道
 	GetChan(string) (chan string, error) // XMultiFileLog，XFileLog 和 XWrite 三者都缺这个介面，XMultiFileLog 要补
@@ -46,7 +46,7 @@ func PrintMockChanMsg() (ret []string) {
 	if mock, ok := xWrite.(*MockMultiXLogFile); ok == true {
 		// 把所有的双向通道一个个列出来，并取出在双向通道内的讯息
 		for fileName, mockChan := range mock.mockFile {
-			LOOP:
+		LOOP:
 			for { // 无限回圈取出讯息
 				select {
 				case msg := <-mockChan:

@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// >>>>> >>>>> >>>>> >>>>> >>>>> 测试环境的准备
+
 // testMultiFileSuite 建立测试环境
 func testMultiFileSuite(config map[string]string) error {
 	// 初始化模拟文件
@@ -29,8 +31,10 @@ func testMultiFileSuite(config map[string]string) error {
 	return nil
 }
 
-// TestMultiFileLogLevel 为 用来测试日志分流后的日志分级
-func TestMultiFileLogLevel(t *testing.T) {
+// >>>>> >>>>> >>>>> >>>>> >>>>> 测试日志的写入内容
+
+// TestMultiFileLogContent 为 用来测试日志分流后的写入内容
+func TestMultiFileLogContent(t *testing.T) {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备双向通道的测试环境
 
 	// 准备摸拟设定值
@@ -52,7 +56,7 @@ func TestMultiFileLogLevel(t *testing.T) {
 	cfg["path"] = "/home/panhong/go/src/github.com/panhong/demo/logs"
 	cfg["filename"] = "log1,log2"
 	cfg["level"] = "Notice,Debug"
-	cfg["service"] = "result-get"
+	cfg["service"] = "svc1"
 	cfg["skip"] = "5"
 
 	// 初始化日志分流物件
@@ -102,7 +106,7 @@ func TestMultiFileLogLevel(t *testing.T) {
 
 	require.Equal(t,
 		strings.Contains(ret[0], "log1") && // 在日志档案 log1 里，写入一笔记录为 record1
-		strings.Contains(ret[0], "record1"),
+			strings.Contains(ret[0], "record1"),
 		true)
 
 	require.Equal(t,

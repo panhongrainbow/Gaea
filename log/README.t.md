@@ -230,8 +230,19 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 		return
 	}
     
-    // 以下程式碼略過
+    // 以下程式碼(略過)
 }
 ```
+
+日誌檔分流 XMultiFileLog 設定值整理成以下的表格
+
+| initXLog 設定值 | 可設定多值 | 可設定單值 | 必須存在 | 說明     |
+| --------------- | ---------- | ---------- | -------- | -------- |
+| path            | 不可以     | 一定要     | 必須     | 日誌路徑 |
+| filename        | 支援       | 不支援     | 必須     | 分流檔案 |
+| service         | 支援       | 支援       | 必須     | 服務名稱 |
+| level           | 支援       | 支援       | 必須     | 日誌等級 |
+
+- 關於 path 設定，當在 gaea.ini 指定日誌路徑為 ./logs 時，當在 /home/panhong/go/src/github.com/panhongrainbow/Gaea 目錄執行時，將會在 /home/panhong/go/src/github.com/panhongrainbow/Gaea/logs 目錄下寫資料
 
 ## 2 單元測試的運作方式
