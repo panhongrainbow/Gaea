@@ -37,9 +37,9 @@ func TestPrintMockChanMsg(t *testing.T) {
 	mf.mockFile["log2"] <- "empty2"
 
 	// 向所有的双向通道取值
-	msg1 := <- mf.mockFile["log1"]
+	msg1 := <-mf.mockFile["log1"]
 	require.Equal(t, msg1, "empty1")
-	msg2 := <- mf.mockFile["log2"]
+	msg2 := <-mf.mockFile["log2"]
 	require.Equal(t, msg2, "empty2")
 
 	// 再传送讯息到所有的双向通道
@@ -47,8 +47,10 @@ func TestPrintMockChanMsg(t *testing.T) {
 	mf.mockFile["log2"] <- "empty4"
 	mf.mockFile["log2"] <- "empty5"
 
-	//
+	// 把整个模拟双向通道的内容取出
 	ret := PrintMockChanMsg()
+
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t, ret[0], "log1::empty3")
 	require.Equal(t, ret[1], "log2::empty4")
 	require.Equal(t, ret[2], "log2::empty5")

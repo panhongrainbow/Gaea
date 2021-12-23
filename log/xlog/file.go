@@ -95,12 +95,17 @@ func (p *XFileLog) Init(config map[string]string) (err error) {
 		}
 	}
 
-	isDir, err := isDir(path)
-	if err != nil || !isDir {
-		err = os.MkdirAll(path, 0755)
-		if err != nil {
-			return newError("Mkdir failed, err:%v", err)
+	switch strings.HasSuffix(os.Args[0], ".test") {
+	case false: // 如果不是在单元测试的状况下，而是在正式的环境下执行，就执行以下动作，立刻新建日志目录
+		isDir, err := isDir(path)
+		if err != nil || !isDir {
+			err = os.MkdirAll(path, 0755)
+			if err != nil {
+				return newError("Mkdir failed, err:%v", err)
+			}
 		}
+	case true: // 如果是在执行单元测试时，可能会需要执行其他操作，先保留
+		// (略过)
 	}
 
 	p.path = path
@@ -119,6 +124,15 @@ func (p *XFileLog) Init(config map[string]string) (err error) {
 	if doSplit == "true" {
 		p.split.Do(body)
 	}
+
+	switch strings.HasSuffix(os.Args[0], ".test") {
+	case false: // 如果不是在单元测试的状况下，而是在正式的环境下执行，就执行以下动作，立刻新建日志目录
+		return p.ReOpen()
+	case true: // 如果是在执行单元测试时，就直接回传错误为空值
+		return nil
+	}
+
+	// 以下保留原程式码不变
 	return p.ReOpen()
 }
 

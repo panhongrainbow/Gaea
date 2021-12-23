@@ -145,8 +145,44 @@ func SetGlobalMockMultiXLogFile(xw XWrite) {
 	xWrite = xw
 }
 
+// CloseGlobalMockMultiXLogFile 关闭所有的全域模拟档案的双向通道
+func CloseGlobalMockMultiXLogFile() {
+	// 把双向通道，全部关闭
+	if xWrite != nil {
+		xWrite.Close()
+	}
+
+	// 重新赋空值
+	xWrite = nil
+}
+
 // GetChan 为 XMultiFileLog，XFileLog 和 XWrite 三者都要新增的函式，目的是要把日志传到应要传送的双向通道
 func (mf *MockMultiXLogFile) GetChan(fileName string) (chan string, error) {
 	// 由 getChan 函式接手进行后续处理
 	return getChan(fileName)
+}
+
+// >>>>> >>>>> >>>>> >>>>> >>>>> 测试环境的准备
+
+// testMultiAndFileSuite 建立测试环境 (多档分流的测试环境也可以用在单档)
+func testMultiAndFileSuite(config map[string]string) error {
+	// 初始化模拟文件
+	mf := new(MockMultiXLogFile)
+	err := mf.Init(config) // 在这里进行初始化模拟文件
+	if err != nil {
+		return err // 错误回传
+	}
+
+	// 进行重新开启档案
+	// 表面上是重新开启档案，但实际上是检查双向通道是否有全部被开启
+	err = mf.Open()
+	if err != nil {
+		return err // 错误回传
+	}
+
+	// 设定全域的双向通道
+	SetGlobalMockMultiXLogFile(mf)
+
+	// 正确回传
+	return nil
 }
