@@ -38,6 +38,8 @@ type XFileLog struct { // 单档案的输出
 	service  string
 	split    sync.Once
 	mu       sync.Mutex
+
+	storage *LogStorage
 }
 
 // constants of XFileLog
@@ -56,6 +58,8 @@ func NewXFileLog() XLogger {
 
 // Init implements XLogger
 func (p *XFileLog) Init(config map[string]string) (err error) {
+
+	p.storage = NewLogStorageClient(config)
 
 	path, ok := config["path"]
 	if !ok {
