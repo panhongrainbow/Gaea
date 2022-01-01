@@ -98,11 +98,12 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 	for i := 0; i < len(filename); i++ {
 		p := new(XFileLog)
 
-		path, ok := config["path"]
+		// 目录交由储存物件去处理
+		/*path, ok := config["path"]
 		if !ok {
 			err = fmt.Errorf("init XFileLog failed, not found path")
 			return
-		}
+		}*/
 
 		// service 设定值可以支援单值和多值
 		if len(service) >= len(filename) && (len(service[i]) > 0) {
@@ -127,22 +128,20 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 			}
 		}
 
-		switch strings.HasSuffix(os.Args[0], ".test") {
-		case false: // 如果不是在单元测试的状况下，而是在正式的环境下执行，就执行以下动作，立刻新建日志目录
-			isDir, err := isDir(path)
-			if err != nil || !isDir {
-				err = os.MkdirAll(path, 0755)
-				if err != nil {
-					return newError("Mkdir failed, err:%v", err)
-				}
+		// 不管是单储存输出，还是多储存输出，会后日志都会集中到同一个目录
+		/*isDir, err := isDir(path)
+		if err != nil || !isDir {
+			err = os.MkdirAll(path, 0755)
+			if err != nil {
+				return newError("Mkdir failed, err:%v", err)
 			}
-		case true: // 如果是在执行单元测试时，可能会需要执行其他操作，先保留
-			// (略过)
-		}
+		}*/
 
-		p.path = path
+		// 文档和目录，交由储存物件去管理
+		// p.path = path
+		// p.filename = filename[i] // fileName 可以进行个别设定
 
-		p.filename = filename[i] // fileName 可以进行个别设定
+		p.storage = NewLogStorageClient(config) // 关于储存的设定，比如 目录和文档，交由储存物件去处理
 
 		if len(level) >= len(filename) {
 			p.level = LevelFromStr(level[i]) // level 可以进行个别设定
@@ -153,7 +152,9 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 
 		hostname, _ := os.Hostname()
 		p.hostname = hostname
-		body := func() {
+
+		// 切割日志文档交由储存物件去处理
+		/*body := func() {
 			go p.spliter()
 		}
 		doSplit, ok := config["dosplit"]
@@ -162,7 +163,7 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 		}
 		if doSplit == "true" {
 			p.split.Do(body)
-		}
+		}*/
 
 		// 错误回传
 		if p.ReOpen() != nil { // 一旦有错误，就回传错误
@@ -181,24 +182,8 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 func (ps *XMultiFileLog) ReOpen() error {
 	// 多个 xfile 组成 ps.multi，现在把 xfile 一个个打开
 	for _, xfile := range ps.multi {
-		go delayClose(xfile.file)
-		go delayClose(xfile.errFile)
-
-		normalLog := xfile.path + "/" + xfile.filename + ".log"
-		file, err := xfile.openFile(normalLog)
-		if err != nil {
-			return err
-		}
-
-		xfile.file = file
-		warnLog := normalLog + ".wf"
-		xfile.errFile, err = xfile.openFile(warnLog)
-		if err != nil {
-			xfile.file.Close()
-			xfile.file = nil
-
-			// 错误回传
-			return err
+		if err := xfile.storage.client.ReOpen(); err != nil { // 开启日志文档也交由储存物件去管理
+			return err // 只要有错误就中止
 		}
 	}
 
@@ -467,16 +452,6 @@ func (ps *XMultiFileLog) debugx(logID, format string, a ...interface{}) error {
 func (ps *XMultiFileLog) Close() {
 	// 多个 xfile 组成 ps.multi，现在把 xfile 一个个关闭
 	for _, xfile := range ps.multi {
-		xfile.mu.Lock()
-		defer xfile.mu.Unlock()
-		if xfile.file != nil {
-			xfile.file.Close()
-			xfile.file = nil
-		}
-
-		if xfile.errFile != nil {
-			xfile.errFile.Close()
-			xfile.errFile = nil
-		}
+		_ = xfile.storage.client.Close() // 关闭文档交由储存物件去处理
 	}
 }

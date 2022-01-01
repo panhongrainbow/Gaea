@@ -19,12 +19,12 @@ type LogStorage struct {
 }
 
 // NewLogStorageClient 會建立一個全新的日志储存客户端
-// fileName 参数如果为多档输出时，可以用逗号隔开，比如
+// fileName 参数如果为多档输出时，可以用逗号隔开，比如 log1,log2
 func NewLogStorageClient(config map[string]string) *LogStorage {
 	// 决定日志输出
 	storage, ok := config["storage"]
 	if !ok {
-		storage = "channel"
+		storage = "file" // 以文档做为预设值
 	}
 
 	switch storage {
@@ -33,8 +33,8 @@ func NewLogStorageClient(config map[string]string) *LogStorage {
 		// 先略过
 	case "console":
 		// 先略过
-	case "file", "multiFile":
-		// file 为单档输出新建对象的内容
+	case "file":
+		// file 为文档输出新建对象的内容
 		c, err := fileClient.New(config)
 		if err != nil {
 			fmt.Printf("create fileClient failed, %v\n", err)
@@ -42,6 +42,5 @@ func NewLogStorageClient(config map[string]string) *LogStorage {
 		}
 		return &LogStorage{client: c}
 	}
-	// log.Fatal("unknown config type")
 	return nil
 }

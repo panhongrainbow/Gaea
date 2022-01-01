@@ -19,27 +19,17 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 )
 
 // XFileLog is the file logger
 type XFileLog struct { // 单档案的输出
-	filename string
-	path     string
-	level    int
-
-	skip     int
-	runtime  bool
-	file     *os.File
-	errFile  *os.File
-	hostname string
-	service  string
-	split    sync.Once
-	mu       sync.Mutex
-
-	storage *LogStorage
+	level    int         // 日志等级
+	skip     int         // 略过等级
+	runtime  bool        // 本机资讯
+	hostname string      // 本机名称
+	service  string      // 服务名称
+	storage  *LogStorage // 服务名称
 }
 
 // constants of XFileLog
@@ -59,19 +49,22 @@ func NewXFileLog() XLogger {
 // Init implements XLogger
 func (p *XFileLog) Init(config map[string]string) (err error) {
 
+	// 在这里指定储存方式
 	p.storage = NewLogStorageClient(config)
 
-	path, ok := config["path"]
+	// 以下会有部份的设定值移到储存代码里
+
+	/*path, ok := config["path"] // (移到储存)
 	if !ok {
 		err = fmt.Errorf("init XFileLog failed, not found path")
 		return
-	}
+	}*/
 
-	filename, ok := config["filename"]
+	/*filename, ok := config["filename"] // (移到储存)
 	if !ok {
 		err = fmt.Errorf("init XFileLog failed, not found filename")
 		return
-	}
+	}*/
 
 	level, ok := config["level"]
 	if !ok {
@@ -99,26 +92,22 @@ func (p *XFileLog) Init(config map[string]string) (err error) {
 		}
 	}
 
-	switch strings.HasSuffix(os.Args[0], ".test") {
-	case false: // 如果不是在单元测试的状况下，而是在正式的环境下执行，就执行以下动作，立刻新建日志目录
-		isDir, err := isDir(path)
-		if err != nil || !isDir {
-			err = os.MkdirAll(path, 0755)
-			if err != nil {
-				return newError("Mkdir failed, err:%v", err)
-			}
+	/*isDir, err := isDir(path) // (移到储存)
+	if err != nil || !isDir {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return newError("Mkdir failed, err:%v", err)
 		}
-	case true: // 如果是在执行单元测试时，可能会需要执行其他操作，先保留
-		// (略过)
-	}
+	}*/
 
-	p.path = path
-	p.filename = filename
+	/*p.path = path // (移到储存)
+	p.filename = filename*/
+
 	p.level = LevelFromStr(level)
-
 	hostname, _ := os.Hostname()
 	p.hostname = hostname
-	body := func() {
+
+	/*body := func() { // (移到储存)
 		go p.spliter()
 	}
 	doSplit, ok := config["dosplit"]
@@ -127,33 +116,9 @@ func (p *XFileLog) Init(config map[string]string) (err error) {
 	}
 	if doSplit == "true" {
 		p.split.Do(body)
-	}
+	}*/
 
-	switch strings.HasSuffix(os.Args[0], ".test") {
-	case false: // 如果不是在单元测试的状况下，而是在正式的环境下执行，就执行以下动作，立刻新建日志目录
-		return p.ReOpen()
-	case true: // 如果是在执行单元测试时，就直接回传错误为空值
-		return nil
-	}
-
-	// 以下保留原程式码不变
 	return p.ReOpen()
-}
-
-// split the log file
-func (p *XFileLog) spliter() {
-	preHour := time.Now().Hour()
-	splitTime := time.Now().Format("2006010215")
-	defer p.Close()
-	for {
-		time.Sleep(time.Second * SpliterDelay)
-		if time.Now().Hour() != preHour {
-			p.clean()
-			p.rename(splitTime)
-			preHour = time.Now().Hour()
-			splitTime = time.Now().Format("2006010215")
-		}
-	}
 }
 
 // SetLevel implements XLogger
@@ -166,122 +131,16 @@ func (p *XFileLog) SetSkip(skip int) {
 	p.skip = skip
 }
 
-// openFile 为开档并写档程式，如果在进行单元测试时，会把日志导到通道，并写入到通道
-func (p *XFileLog) openFile(filename string) (*os.File, error) {
-	// 判断是否在单元测试的执行环境中，进行不同的动件
-	switch strings.HasSuffix(os.Args[0], ".test") {
-	case true:
-		// 正确回传，在单元单试的执行环境下
-		return nil, nil // 就不执行任何动作，直接回传
-	case false:
-		// 以下保留原程式码
-		file, err := os.OpenFile(filename,
-			os.O_CREATE|os.O_APPEND|os.O_WRONLY,
-			0644,
-		)
-
-		if err != nil {
-			return nil, newError("open %s failed, err:%v", filename, err)
-		}
-
-		// 正确回传，不是 在单元单试的执行环境下
-		return file, err
-	}
-
-	// 错误回传
-	return nil, nil
-}
-
-func delayClose(fp *os.File) {
-	if fp == nil {
-		return
-	}
-	time.Sleep(1000 * time.Millisecond)
-	fp.Close()
-}
-
-func (p *XFileLog) clean() (err error) {
-	deadline := time.Now().AddDate(0, 0, CleanDays)
-	var files []string
-	files, err = filepath.Glob(fmt.Sprintf("%s/%s.log*", p.path, p.filename))
-	if err != nil {
-		return
-	}
-	var fileInfo os.FileInfo
-	for _, file := range files {
-		if filepath.Base(file) == fmt.Sprintf("%s.log", p.filename) {
-			continue
-		}
-		if filepath.Base(file) == fmt.Sprintf("%s.log.wf", p.filename) {
-			continue
-		}
-		if fileInfo, err = os.Stat(file); err == nil {
-			if fileInfo.ModTime().Before(deadline) {
-				os.Remove(file)
-			} else if fileInfo.Size() == 0 {
-				os.Remove(file)
-			}
-		}
-	}
-	return
-}
-
-func (p *XFileLog) rename(shuffix string) (err error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	defer p.ReOpen()
-	if p.file == nil {
-		return
-	}
-	var fileInfo os.FileInfo
-	normalLog := p.path + "/" + p.filename + ".log"
-	warnLog := normalLog + ".wf"
-	newLog := fmt.Sprintf("%s/%s.log-%s.log", p.path, p.filename, shuffix)
-	newWarnLog := fmt.Sprintf("%s/%s.log.wf-%s.log.wf", p.path, p.filename, shuffix)
-	if fileInfo, err = os.Stat(normalLog); err == nil && fileInfo.Size() == 0 {
-		return
-	}
-	if _, err = os.Stat(newLog); err == nil {
-		return
-	}
-	if err = os.Rename(normalLog, newLog); err != nil {
-		return
-	}
-	if fileInfo, err = os.Stat(warnLog); err == nil && fileInfo.Size() == 0 {
-		return
-	}
-	if _, err = os.Stat(newWarnLog); err == nil {
-		return
-	}
-	if err = os.Rename(warnLog, newWarnLog); err != nil {
-		return
-	}
-	return
-}
-
 // ReOpen implements XLogger
 // 用于重新开档的函式，在这里会真的把所有的日志档案开启
 // 如果是在单元测试，会检查所有的模拟的双向通道是否存在
 func (p *XFileLog) ReOpen() error {
-	go delayClose(p.file)
-	go delayClose(p.errFile)
+	return p.storage.client.ReOpen() // 交由储存物件去开档
+}
 
-	normalLog := p.path + "/" + p.filename + ".log"
-	file, err := p.openFile(normalLog)
-	if err != nil {
-		return err
-	}
-
-	p.file = file
-	warnLog := normalLog + ".wf"
-	p.errFile, err = p.openFile(warnLog)
-	if err != nil {
-		p.file.Close()
-		p.file = nil
-		return err
-	}
-
-	return nil
+// Close implements XLogger
+func (p *XFileLog) Close() {
+	_ = p.storage.client.Close()
 }
 
 // Warn implements XLogger
@@ -407,26 +266,6 @@ func (p *XFileLog) debugx(logID, format string, a ...interface{}) error {
 	return p.write(DebugLevel, &logText, logID)
 }
 
-// Close implements XLogger
-func (p *XFileLog) Close() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.file != nil {
-		p.file.Close()
-		p.file = nil
-	}
-
-	if p.errFile != nil {
-		p.errFile.Close()
-		p.errFile = nil
-	}
-}
-
-// GetHost getter of hostname
-func (p *XFileLog) GetHost() string {
-	return p.hostname
-}
-
 // write 为最后的写入函式，会把日志写入档案
 // 如果是在单元测试，会把日志写入模拟的双向通道内
 func (p *XFileLog) write(level int, msg *string, logID string) error {
@@ -434,41 +273,13 @@ func (p *XFileLog) write(level int, msg *string, logID string) error {
 	time := time.Now().Format("2006-01-02 15:04:05")
 
 	logText := formatLog(msg, time, p.service, p.hostname, levelText, logID)
-	file := p.file
+
 	if level >= WarnLevel {
-		file = p.errFile
+		_ = p.storage.client.WriteErr([]byte(logText)) // 交由储存物件写入错误日志
 	}
 
-	// 判断是否在单元测试的执行环境中，进行不同的动件
-	switch strings.HasSuffix(os.Args[0], ".test") {
-	case true:
-		// 如果 是 在单元测试的状况下，就把日志传送到双向通道
-		mockChan, err := p.GetChan(p.filename)
-		if err != nil {
-			// 错误回传
-			return fmt.Errorf("not found xwrite channel [%s]", p.filename)
-		}
-		mockChan <- logText // 把日志传送到双向通道
-	case false:
-		// 这里会尽量保持原有的程式码
-		// 如果 不是 在单元测试的状况下，就直接把日志写入档案
-		file.Write([]byte(logText)) // 保持原程式码
-	}
+	_ = p.storage.client.Write([]byte(logText)) // 交由储存物件写入日志
 
 	// 正确回传
 	return nil
-}
-
-func isDir(path string) (bool, error) {
-	stat, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	return stat.IsDir(), nil
-}
-
-// GetChan 为 XMultiFileLog，XFileLog 和 XWrite 三者都要新增的函式，目的是要把日志传到应要传送的双向通道
-func (p *XFileLog) GetChan(fileName string) (chan string, error) {
-	// 由 getChan 函式接手进行后续处理
-	return getChan(fileName)
 }
