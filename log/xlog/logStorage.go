@@ -2,6 +2,7 @@ package xlog
 
 import (
 	"fmt"
+	channelClient "github.com/XiaoMi/Gaea/models/logStorage/channel"
 	fileClient "github.com/XiaoMi/Gaea/models/logStorage/file"
 )
 
@@ -29,8 +30,13 @@ func NewLogStorageClient(config map[string]string) *LogStorage {
 
 	switch storage {
 	case "channel":
-		// channel 为仿真用的双向通道
-		// 先略过
+		// channel 为模拟用的双向通道
+		c, err := channelClient.New(config)
+		if err != nil {
+			fmt.Printf("create channelClient failed, %v\n", err)
+			return nil
+		}
+		return &LogStorage{client: c}
 	case "console":
 		// 先略过
 	case "file":

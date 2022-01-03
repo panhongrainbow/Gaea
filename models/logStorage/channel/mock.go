@@ -84,13 +84,14 @@ func (mf *MockMultiXLogFile) Init(config map[string]string) error {
 	return nil
 }
 
-// Open 在档案中的 ReOpen 函式会真的先关档再重新开档，但在使用双向通道去模拟档案时，只检查那些双向通道没有开启，没开启就立刻开启
+// ReOpen 在档案中的 ReOpen 函式会真的先关档再重新开档，但在使用双向通道去模拟档案时，只检查那些双向通道没有开启，没开启就立刻开启
 func (mf *MockMultiXLogFile) ReOpen() error {
 	// 对每一个档名进行检查
 	for i := 0; i < len(mf.fileNames); i++ {
 		mockChan, ok := mf.mockFile[mf.fileNames[i]]
 		if ok == false || mockChan == nil { // 只要任一键值或者是双向通道不存在，就立刻建立双向通道
-			mf.mockFile[mf.fileNames[i]] = make(chan string, mf.chanSize) // 建立双向通道
+			// mf.mockFile[mf.fileNames[i]] = make(chan string, mf.chanSize) // 建立双向通道
+			mf.mockFile[mf.fileNames[i]] = make(chan string, 10) // 建立双向通道
 		}
 	}
 
@@ -99,8 +100,18 @@ func (mf *MockMultiXLogFile) ReOpen() error {
 }
 
 // Write 为执行写入日志
-func (mf *MockMultiXLogFile) Write(level int, msg *string, logID string) error {
-	// 不做任何事情
+func (mf *MockMultiXLogFile) Write(fileName string, logText []byte) error {
+	// 直接把日志写入通道
+	mf.mockFile[fileName] <- string(logText)
+
+	// 正确回传
+	return nil
+}
+
+// WriteErr 为执行写入日志
+func (mf *MockMultiXLogFile) WriteErr(fileName string, logText []byte) error {
+	// 直接把日志写入通道
+	mf.mockFile[fileName] <- string(logText)
 
 	// 正确回传
 	return nil
