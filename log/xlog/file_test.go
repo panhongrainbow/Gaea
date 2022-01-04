@@ -1,6 +1,7 @@
 package xlog
 
 import (
+	"github.com/XiaoMi/Gaea/models/logStorage/channel"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
@@ -15,7 +16,7 @@ func TestFileLogContent(t *testing.T) {
 	// 准备摸拟设定值
 	// cfgSuit := make(map[string]string, 1) // 有几份档案就要准备几个模拟用的双向通道，只写入单一日志档案状况下，只要准备一个双向通道
 	// cfgSuit["filename"] = "log1"          // 将要用双向通道摸拟 log1.log 这一份日志档案
-	// cfgSuit["chanSize"] = "5"             // 在每一个模拟用的双向通道可以接收 5 笔日志资料
+	// cfgSuit["chan_size"] = "5"             // 在每一个模拟用的双向通道可以接收 5 笔日志资料
 
 	// 开始建立模拟环境
 	// err := testMultiAndFileSuite(cfgSuit) // 内含初始化的操作
@@ -34,6 +35,7 @@ func TestFileLogContent(t *testing.T) {
 	cfg["service"] = "svc1"
 	cfg["skip"] = "5"
 	cfg["storage"] = "channel"
+	cfg["chan_size"] = "10"
 
 	// 初始化单一日志物件
 	err := p.Init(cfg)
@@ -52,21 +54,19 @@ func TestFileLogContent(t *testing.T) {
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志的写入结果
 
 	// 把整个模拟双向通道的内容取出
-	ret := PrintMockChanMsg()
+	ret := p.storage.client.(*channel.Client).Read("log1")
 
 	// 数量检查
 	require.Equal(t, len(ret), 1) // 写入二笔日志，有一笔写入，另一笔会被忽略，只剩一笔被正式写入
 
 	// 细节鐱查
 	// 在模拟的双向通道的内容如下
-	// log1::[2021-12-23 17:44:17] [svc1] [debian5] [NOTICE] [900000001] [runtime.goexit:asm_amd64.s:1581] record1
+	// [2021-12-23 17:44:17] [svc1] [debian5] [NOTICE] [900000001] [runtime.goexit:asm_amd64.s:1581] record1
 
-	// 检查由模拟的双向通道中取出资料内容
 	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record1
-		strings.Contains(ret[0], "log1") &&
-			strings.Contains(ret[0], "svc1") &&
+		strings.Contains(ret[0], "svc1") &&
 			strings.Contains(ret[0], "NOTICE") &&
 			strings.Contains(ret[0], "record1"),
 		true)

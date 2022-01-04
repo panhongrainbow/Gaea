@@ -10,7 +10,7 @@ func TestPrintMockChanMsg(t *testing.T) {
 	// 准备设定文件
 	config := make(map[string]string, 1)
 	config["filename"] = "log1,log2"
-	config["chanSize"] = "3"
+	config["chan_size"] = "3"
 
 	// 初始化模拟环境
 	mf := new(MockMultiXLogFile)
@@ -48,7 +48,7 @@ func TestPrintMockChanMsg(t *testing.T) {
 	mf.mockFile["log2"] <- "empty5"
 
 	// 把整个模拟双向通道的内容取出
-	ret := PrintMockChanMsg()
+	ret := mf.PrintMockChanMsg()
 
 	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t, ret[0], "log1::empty3")

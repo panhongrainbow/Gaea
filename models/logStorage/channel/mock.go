@@ -64,8 +64,8 @@ func (mf *MockMultiXLogFile) Init(config map[string]string) error {
 	mf.fileNames = fileName // 把 fileNames 阵列存放在物件中
 
 	// 先取得双向通通道的尺寸 chanSize 设定值
-	size, ok := config["chanSize"] // 先确认 chanSize 设定值是否存在
-	if ok == true {                // 如果 chanSize 设定值 存在
+	size, ok := config["chan_size"] // 先确认 chanSize 设定值是否存在
+	if ok == true {                 // 如果 chanSize 设定值 存在
 		if len(size) > 0 { // 如果 chanSize 值 存在
 			sizeNum, err := strconv.Atoi(size)
 			if err == nil { // 如果设定值没有错误，就使用设定值
@@ -90,8 +90,7 @@ func (mf *MockMultiXLogFile) ReOpen() error {
 	for i := 0; i < len(mf.fileNames); i++ {
 		mockChan, ok := mf.mockFile[mf.fileNames[i]]
 		if ok == false || mockChan == nil { // 只要任一键值或者是双向通道不存在，就立刻建立双向通道
-			// mf.mockFile[mf.fileNames[i]] = make(chan string, mf.chanSize) // 建立双向通道
-			mf.mockFile[mf.fileNames[i]] = make(chan string, 10) // 建立双向通道
+			mf.mockFile[mf.fileNames[i]] = make(chan string, mf.chanSize) // 建立双向通道
 		}
 	}
 

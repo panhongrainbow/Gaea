@@ -13,7 +13,7 @@ func New(config map[string]string) (*Client, error) {
 	// 先组成设定值
 	// config := make(map[string]string, 2)
 	// config["filename"] = fileName // 文档输出设定，多档输出用逗号隔开 "log1,log2"
-	// config["chanSize"] = chanSize // 每一个模拟用的通道可以接收的笔日志资料，比如 5 笔就填入 "5"
+	// config["chan_size"] = chanSize // 每一个模拟用的通道可以接收的笔日志资料，比如 5 笔就填入 "5"
 
 	// 初始化模拟用的通道
 	mf := new(MockMultiXLogFile) // 建立物件
@@ -35,10 +35,22 @@ func New(config map[string]string) (*Client, error) {
 	// 正确回传
 	return &Client{ // 回传客户端
 			fileName:    config["filename"],
-			chanSize:    config["chanSize"],
+			chanSize:    config["chan_size"],
 			mockChannel: mf,
 		},
 		nil // 没错误发生
+}
+
+// Read 为最后的写入函式，会把日志写入通道里
+func (c *Client) Read(fileName string) (ret []string) {
+	for {
+		select {
+		case content := <-c.mockChannel.mockFile[fileName]:
+			ret = append(ret, content)
+		default:
+			return // 不知此行，会进入无穷回圈
+		}
+	}
 }
 
 // ReOpen 为开启 模拟用途的双向通道 的输出
@@ -56,9 +68,6 @@ func (c *Client) Write(logByte []byte) error {
 	// 正式写入日志
 	// _, err := c.mockChannel.mockFile[c.fileName].Write(logByte) // 执行写入日志 (写法一)
 	return c.mockChannel.Write(c.fileName, logByte)
-
-	// 正确或错误回传
-	// return err
 }
 
 // WriteErr 为最后的写入函式，会把错误日志写入通道里
@@ -66,7 +75,4 @@ func (c *Client) WriteErr(logByte []byte) error {
 	// 正式写入日志
 	// _, err := c.mockChannel.mockFile[c.fileName].Write(logByte) // 执行写入日志 (写法一)
 	return c.mockChannel.WriteErr(c.fileName, logByte)
-
-	// 正确或错误回传
-	// return err
 }

@@ -41,19 +41,16 @@ func getChan(fileName string) (chan string, error) {
 }
 
 // PrintMockChanMsg 为印出所有双向通道的讯息
-func PrintMockChanMsg() (ret []string) {
-	// 如果对应到的资料类型为 MockMultiXLogFile，就进行相对应的处理
-	if mock, ok := xWrite.(*MockMultiXLogFile); ok == true {
-		// 把所有的双向通道一个个列出来，并取出在双向通道内的讯息
-		for fileName, mockChan := range mock.mockFile {
-		LOOP:
-			for { // 无限回圈取出讯息
-				select {
-				case msg := <-mockChan:
-					ret = append(ret, fileName+"::"+msg)
-				default:
-					break LOOP
-				}
+func (mf *MockMultiXLogFile) PrintMockChanMsg() (ret []string) {
+	// 把所有的双向通道一个个列出来，并取出在双向通道内的讯息
+	for fileName, mockChan := range mf.mockFile {
+	LOOP:
+		for { // 无限回圈取出讯息
+			select {
+			case msg := <-mockChan:
+				ret = append(ret, fileName+"::"+msg)
+			default:
+				break LOOP
 			}
 		}
 	}
@@ -89,8 +86,8 @@ func (mf *MockMultiXLogFile) Init(config map[string]string) error {
 	mf.fileName = fileName // 把 fileName 阵列存放在物件中
 
 	// 先取得双向通通道的尺寸 chanSize 设定值
-	size, ok := config["chanSize"] // 先确认 chanSize 设定值是否存在
-	if ok == true {                // 如果 chanSize 设定值 存在
+	size, ok := config["chan_size"] // 先确认 chanSize 设定值是否存在
+	if ok == true {                 // 如果 chanSize 设定值 存在
 		if len(size) > 0 { // 如果 chanSize 值 存在
 			sizeNum, err := strconv.Atoi(size)
 			if err == nil { // 如果设定值没有错误，就使用设定值

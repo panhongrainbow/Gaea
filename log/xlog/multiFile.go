@@ -37,6 +37,13 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 
 	// 有三个设定值使用逗号，分别是 fileName，service 和 level，要特别处理
 
+	// 目录交由储存物件去处理
+	/*path, ok := config["path"]
+	if !ok {
+		err = fmt.Errorf("init XFileLog failed, not found path")
+		return
+	}*/
+
 	// 产生 fileName 阵列
 	var filename []string
 	fStr, ok := config["filename"] // 先确认 fileName 设定值是否存在
@@ -51,17 +58,6 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 	// 先初始化 ps 的 multi 的对应 map
 	ps.multi = make(map[string]*XFileLog, len(filename)) // 直接指定 multi map 的大小
 
-	// 产生 service 阵列
-	var service []string
-	sStr, ok := config["service"] // 先确认 service 设定值是否存在
-	if ok {                       // 如果 service 值 存在
-		service = strings.Split(sStr, ",") // 以逗点分隔开来
-	}
-	if !ok { // 如果 service 值 不 存在
-		err = fmt.Errorf("init XFileLog failed, not found service")
-		return
-	}
-
 	// 产生 level 阵列
 	var level []string
 	lStr, ok := config["level"] // 先确认 level 设定值是否存在
@@ -70,6 +66,17 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 	}
 	if !ok { // 如果 level 值 不 存在
 		err = fmt.Errorf("init XFileLog failed, not found level")
+		return
+	}
+
+	// 产生 service 阵列
+	var service []string
+	sStr, ok := config["service"] // 先确认 service 设定值是否存在
+	if ok {                       // 如果 service 值 存在
+		service = strings.Split(sStr, ",") // 以逗点分隔开来
+	}
+	if !ok { // 如果 service 值 不 存在
+		err = fmt.Errorf("init XFileLog failed, not found service")
 		return
 	}
 
@@ -98,28 +105,20 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 	for i := 0; i < len(filename); i++ {
 		p := new(XFileLog)
 
-		// 目录交由储存物件去处理
-		/*path, ok := config["path"]
-		if !ok {
-			err = fmt.Errorf("init XFileLog failed, not found path")
-			return
-		}*/
+		// fileName 设定
+		config["filename"] = filename[i]
 
-		// service 设定值可以支援单值和多值
-		if len(service) >= len(filename) && (len(service[i]) > 0) {
-			p.service = service[i] // service 可以进行个别设定
+		// level 设定值可以支援单值和多值
+		if len(level) >= len(filename) && (len(level[i]) > 0) {
+			p.level, _ = strconv.Atoi(level[i]) // level 可以进行个别设定
+			config["level"] = service[i]
 		}
-		if len(service) == 1 && (len(service[0]) > 0) {
-			p.service = service[0] // service 可以进行统一设定
+		if len(level) == 1 && (len(level[0]) > 0) {
+			p.level, _ = strconv.Atoi(level[0]) // level 可以进行统一设定
+			config["level"] = service[0]
 		}
 
-		runtime, ok := config["runtime"]
-		if !ok || runtime == "true" || runtime == "TRUE" {
-			p.runtime = true
-		} else {
-			p.runtime = false
-		}
-
+		// skip 设定
 		skip, _ := config["skip"]
 		if len(skip) > 0 {
 			skipNum, err := strconv.Atoi(skip)
@@ -128,46 +127,38 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 			}
 		}
 
-		// 不管是单储存输出，还是多储存输出，会后日志都会集中到同一个目录
-		/*isDir, err := isDir(path)
-		if err != nil || !isDir {
-			err = os.MkdirAll(path, 0755)
-			if err != nil {
-				return newError("Mkdir failed, err:%v", err)
-			}
-		}*/
-
-		// 文档和目录，交由储存物件去管理
-		// p.path = path
-		// p.filename = filename[i] // fileName 可以进行个别设定
-
-		p.storage = NewLogStorageClient(config) // 关于储存的设定，比如 目录和文档，交由储存物件去处理
-
-		if len(level) >= len(filename) {
-			p.level = LevelFromStr(level[i]) // level 可以进行个别设定
-		}
-		if len(level) == 1 {
-			p.level = LevelFromStr(level[0]) // level 可以进行统一设定
+		// runtime 设定
+		runtime, ok := config["runtime"]
+		if !ok || runtime == "true" || runtime == "TRUE" {
+			p.runtime = true
+		} else {
+			p.runtime = false
 		}
 
+		// hostname 设定
 		hostname, _ := os.Hostname()
 		p.hostname = hostname
 
-		// 切割日志文档交由储存物件去处理
-		/*body := func() {
-			go p.spliter()
+		// service 设定值可以支援单值和多值
+		if len(service) >= len(filename) && (len(service[i]) > 0) {
+			p.service = service[i] // service 可以进行个别设定
+			config["service"] = service[i]
 		}
-		doSplit, ok := config["dosplit"]
-		if !ok {
-			doSplit = "true"
+		if len(service) == 1 && (len(service[0]) > 0) {
+			p.service = service[0] // service 可以进行统一设定
+			config["service"] = service[0]
 		}
-		if doSplit == "true" {
-			p.split.Do(body)
-		}*/
+
+		// 文档和目录，交由储存物件去管理
+		// p = filename[i] // fileName 可以进行个别设定
+		// config["service"] = service[i]
+
+		p.storage = NewLogStorageClient(config) // 关于储存的设定，比如 目录和文档，交由储存物件去处理
 
 		// 错误回传
-		if p.ReOpen() != nil { // 一旦有错误，就回传错误
-			return p.ReOpen()
+		err := p.ReOpen()
+		if err != nil { // 一旦有错误，就回传错误
+			return err
 		}
 
 		// 完整组合 multi map
