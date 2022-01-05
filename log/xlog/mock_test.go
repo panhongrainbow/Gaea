@@ -1,12 +1,7 @@
 package xlog
 
-import (
-	"github.com/stretchr/testify/require"
-	"testing"
-)
-
 // TestPrintMockChanMsg 为 测试整个模拟环境的流程，从初始化到印出所有双向通道的讯息
-func TestPrintMockChanMsg(t *testing.T) {
+/*func TestPrintMockChanMsg(t *testing.T) {
 	// 准备设定文件
 	config := make(map[string]string, 1)
 	config["filename"] = "log1,log2"
@@ -54,4 +49,4 @@ func TestPrintMockChanMsg(t *testing.T) {
 	require.Equal(t, ret[0], "log1::empty3")
 	require.Equal(t, ret[1], "log2::empty4")
 	require.Equal(t, ret[2], "log2::empty5")
-}
+}*/

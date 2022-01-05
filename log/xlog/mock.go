@@ -15,7 +15,7 @@ const (
 // xWrite 为 XMultiFileLog，XFileLog 建立单元测试前的约定，
 
 // 设定全域模拟档案的双向通道
-var xWrite XWrite
+// var xWrite XWrite
 
 // XWrite 功能是要处理写入介面的抽换，这和 XLogger 介面重复
 // 就是把会写入 XMultiFileLog 资料整个会写入档案的介面抽掉，用双向通道替换
@@ -29,7 +29,7 @@ type XWrite interface {
 }
 
 // getChan 为所有的 GetChan 函式都会指到这一只 getChan 函式去执行
-func getChan(fileName string) (chan string, error) {
+/*func getChan(fileName string) (chan string, error) {
 	// 如果对应到的资料类型为 MockMultiXLogFile，就进行相对应的处理
 	if mock, ok := xWrite.(*MockMultiXLogFile); ok == true {
 		// 正确回传
@@ -38,7 +38,7 @@ func getChan(fileName string) (chan string, error) {
 
 	// 错误回传
 	return nil, fmt.Errorf("not found xwrite channel [%s]", fileName)
-}
+}*/
 
 // PrintMockChanMsg 为印出所有双向通道的讯息
 func (mf *MockMultiXLogFile) PrintMockChanMsg() (ret []string) {
@@ -132,7 +132,7 @@ func (mf *MockMultiXLogFile) Close() {
 }
 
 // SetGlobalMockMultiXLogFile 如果全域模拟档案的双向通道存在就关闭，重新在赋值
-func SetGlobalMockMultiXLogFile(xw XWrite) {
+/*func SetGlobalMockMultiXLogFile(xw XWrite) {
 	// 把双向通道，全部关闭
 	if xWrite != nil {
 		xWrite.Close()
@@ -140,10 +140,10 @@ func SetGlobalMockMultiXLogFile(xw XWrite) {
 
 	// 重新赋值
 	xWrite = xw
-}
+}*/
 
 // CloseGlobalMockMultiXLogFile 关闭所有的全域模拟档案的双向通道
-func CloseGlobalMockMultiXLogFile() {
+/*func CloseGlobalMockMultiXLogFile() {
 	// 把双向通道，全部关闭
 	if xWrite != nil {
 		xWrite.Close()
@@ -151,18 +151,18 @@ func CloseGlobalMockMultiXLogFile() {
 
 	// 重新赋空值
 	xWrite = nil
-}
+}*/
 
 // GetChan 为 XMultiFileLog，XFileLog 和 XWrite 三者都要新增的函式，目的是要把日志传到应要传送的双向通道
-func (mf *MockMultiXLogFile) GetChan(fileName string) (chan string, error) {
+/*func (mf *MockMultiXLogFile) GetChan(fileName string) (chan string, error) {
 	// 由 getChan 函式接手进行后续处理
 	return getChan(fileName)
-}
+}*/
 
 // >>>>> >>>>> >>>>> >>>>> >>>>> 测试环境的准备
 
 // testMultiAndFileSuite 建立测试环境 (多档分流的测试环境也可以用在单档)
-func testMultiAndFileSuite(config map[string]string) error {
+/*func testMultiAndFileSuite(config map[string]string) error {
 	// 初始化模拟文件
 	mf := new(MockMultiXLogFile)
 	err := mf.Init(config) // 在这里进行初始化模拟文件
@@ -182,4 +182,4 @@ func testMultiAndFileSuite(config map[string]string) error {
 
 	// 正确回传
 	return nil
-}
+}*/

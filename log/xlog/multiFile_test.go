@@ -1,7 +1,6 @@
 package xlog
 
 import (
-	"fmt"
 	"github.com/XiaoMi/Gaea/models/logStorage/channel"
 	"github.com/stretchr/testify/require"
 	"strings"
@@ -15,25 +14,14 @@ func TestMultiFileLogContent(t *testing.T) {
 	// 2 个档案，1 个等级，1 个服务 的测试
 	TestMultiFileLogContentCase1(t)
 	// 2 个档案，2 个等级，1 个服务 的测试
-	// TestMultiFileLogContentCase2(t)
+	TestMultiFileLogContentCase2(t)
 	// 2 个档案，2 个等级，2 个服务 的测试
-	// TestMultiFileLogContentCase3(t)
+	TestMultiFileLogContentCase3(t)
 }
 
 // TestMultiFileLogContentCase1 为 用来测试日志分流后的写入内容 (2 个档案，1 个等级，1 个服务)
 func TestMultiFileLogContentCase1(t *testing.T) {
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备双向通道的测试环境
-
-	// 准备摸拟设定值
-	cfgSuit := make(map[string]string, 2) // 有几份档案就要准备几个模拟用的双向通道
-	cfgSuit["filename"] = "log1,log2"     // 将要用双向通道摸拟 log1.log 和 log2.log 两份日志档案
-	cfgSuit["chan_size"] = "5"            // 在每一个模拟用的双向通道可以接收 5 笔日志资料
-
-	// 开始建立模拟环境
-	err := testMultiAndFileSuite(cfgSuit) // 内含初始化的操作
-	require.Equal(t, err, nil)
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件 (2 个档案，2 个等级，1 个服务)
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件
 
 	// 产生日志分流物件
 	ps := new(XMultiFileLog)
@@ -49,7 +37,7 @@ func TestMultiFileLogContentCase1(t *testing.T) {
 	cfg["chan_size"] = "10"
 
 	// 初始化日志分流物件
-	err = ps.Init(cfg)
+	err := ps.Init(cfg)
 	require.Equal(t, err, nil)
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 开始写入日志的操作
@@ -84,78 +72,74 @@ func TestMultiFileLogContentCase1(t *testing.T) {
 	err = ps.Notice("log6::record6") // 此日志 会 写入档案内 (V)
 	require.Equal(t, err, nil)
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志的写入结果
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log1 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record1 // record1 日志会写到预设的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record2 // record2 日志会写到指定的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record4 // 因为目前的等级为 Notice ， Debug 等服的日志会被忽略
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record6 // log6 日志文档不存在，record1 日志写到 log1 文档
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
 
 	// 把整个模拟双向通道的内容取出
-	// ret := PrintMockChanMsg()
-	ret := ps.multi["log1"].storage.client.(*channel.Client).Read("log1")
-	fmt.Println(ret)
-
-	return
-
-	// var ret []string
+	ret1 := ps.multi["log1"].storage.client.(*channel.Client).Read("log1")
 
 	// 数量检查
-	require.Equal(t, len(ret), 4) // 写入五笔日志，但被忽略一笔，最后只会被写入四笔日志
-
-	// 细节鐱查
-	// 在模拟的双向通道的内容如下
-	// log1::[2021-12-23 01:47:44] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record1
-	// log1::[2021-12-23 01:47:44] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record2
-	// log1::[2021-12-23 01:47:44] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record6
-	// log2::[2021-12-23 01:47:44] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record3
+	require.Equal(t, len(ret1), 3) // 写入四笔日志，但被忽略一笔，最后只会被写入三笔日志
 
 	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record1
-		strings.Contains(ret[0], "log1") &&
-			strings.Contains(ret[0], "svc1") &&
-			strings.Contains(ret[0], "NOTICE") &&
-			strings.Contains(ret[0], "record1"),
+		strings.Contains(ret1[0], "svc1") &&
+			strings.Contains(ret1[0], "NOTICE") &&
+			strings.Contains(ret1[0], "record1"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record2
-		strings.Contains(ret[1], "log1") &&
-			strings.Contains(ret[1], "svc1") &&
-			strings.Contains(ret[1], "NOTICE") &&
-			strings.Contains(ret[1], "record2"),
+		strings.Contains(ret1[1], "svc1") &&
+			strings.Contains(ret1[1], "NOTICE") &&
+			strings.Contains(ret1[1], "record2"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record6
-		strings.Contains(ret[2], "log1") &&
-			strings.Contains(ret[2], "svc1") &&
-			strings.Contains(ret[2], "NOTICE") &&
-			strings.Contains(ret[2], "record6"),
+		strings.Contains(ret1[2], "svc1") &&
+			strings.Contains(ret1[2], "NOTICE") &&
+			strings.Contains(ret1[2], "record6"),
 		true)
 
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log2 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 16:54:36] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record3 // record3 日志会写到预设的 log2 文档
+	// [2022-01-05 16:54:36] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record5 // log2 日志文档 等级为 Notice，会忽略 Debug 等服的日志
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+
+	// 把整个模拟双向通道的内容取出
+	ret2 := ps.multi["log2"].storage.client.(*channel.Client).Read("log2")
+
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
-		// 在日志档案 log1 里，服务的名称要为svc1，等级为 DEBUG，写入一笔记录为 record5
-		strings.Contains(ret[3], "log2") &&
-			strings.Contains(ret[3], "svc1") &&
-			strings.Contains(ret[3], "NOTICE") &&
-			strings.Contains(ret[3], "record3"),
+		// 在日志档案 log2 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record3
+		strings.Contains(ret2[0], "svc1") &&
+			strings.Contains(ret2[0], "NOTICE") &&
+			strings.Contains(ret2[0], "record3"),
 		true)
 
 	// 关闭所有模拟用的双向通道
-	CloseGlobalMockMultiXLogFile()
+	ps.Close()
 }
 
 // TestMultiFileLogContentCase2 为 用来测试日志分流后的写入内容 (2 个档案，2 个等级，1 个服务)
 func TestMultiFileLogContentCase2(t *testing.T) {
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备双向通道的测试环境
-
-	// 准备摸拟设定值
-	// cfgSuit := make(map[string]string, 2) // 有几份档案就要准备几个模拟用的双向通道
-	// cfgSuit["filename"] = "log1,log2"     // 将要用双向通道摸拟 log1.log 和 log2.log 两份日志档案
-	// cfgSuit["chan_size"] = "5"            // 在每一个模拟用的双向通道可以接收 5 笔日志资料
-
-	// 开始建立模拟环境
-	// err := testMultiAndFileSuite(cfgSuit) // 内含初始化的操作
-	// require.Equal(t, err, nil)
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件 (2 个档案，2 个等级，1 个服务)
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件
 
 	// 产生日志分流物件
 	ps := new(XMultiFileLog)
@@ -206,85 +190,82 @@ func TestMultiFileLogContentCase2(t *testing.T) {
 	err = ps.Notice("log6::record6") // 此日志 会 写入档案内 (V)
 	require.Equal(t, err, nil)
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志的写入结果
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log2 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record1 // record1 日志会写到预设的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record2 // record2 日志会写到指定的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record4 // 因为目前的等级为 Notice ， Debug 等服的日志会被忽略
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record6 // log6 日志文档不存在，record1 日志写到 log1 文档
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
 
 	// 把整个模拟双向通道的内容取出
-	var ret []string
-	ret = ps.multi["log1"].storage.client.(*channel.Client).Read("log1")
-	fmt.Println(ret)
-	return
-	// ret := PrintMockChanMsg()
+	ret1 := ps.multi["log1"].storage.client.(*channel.Client).Read("log1")
 
 	// 数量检查
-	require.Equal(t, len(ret), 5) // 写入五笔日志，但被忽略一笔，最后只会被写入四笔日志
-
-	// 细节鐱查
-	// 在模拟的双向通道的内容如下
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record1
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record2
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record6
-	// log2::[2021-12-22 23:30:43] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1259] record5
-	// log2::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record3
+	require.Equal(t, len(ret1), 3) // 写入五笔日志，但被忽略一笔，最后只会被写入四笔日志
 
 	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record1
-		strings.Contains(ret[0], "log1") &&
-			strings.Contains(ret[0], "svc1") &&
-			strings.Contains(ret[0], "NOTICE") &&
-			strings.Contains(ret[0], "record1"),
+		strings.Contains(ret1[0], "svc1") &&
+			strings.Contains(ret1[0], "NOTICE") &&
+			strings.Contains(ret1[0], "record1"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record2
-		strings.Contains(ret[1], "log1") &&
-			strings.Contains(ret[1], "svc1") &&
-			strings.Contains(ret[1], "NOTICE") &&
-			strings.Contains(ret[1], "record2"),
+		strings.Contains(ret1[1], "svc1") &&
+			strings.Contains(ret1[1], "NOTICE") &&
+			strings.Contains(ret1[1], "record2"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record6
-		strings.Contains(ret[2], "log1") &&
-			strings.Contains(ret[2], "svc1") &&
-			strings.Contains(ret[2], "NOTICE") &&
-			strings.Contains(ret[2], "record6"),
+		strings.Contains(ret1[2], "svc1") &&
+			strings.Contains(ret1[2], "NOTICE") &&
+			strings.Contains(ret1[2], "record6"),
 		true)
 
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log2 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 16:54:36] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record3 // record3 日志会写到预设的 log2 文档
+	// [2022-01-05 16:54:36] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record5 // record5 日志会写到预设的 log2 文档
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+
+	// 把整个模拟双向通道的内容取出
+	ret2 := ps.multi["log2"].storage.client.(*channel.Client).Read("log2")
+
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
-		// 在日志档案 log1 里，服务的名称要为svc1，等级为 DEBUG，写入一笔记录为 record5
-		strings.Contains(ret[3], "log2") &&
-			strings.Contains(ret[3], "svc1") &&
-			strings.Contains(ret[3], "DEBUG") &&
-			strings.Contains(ret[3], "record5"),
+		// 在日志档案 log2 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record3
+		strings.Contains(ret2[0], "svc1") &&
+			strings.Contains(ret2[0], "NOTICE") &&
+			strings.Contains(ret2[0], "record3"),
 		true)
 
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
-		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record3
-		strings.Contains(ret[4], "log2") &&
-			strings.Contains(ret[4], "svc1") &&
-			strings.Contains(ret[4], "NOTICE") &&
-			strings.Contains(ret[4], "record3"),
+		// 在日志档案 log2 里，服务的名称要为svc1，等级为 DEBUG，写入一笔记录为 record6
+		strings.Contains(ret2[1], "svc1") &&
+			strings.Contains(ret2[1], "DEBUG") &&
+			strings.Contains(ret2[1], "record5"),
 		true)
 
 	// 关闭所有模拟用的双向通道
-	CloseGlobalMockMultiXLogFile()
+	ps.Close()
 }
 
 // TestMultiFileLogContentCase3 为 用来测试日志分流后的写入内容 (2 个档案，2 个等级，2 个服务)
 func TestMultiFileLogContentCase3(t *testing.T) {
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备双向通道的测试环境
-
-	// 准备摸拟设定值
-	cfgSuit := make(map[string]string, 2) // 有几份档案就要准备几个模拟用的双向通道
-	cfgSuit["filename"] = "log1,log2"     // 将要用双向通道摸拟 log1.log 和 log2.log 两份日志档案
-	cfgSuit["chan_size"] = "5"            // 在每一个模拟用的双向通道可以接收 5 笔日志资料
-
-	// 开始建立模拟环境
-	err := testMultiAndFileSuite(cfgSuit) // 内含初始化的操作
-	require.Equal(t, err, nil)
-
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件 (2 个档案，2 个等级，2 个服务)
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 准备和初始化日志分流物件
 
 	// 产生日志分流物件
 	ps := new(XMultiFileLog)
@@ -296,9 +277,11 @@ func TestMultiFileLogContentCase3(t *testing.T) {
 	cfg["level"] = "Notice,Debug"
 	cfg["service"] = "svc1,svc2"
 	cfg["skip"] = "5"
+	cfg["storage"] = "channel"
+	cfg["chan_size"] = "10"
 
 	// 初始化日志分流物件
-	err = ps.Init(cfg)
+	err := ps.Init(cfg)
 	require.Equal(t, err, nil)
 
 	// >>>>> >>>>> >>>>> >>>>> >>>>> 开始写入日志的操作
@@ -333,64 +316,75 @@ func TestMultiFileLogContentCase3(t *testing.T) {
 	err = ps.Notice("log6::record6") // 此日志 会 写入档案内 (V)
 	require.Equal(t, err, nil)
 
-	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志的写入结果
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log2 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record1 // record1 日志会写到预设的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record2 // record2 日志会写到指定的 log1 文档
+	// [2022-01-05 15:39:54] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record4 // 因为目前的等级为 Notice ， Debug 等服的日志会被忽略
+	// [2022-01-05 15:39:54] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record6 // log6 日志文档不存在，record1 日志写到 log1 文档
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
 
 	// 把整个模拟双向通道的内容取出
-	var ret []string
-	// ret := PrintMockChanMsg()
+	ret1 := ps.multi["log1"].storage.client.(*channel.Client).Read("log1")
 
 	// 数量检查
-	require.Equal(t, len(ret), 5) // 写入五笔日志，但被忽略一笔，最后只会被写入四笔日志
-
-	// 细节鐱查
-	// 在模拟的双向通道的内容如下
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record1
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record2
-	// log1::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record6
-	// log2::[2021-12-22 23:30:43] [svc1] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1259] record5
-	// log2::[2021-12-22 23:30:43] [svc1] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1259] record3
+	require.Equal(t, len(ret1), 3) // 写入五笔日志，但被忽略一笔，最后只会被写入四笔日志
 
 	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record1
-		strings.Contains(ret[0], "log1") &&
-			strings.Contains(ret[0], "svc1") &&
-			strings.Contains(ret[0], "NOTICE") &&
-			strings.Contains(ret[0], "record1"),
+		strings.Contains(ret1[0], "svc1") &&
+			strings.Contains(ret1[0], "NOTICE") &&
+			strings.Contains(ret1[0], "record1"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record2
-		strings.Contains(ret[1], "log1") &&
-			strings.Contains(ret[1], "svc1") &&
-			strings.Contains(ret[1], "NOTICE") &&
-			strings.Contains(ret[1], "record2"),
+		strings.Contains(ret1[1], "svc1") &&
+			strings.Contains(ret1[1], "NOTICE") &&
+			strings.Contains(ret1[1], "record2"),
 		true)
 
 	require.Equal(t,
 		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record6
-		strings.Contains(ret[2], "log1") &&
-			strings.Contains(ret[2], "svc1") &&
-			strings.Contains(ret[2], "NOTICE") &&
-			strings.Contains(ret[2], "record6"),
+		strings.Contains(ret1[2], "svc1") &&
+			strings.Contains(ret1[2], "NOTICE") &&
+			strings.Contains(ret1[2], "record6"),
 		true)
 
+	// >>>>> >>>>> >>>>> >>>>> >>>>> 最后检查日志 log2 的写入结果
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+	// [
+	// [2022-01-05 16:54:36] [svc2] [debian5] [NOTICE] [1000000001] [testing.tRunner:testing.go:1410] record3 // record3 日志会写到预设的 log2 文档
+	// [2022-01-05 16:54:36] [svc2] [debian5] [DEBUG]  [1000000001] [testing.tRunner:testing.go:1410] record5 // record5 日志会写到预设的 log2 文档
+	// ]
+
+	// 把整个模拟双向通道的内容取出，会依照写入排列去排列，排列如下
+
+	// 把整个模拟双向通道的内容取出
+	ret2 := ps.multi["log2"].storage.client.(*channel.Client).Read("log2")
+
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
-		// 在日志档案 log1 里，服务的名称要为svc1，等级为 DEBUG，写入一笔记录为 record5
-		strings.Contains(ret[3], "log2") &&
-			strings.Contains(ret[3], "svc2") &&
-			strings.Contains(ret[3], "DEBUG") &&
-			strings.Contains(ret[3], "record5"),
+		// 在日志档案 log2 里，服务的名称要为svc2，等级为 NOTICE，写入一笔记录为 record3
+		strings.Contains(ret2[0], "svc2") &&
+			strings.Contains(ret2[0], "NOTICE") &&
+			strings.Contains(ret2[0], "record3"),
 		true)
 
+	// 检查由模拟的双向通道中取出资料内容
 	require.Equal(t,
-		// 在日志档案 log1 里，服务的名称要为svc1，等级为 NOTICE，写入一笔记录为 record3
-		strings.Contains(ret[4], "log2") &&
-			strings.Contains(ret[4], "svc2") &&
-			strings.Contains(ret[4], "NOTICE") &&
-			strings.Contains(ret[4], "record3"),
+		// 在日志档案 log2 里，服务的名称要为svc2，等级为 DEBUG，写入一笔记录为 record6
+		strings.Contains(ret2[1], "svc2") &&
+			strings.Contains(ret2[1], "DEBUG") &&
+			strings.Contains(ret2[1], "record5"),
 		true)
 
 	// 关闭所有模拟用的双向通道
-	CloseGlobalMockMultiXLogFile()
+	ps.Close()
 }

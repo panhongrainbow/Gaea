@@ -110,12 +110,12 @@ func (ps *XMultiFileLog) Init(config map[string]string) (err error) {
 
 		// level 设定值可以支援单值和多值
 		if len(level) >= len(filename) && (len(level[i]) > 0) {
-			p.level, _ = strconv.Atoi(level[i]) // level 可以进行个别设定
-			config["level"] = service[i]
+			p.level = LevelFromStr(level[i]) // level 可以进行个别设定
+			config["level"] = level[i]
 		}
 		if len(level) == 1 && (len(level[0]) > 0) {
-			p.level, _ = strconv.Atoi(level[0]) // level 可以进行统一设定
-			config["level"] = service[0]
+			p.level = LevelFromStr(level[0]) // level 可以进行统一设定
+			config["level"] = level[0]
 		}
 
 		// skip 设定
