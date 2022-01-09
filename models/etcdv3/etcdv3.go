@@ -20,6 +20,7 @@ package etcdclientv3
 import (
 	"context"
 	"errors"
+	"github.com/XiaoMi/Gaea/log"
 	"github.com/coreos/etcd/client"
 	"github.com/coreos/etcd/clientv3"
 	"strings"
@@ -111,7 +112,7 @@ func isErrNodeExists(err error) bool {
 	return false
 }
 
-// Mkdir create directory
+// Mkdir create directory (v2 的版本也没在用这函式)
 func (c *EtcdClientV3) Mkdir(dir string) error {
 	c.Lock()
 	defer c.Unlock()
@@ -127,12 +128,47 @@ func (c *EtcdClientV3) mkdir(dir string) error {
 	}
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
-	_, err := c.kapi.Put(cntx, dir, "", clientv3.WithPrevKV())
+	// 参考文件在 https://etcd.io/docs/v3.5/tutorials/how-to-get-key-by-prefix/
+	// 1 WithLease 是用来定时删除 key
+	// 2 WithLimit 是用来限制 etcd 的回传数量
+	// 3 WithRev，Revision 为 etcd key 的唯一值，为在 Revision 找值
+	// 4 WithMaxCreateRev 为在小于某一个 Revision 中找最大 Revision 的值
+	// 5 WithSort 为使用 get 时，对回传结果进行排序
+	// 6 WithPrefix 为取出前缀为 key 的值，比如 前缀为 foo，会回传 foo1 foo2
+	// 7 WithRange 为取出 key 值的范围，end key 值语义上要大于 key 值
+	// 8 WithFromKey 为取出 key 值的范围，但回传的 end key 会等于参数 end key
+	// 9 WithSerializable，Linearizability 为用来增加资料的正确性，Serializable 为用来减少延迟
+	// 10 WithKeysOnly 为当使用 get 时，只回传 key
+	// 11 WithCountOnly 为当使用 get 时，只回传 key
+	// 12 WithMinModRev 为会过滤小于 Revision 的 修改 Key
+	// 13 WithMaxModRev 为会过滤大于 Revision 的 修改 Key
+	// 14 WithMinCreateRev 为会过滤小于 Revision 的 新建 Key
+	// 15 WithMaxCreateRev 为会过滤大于 Revision 的 新建 Key
+	_, err := c.kapi.Put(cntx, dir, "", clientv3.WithKeysOnly())
 	if err != nil {
 		if isErrNodeExists(err) {
 			return nil
 		}
 		return err
 	}
+	return nil
+}
+
+// Create create path with data (v2 的版本也没在用这函式)
+func (c *EtcdClientV3) Create(path string, data []byte) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return ErrClosedEtcdClient
+	}
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	log.Debug("etcd create node %s", path)
+	_, err := c.kapi.Put(cntx, path, string(data), nil) // 找不太到参数
+	if err != nil {
+		log.Debug("etcd create node %s failed: %s", path, err)
+		return err
+	}
+	log.Debug("etcd create node OK")
 	return nil
 }
