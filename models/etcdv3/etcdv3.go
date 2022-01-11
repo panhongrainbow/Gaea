@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"github.com/XiaoMi/Gaea/log"
-	"github.com/coreos/etcd/client"
 	"github.com/coreos/etcd/clientv3"
 	"strings"
 	"sync"
@@ -81,7 +80,11 @@ func (c *EtcdClientV3) Close() error {
 	if c.closed {
 		return nil
 	}
-	c.closed = true
+	err := c.kapi.Close() // 如果能够成功关闭 etcd 连线
+	if err != nil {
+		return err
+	}
+	c.closed = true // 如果没有错误，就特别标记连线已正确关闭
 	return nil
 }
 
@@ -92,25 +95,25 @@ func (c *EtcdClientV3) contextWithTimeout() (context.Context, context.CancelFunc
 	return context.WithTimeout(context.Background(), c.timeout)
 }
 
-// isErrNodeExists (直接借用 v2 的函式)
-func isErrNoNode(err error) bool {
+// isErrNodeExists (目前此函式并不支援 v3)
+/*func isErrNoNode(err error) bool {
 	if err != nil {
 		if e, ok := err.(client.Error); ok {
 			return e.Code == client.ErrorCodeKeyNotFound
 		}
 	}
 	return false
-}
+}*/
 
-// isErrNodeExists (直接借用 v2 的函式)
-func isErrNodeExists(err error) bool {
+// isErrNodeExists (v3 版没有在使用此函式)
+/*func isErrNodeExists(err error) bool {
 	if err != nil {
 		if e, ok := err.(client.Error); ok {
 			return e.Code == client.ErrorCodeNodeExist
 		}
 	}
 	return false
-}
+}*/
 
 // Mkdir create directory (v2 的版本也没在用这函式)
 /*func (c *EtcdClientV3) Mkdir(dir string) error {
@@ -237,4 +240,92 @@ func (c *EtcdClientV3) UpdateWithTTL(path string, data []byte, ttl time.Duration
 	}
 	log.Debug("etcd update node OK")
 	return nil
+}
+
+// Delete delete path
+func (c *EtcdClientV3) Delete(path string) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return ErrClosedEtcdClient
+	}
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	log.Debug("etcd delete node %s", path)
+	_, err := c.kapi.Delete(cntx, path, clientv3.WithPrevKV())
+	if err != nil {
+		log.Debug("etcd delete node %s failed: %s", path, err)
+		return err
+	}
+	log.Debug("etcd delete node OK")
+	return nil
+}
+
+// Read read path data
+func (c *EtcdClientV3) Read(path string) ([]byte, error) {
+	c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return nil, ErrClosedEtcdClient
+	}
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	log.Debug("etcd read node %s", path)
+	r, err := c.kapi.Get(cntx, path, clientv3.WithPrevKV())
+	if err != nil {
+		return nil, err
+	} else {
+		if len(r.Kvs) > 0 {
+			return r.Kvs[0].Value, nil
+		}
+	}
+	return []byte{}, nil
+}
+
+// List list path, return slice of all paths
+func (c *EtcdClientV3) List(path string) ([]string, error) {
+	c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return nil, ErrClosedEtcdClient
+	}
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	_ = log.Debug("etcd list node %s", path)
+	r, err := c.kapi.Get(cntx, path, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	} else if r == nil {
+		return nil, nil
+	} else {
+		var files []string
+		for _, node := range r.Kvs {
+			files = append(files, string(node.Key))
+		}
+		return files, nil
+	}
+}
+
+// Watch watch path
+func (c *EtcdClientV3) Watch(path string, ch chan string) error {
+	c.Lock()
+	// defer c.Unlock()
+	if c.closed {
+		panic(ErrClosedEtcdClient)
+	}
+	c.Unlock()
+
+	rch := c.kapi.Watch(context.Background(), path, clientv3.WithPrefix())
+	for wresp := range rch {
+		for _, ev := range wresp.Events {
+			ch <- string(ev.Kv.Key)
+		}
+	}
+
+	return nil
+}
+
+// BasePrefix return base prefix
+func (c *EtcdClientV3) BasePrefix() string {
+	return c.Prefix
 }
