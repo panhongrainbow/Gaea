@@ -56,8 +56,8 @@ func New(addr string, timeout time.Duration, username, passwd, root string) (*Et
 		Endpoints:            endpoints,
 		Username:             username,
 		Password:             passwd,
-		DialTimeout:          timeout * time.Second, // 只设定第一次连线时间的逾时，之后不用太担心连线，连线失败后，会自动重连
-		DialKeepAliveTimeout: timeout * time.Second, // 之后维持 etcd 连线的逾时
+		DialTimeout:          timeout, // 只设定第一次连线时间的逾时，之后不用太担心连线，连线失败后，会自动重连
+		DialKeepAliveTimeout: timeout, // 之后维持 etcd 连线的逾时
 	}
 	c, err := clientv3.New(config)
 	if err != nil {
@@ -68,7 +68,7 @@ func New(addr string, timeout time.Duration, username, passwd, root string) (*Et
 	}
 	return &EtcdClientV3{
 		kapi:    *c,
-		timeout: timeout,
+		timeout: timeout, // 每个指令的逾时时间也是用同一个设定值
 		Prefix:  root,
 	}, nil
 }

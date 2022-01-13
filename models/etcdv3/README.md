@@ -62,7 +62,19 @@ $ docker exec etcd-gcr-v3.5.1 /bin/sh -c "/usr/local/bin/etcdutl version"
 $ snap install etcd-manager
 ```
 
+只要填入正确的 IP 和 Address，就可以按下连线测试
+
+<img src="./assets/image-20220113164918661.png" alt="image-20220113164918661" style="zoom:80%;" />
+
 ## 3 Etcd 的连线测试
 
 Etcd V3 只要接通后，就会一直保持连线，所以不用另外在写 Ping 函式进行侦测
+
+执行测试时，如果发生连线错误，会有以下讯息，单元测试还是会通过，但会给出警告
+
+-> 目前找不到可实验的 Etcd 服务器 (红色字体显示)
+
+<img src="./assets/image-20220113163203011.png" alt="image-20220113163203011" style="zoom:80%;" /> 
+
+
 

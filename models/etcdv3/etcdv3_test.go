@@ -29,11 +29,80 @@ func Test_EtcdV3(t *testing.T) {
 	colorReset := "\033[0m"
 	colorRed := "\033[31m"
 
-	_, err := New("http://127.0.0.1:2399", 3, "", "", "")
+	remote, err := New("http://127.0.0.1:2379", 3*time.Second, "", "", "")
 	if err != nil {
+		// 如果 etcd 连线失败
 		fmt.Println(colorRed, "目前找不到可实验的 Etcd 服务器", colorReset)
 	}
 	if err == nil {
-		//
+		// >>>>> >>>>> >>>>> 如果 etcd 连线成功，执行以下成功，执行以下工作
+
+		// >>>>> 先进行写入测试 (新增 key1 和 key2)
+		err = remote.Update("key1", []byte("value1")) // 写入 key1
+		require.Equal(t, err, nil)
+
+		err = remote.Update("key2", []byte("value2")) // 写入 key2
+		require.Equal(t, err, nil)
+
+		keys, err := remote.List("key") // 先列出所有的 key 值
+		require.Equal(t, err, nil)
+		require.Equal(t, keys, []string{"key1", "key2"})
+
+		byte1, err := remote.Read("key1") // 检查 key1 值
+		require.Equal(t, err, nil)
+		require.Equal(t, string(byte1), "value1")
+
+		byte2, err := remote.Read("key2") // 检查 key2 值
+		require.Equal(t, err, nil)
+		require.Equal(t, string(byte2), "value2")
+
+		// >>>>> 接着进行测试 (删除 key1)
+		err = remote.Delete("key1") // 删除 key1
+		require.Equal(t, err, nil)
+
+		keys, err = remote.List("key") // 列出所有的 key 值
+		require.Equal(t, err, nil)
+		require.Equal(t, keys, []string{"key2"})
+
+		// >>>>> 接着进行到时删除测试 (测试到时删除 key 值)
+		err = remote.UpdateWithTTL("key3", []byte("value3"), 5*time.Second) // key3 只保留 5 秒
+		require.Equal(t, err, nil)
+
+		keys, err = remote.List("key") // 先列出所有的 key 值
+		require.Equal(t, err, nil)
+		require.Equal(t, keys, []string{"key2", "key3"}) // 列出所有的 key 值
+
+		byte3, err := remote.Read("key3") // 检查 key3 值
+		require.Equal(t, err, nil)
+		require.Equal(t, string(byte3), "value3")
+
+		time.Sleep(6 * time.Second) // 停留 6 秒
+
+		keys, err = remote.List("key") // 先列出所有的 key 值
+		require.Equal(t, err, nil)
+		require.Equal(t, keys, []string{"key2"}) // 列出所有的 key 值
+
+		// >>>>> 接着进行追踪测试
+		channel := make(chan string, 1)
+		go func(ch chan string) error {
+			err := remote.Watch("key", ch) // 追踪 key 值，只要 key1 key2 等值增加时，就会经由通道去通知
+			return err
+		}(channel)
+
+		err = remote.UpdateWithTTL("key5", []byte("value5"), 1*time.Second) // key5 只保留 2 秒
+		require.Equal(t, err, nil)
+
+		msg := <-channel
+		require.Equal(t, msg, "key5") // 将会收到新增 key5 的讯息
+
+		// >>>>> 最后复原测试环境
+		// (一共产生 key1 key2 key3 key 5 ,key3 和 key5 为定时删除，key1 之前用删除了，只剩 key2)
+
+		err = remote.Delete("key2") // 删除 key2
+		require.Equal(t, err, nil)
+
+		keys, err = remote.List("key") // 列出所有的 key 值
+		require.Equal(t, err, nil)
+		require.Equal(t, len(keys), 0) // 最后所有的 key 都被清空
 	}
 }
