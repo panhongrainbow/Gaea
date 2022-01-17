@@ -333,13 +333,14 @@ func (c *EtcdClientV3) Watch(path string, ch chan string) error {
 	c.Lock() // 在这里上锁
 	// defer c.Unlock() // 移除此行，避免死结发生
 	if c.closed {
-		c.Unlock() // 上锁后尽快解锁
+		c.Unlock() // 上锁后记得解锁，去防止死结问题发生
 		panic(ErrClosedEtcdClient)
 	}
 
 	rch := c.kapi.Watch(context.Background(), path, clientv3.WithPrefix())
 
-	c.Unlock() // 上锁后尽快解锁
+	c.Unlock() // 上锁后在适当时机解锁，去防止死结问题发生
+	// 在这里解锁是最好的，因为解锁后立刻可以进行监听
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {

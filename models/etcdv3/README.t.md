@@ -1,6 +1,6 @@
 # Gaea 小米數據庫中間件 Ectd V3 API 升級過程說明
 
-> 因為 Etcd V3 API 使用 gRPC 作為溝通的協定，效能上會有所提升，有必要進行升級，但是 V2 API  和 V3 API 有功能上的不同，整理成以下內容作為記錄
+> 因為 Etcd V3 API 使用 gRPC 作為溝通的協定，效能上會有所提升，有必要進行升級，但是 V2 API  和 V3 API 在功能上有所不同，整理成以下內容作為記錄
 
 ## 1 Etcd 測試環境設置 
 
@@ -47,7 +47,7 @@ $ docker exec etcd-gcr-v3.5.1 /bin/sh -c "/usr/local/bin/etcdctl get foo"
 $ docker exec etcd-gcr-v3.5.1 /bin/sh -c "/usr/local/bin/etcdutl version"
 ```
 
-這時發現，用原始程式碼會發生以下錯誤
+這時發現，用 etcd v2 api 原始程式碼會發生以下錯誤
 
 ```bash
 # response is invalid json. The endpoint is probably not valid etcd cluster endpoint.
@@ -70,7 +70,7 @@ $ snap install etcd-manager
 
 Etcd V3 只要接通後，就會一直保持連線，所以不用另外在寫 Ping 函式進行偵測
 
-所以在 V3 API 版本進行修改如下
+所以在 V3 API 版本進行以下修改
 
 執行測試時，如果發生連線錯誤，會有以下訊息，單元測試還是會通過，但會給出警告
 
@@ -93,7 +93,7 @@ Etcd V3 只要接通後，就會一直保持連線，所以不用另外在寫 Pi
 |    1     | 新增測試     | 新增 key1 和 key2                                            |
 |    2     | 刪除測試     | 刪除 key1                                                    |
 |    3     | 到時刪除測試 | 新增 key3，但 key3 只存在 5 秒                               |
-|    4     | 追踪測試     | 監測 key 值的變化，1 秒後，先不設定 TTL，之後 key5 的 TTL 修正為 5 秒<br />因為 key5 被更新兩次，所以監控函式 Watch 會由通道收到更新訊息兩次 |
+|    4     | 追踪測試     | 監測 key 值的變化，1 秒後，先不設定 TTL，之後 key5 的 TTL 修正為 5 秒<br />因為 key5 被更新兩次，所以監控函式 Watch 會傳送更新訊息兩次到通道內 |
 |    5     | 租約測試     | 先建立 5 秒的租約，再利用此租約去建立 key6 和 key7<br />因為租約的關係，key6 和 key7 在 5 秒後會消失 |
 |    6     | 復原測試環境 | 在復原測試環境時，要刪除測試環境存在所有的 key 值            |
 
@@ -208,21 +208,21 @@ V2 版 API 和 V3 版 API 的功能差異整理成下表
 
 - 先移除 defer c.Unlock() 此行，目的是要避免死結
 - 如果整個監控函式 Watch 都不上鎖，會發生未能及時獲得資料的問題
-- 只能儘量遵守 上鎖後儘快解鎖 的原則去防止嚴重的死結問題發生
+- 只能儘量遵守 上鎖後在最佳時機解鎖 的原則去防止嚴重的死結問題發生
 
 ```go
 func (c *EtcdClientV3) Watch(path string, ch chan string) error {
 	c.Lock() // 在這裡上鎖
 	// defer c.Unlock() // 移除此行，避免死結髮生
 	if c.closed {
-		c.Unlock() // 上鎖後儘快解鎖，去防止死結問題發生
+		c.Unlock() // 上鎖後記得解鎖，去防止死結問題發生
 		panic(ErrClosedEtcdClient)
 	}
 	
 	rch := c.kapi.Watch(context.Background(), path, clientv3.WithPrefix())
     
-    c.Unlock() // 上鎖後儘快解鎖，去防止死結問題發生
-    // 在這裡解鎖是最好的，因為解鎖後立刻可以進行監聽
+    c.Unlock() // 上鎖後在適當時機解鎖，去防止死結問題發生
+    // 在这里解锁是最好的，因为解锁后立刻可以进行监听
     
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
