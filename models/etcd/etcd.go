@@ -46,7 +46,7 @@ type EtcdClient struct {
 	Prefix  string
 }
 
-// New constructor of EtcdClient
+// New constructor of EtcdClient (用于建立新的客户端，目的支缓文档和 etcd)
 func New(addr string, timeout time.Duration, username, passwd, root string) (*EtcdClient, error) {
 	endpoints := strings.Split(addr, ",")
 	for i, s := range endpoints {
@@ -203,13 +203,13 @@ func (c *EtcdClient) Delete(path string) error {
 	}
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
-	log.Debug("etcd delete node %s", path)
+	_ = log.Debug("etcd delete node %s", path)
 	_, err := c.kapi.Delete(cntx, path, nil)
 	if err != nil && !isErrNoNode(err) {
-		log.Debug("etcd delete node %s failed: %s", path, err)
+		_ = log.Debug("etcd delete node %s failed: %s", path, err)
 		return err
 	}
-	log.Debug("etcd delete node OK")
+	_ = log.Debug("etcd delete node OK")
 	return nil
 }
 

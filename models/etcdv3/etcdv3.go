@@ -188,32 +188,14 @@ func (c *EtcdClientV3) Update(path string, data []byte) error {
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
 	_ = log.Debug("etcd update node %s", path)
+
 	_, err := c.kapi.Put(cntx, path, string(data))
 	if err != nil {
-		log.Debug("etcd update node %s failed: %s", path, err)
+		_ = log.Debug("etcd update node %s failed: %s", path, err)
 		return err
 	}
-	log.Debug("etcd update node OK")
+	_ = log.Debug("etcd update node OK")
 	return nil
-}
-
-// Lease create lease in etcd
-func (c *EtcdClientV3) Lease(ttl int64) (clientv3.LeaseID, error) {
-	c.Lock()
-	defer c.Unlock()
-	if c.closed {
-		return -1, ErrClosedEtcdClient
-	}
-	cntx, canceller := c.contextWithTimeout()
-	defer canceller()
-	_ = log.Debug("etcd lease node with ttl %d", ttl)
-
-	lse, err := c.kapi.Grant(cntx, ttl)
-	if err != nil {
-		_ = log.Debug("etcd lease node with ttl %d failed: %s ", ttl, err)
-		return -1, err
-	}
-	return lse.ID, nil
 }
 
 // UpdateWithTTL update path with data and ttl
@@ -225,11 +207,11 @@ func (c *EtcdClientV3) UpdateWithTTL(path string, data []byte, ttl time.Duration
 	}
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
-	log.Debug("etcd update node %s with ttl %d", path, ttl)
+	_ = log.Debug("etcd update node %s with ttl %f", path, ttl.Seconds())
 
 	lse, err := c.kapi.Grant(cntx, int64(ttl.Seconds()))
 	if err != nil {
-		_ = log.Debug("etcd lease node with ttl %d failed: %s ", ttl, err)
+		_ = log.Debug("etcd lease node with ttl %d failed: %s ", ttl.Seconds(), err)
 		return err
 	}
 
@@ -242,6 +224,46 @@ func (c *EtcdClientV3) UpdateWithTTL(path string, data []byte, ttl time.Duration
 	return nil
 }
 
+// Lease create lease in etcd
+func (c *EtcdClientV3) Lease(ttl time.Duration) (clientv3.LeaseID, error) {
+	/*c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return -1, ErrClosedEtcdClient
+	}*/
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	_ = log.Debug("etcd lease node with ttl %d", ttl)
+
+	lse, err := c.kapi.Grant(cntx, int64(ttl.Seconds()))
+	if err != nil {
+		_ = log.Debug("etcd lease node with ttl %d failed: %s ", ttl, err)
+		return -1, err
+	}
+	_ = log.Debug("etcd create lease OK with ID %d", lse.ID)
+	return lse.ID, nil
+}
+
+// UpdateWithLease update path with data and ttl by using lease
+func (c *EtcdClientV3) UpdateWithLease(path string, data []byte, leaseID clientv3.LeaseID) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.closed {
+		return ErrClosedEtcdClient
+	}
+	cntx, canceller := c.contextWithTimeout()
+	defer canceller()
+	_ = log.Debug("etcd update node %s with lease %d", path, leaseID)
+
+	_, err := c.kapi.Put(cntx, path, string(data), clientv3.WithLease(leaseID))
+	if err != nil {
+		_ = log.Debug("etcd update node %s failed: %s", path, err)
+		return err
+	}
+	_ = log.Debug("etcd update node OK")
+	return nil
+}
+
 // Delete delete path
 func (c *EtcdClientV3) Delete(path string) error {
 	c.Lock()
@@ -251,13 +273,13 @@ func (c *EtcdClientV3) Delete(path string) error {
 	}
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
-	log.Debug("etcd delete node %s", path)
+	_ = log.Debug("etcd delete node %s", path)
 	_, err := c.kapi.Delete(cntx, path, clientv3.WithPrevKV())
 	if err != nil {
-		log.Debug("etcd delete node %s failed: %s", path, err)
+		_ = log.Debug("etcd delete node %s failed: %s", path, err)
 		return err
 	}
-	log.Debug("etcd delete node OK")
+	_ = log.Debug("etcd delete node OK")
 	return nil
 }
 
@@ -270,7 +292,7 @@ func (c *EtcdClientV3) Read(path string) ([]byte, error) {
 	}
 	cntx, canceller := c.contextWithTimeout()
 	defer canceller()
-	log.Debug("etcd read node %s", path)
+	_ = log.Debug("etcd read node %s", path)
 	r, err := c.kapi.Get(cntx, path, clientv3.WithPrevKV())
 	if err != nil {
 		return nil, err
@@ -308,14 +330,17 @@ func (c *EtcdClientV3) List(path string) ([]string, error) {
 
 // Watch watch path
 func (c *EtcdClientV3) Watch(path string, ch chan string) error {
-	c.Lock()
-	// defer c.Unlock()
+	c.Lock() // 在这里上锁
+	// defer c.Unlock() // 移除此行，避免死结发生
 	if c.closed {
+		c.Unlock() // 上锁后尽快解锁
 		panic(ErrClosedEtcdClient)
 	}
-	c.Unlock()
 
 	rch := c.kapi.Watch(context.Background(), path, clientv3.WithPrefix())
+
+	c.Unlock() // 上锁后尽快解锁
+
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			ch <- string(ev.Kv.Key)
