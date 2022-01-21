@@ -17,6 +17,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	etcdclientv3 "github.com/XiaoMi/Gaea/models/etcdv3"
 	"path/filepath"
 	"strings"
 	"time"
@@ -28,8 +29,9 @@ import (
 
 // config type
 const (
-	ConfigFile = "file"
-	ConfigEtcd = "etcd"
+	ConfigFile   = "file"
+	ConfigEtcd   = "etcd"
+	ConfigEtcdV3 = "etcdv3"
 )
 
 // Client client interface
@@ -63,6 +65,14 @@ func NewClient(configType, addr, username, password, root string) Client {
 	case ConfigEtcd:
 		// etcd
 		c, err := etcdclient.New(addr, time.Minute, username, password, root)
+		if err != nil {
+			log.Fatal("create etcdclient to %s failed, %v", addr, err)
+			return nil
+		}
+		return c
+	case ConfigEtcdV3:
+		// etcd
+		c, err := etcdclientv3.New(addr, time.Minute, username, password, root)
 		if err != nil {
 			log.Fatal("create etcdclient to %s failed, %v", addr, err)
 			return nil

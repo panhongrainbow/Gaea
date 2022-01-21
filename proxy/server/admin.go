@@ -236,7 +236,8 @@ func (s *AdminServer) registerProxy() error {
 	if s.configType == models.ConfigFile {
 		return nil
 	}
-	client := models.NewClient(models.ConfigEtcd, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
+	// 这里再仔细处理
+	client := models.NewClient(models.ConfigEtcdV3, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
 	store := models.NewStore(client)
 	defer store.Close()
 	if err := store.CreateProxy(s.model); err != nil {
