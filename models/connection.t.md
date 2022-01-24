@@ -212,18 +212,81 @@ coordinator_addr=http://127.0.0.1:2379
 
 在 Etcd 服務器內寫入以下內容
 
-- key 為 /gaea_cluster/novel_cluster_namespace
+- key 為 /gaea_cluster/namespace/novel_cluster_namespace
 - value 為 命名空間 Json 格式設定值
 
 <img src="./assets/image-20220124113553383.png" alt="image-20220124113553383" style="zoom:80%;" /> 
 
 ## 4 啟動數據庫中間件 Gaea
 
-登入 Gaea 的指令為
+> 啟動的方式有分兩種
+>
+> 1. 在終端機去下指令啟動 Gaea
+> 2. 使用 IDE 工具啟動 Gaea
 
-mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+### 1 建立執行文檔的目錄
 
-## 5 測試數據庫中間件 Gaea 的讀寫
+```bash
+# 建立執行檔集中目錄
+$ mkdir -p Gaea/bin/
+```
+
+### 2 在終端機去下指令啟動 Gaea
+
+先在終端機進行編譯，後執行
+
+```bash
+# 設定 GoRoot 和 GoPath
+# GOROOT 位於 /usr/local/go #gosetup
+# GOPATH 位於 /home/panhong/go #gosetup
+
+# 到 Gaea 的專案目錄
+$ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+
+# 對 Gaea 主程式進行編譯
+$ /usr/local/go/bin/go build -o /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea github.com/XiaoMi/Gaea/cmd/gaea #gosetup
+
+# 執行數據庫中間件 Gaea
+$ /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea
+```
+
+執行畫面如下
+
+<img src="./assets/image-20220124142003588.png" alt="image-20220124142003588" style="zoom:110%;" />
+
+### 3 使用 IDE 工具啟動 Gaea
+
+在 IDE 工具內，填入以下內容
+
+| 項目 | 配置       | 參數                                            |
+| ---- | ---------- | ----------------------------------------------- |
+| １   | 名稱       | gaea                                            |
+| ２   | 運行種類   | 軟體包                                          |
+| ３   | 軟體包路徑 | github.com/XiaoMi/Gaea/cmd/gaea                 |
+| ４   | 輸出目錄   | /home/panhong/go/src/github.com/xiaomi/Gaea/bin |
+| ５   | 建構後運行 | 打勾                                            |
+| ６   | 工作目錄   | /home/panhong/go/src/github.com/xiaomi/Gaea     |
+
+配置如下圖
+
+<img src="./assets/image-20220124143836664.png" alt="image-20220124143836664"  /> 
+
+運行狀況如下圖
+
+<img src="./assets/image-20220124145641452.png" alt="image-20220124145641452" style="zoom: 100%;" /> 
+
+## 5 登入數據庫中間件 Gaea
+
+數據庫中間件 Gaea 啟動後，直接啟動中間件
+
+```bash
+# 登入 Gaea 指令如下
+$ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+```
+
+<img src="./assets/image-20220124154131750.png" alt="image-20220124154131750" style="zoom:60%;" /> 
+
+## 6 測試數據庫中間件 Gaea 的讀寫
 
 目前測試的資料如下
 
@@ -234,12 +297,6 @@ MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Cat
 
 MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demon
 s Fiction'); 
-
-
-
-
-
-
 
 
 

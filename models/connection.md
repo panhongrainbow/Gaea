@@ -212,18 +212,81 @@ coordinator_addr=http://127.0.0.1:2379
 
 在 Etcd 服务器内写入以下内容
 
-- key 为 /gaea_cluster/novel_cluster_namespace
+- key 为 /gaea_cluster/namespace/novel_cluster_namespace
 - value 为 命名空间 Json 格式设定值
 
 <img src="./assets/image-20220124113553383.png" alt="image-20220124113553383" style="zoom:80%;" /> 
 
 ## 4 启动数据库中间件 Gaea
 
-登入 Gaea 的指令为
+> 启动的方式有分两种
+>
+> 1. 在终端机去下指令启动 Gaea
+> 2. 使用 IDE 工具启动 Gaea
 
-mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+### 1 建立执行文档的目录
 
-## 5 测试数据库中间件 Gaea 的读写
+```bash
+# 建立执行档集中目录
+$ mkdir -p Gaea/bin/
+```
+
+### 2 在终端机去下指令启动 Gaea
+
+先在终端机进行编译，后执行
+
+```bash
+# 设定 GoRoot 和 GoPath
+# GOROOT 位于 /usr/local/go #gosetup
+# GOPATH 位于 /home/panhong/go #gosetup
+
+# 到 Gaea 的专案目录
+$ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+
+# 对 Gaea 主程式进行编译
+$ /usr/local/go/bin/go build -o /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea github.com/XiaoMi/Gaea/cmd/gaea #gosetup
+
+# 执行数据库中间件 Gaea
+$ /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea
+```
+
+执行画面如下
+
+<img src="./assets/image-20220124142003588.png" alt="image-20220124142003588" style="zoom:110%;" />
+
+### 3 使用 IDE 工具启动 Gaea
+
+在 IDE 工具内，填入以下内容
+
+| 项目 | 配置       | 参数                                            |
+| ---- | ---------- | ----------------------------------------------- |
+| １   | 名称       | gaea                                            |
+| ２   | 运行种类   | 软体包                                          |
+| ３   | 软体包路径 | github.com/XiaoMi/Gaea/cmd/gaea                 |
+| ４   | 输出目录   | /home/panhong/go/src/github.com/xiaomi/Gaea/bin |
+| ５   | 建构后运行 | 打勾                                            |
+| ６   | 工作目录   | /home/panhong/go/src/github.com/xiaomi/Gaea     |
+
+配置如下图
+
+<img src="./assets/image-20220124143836664.png" alt="image-20220124143836664"  /> 
+
+运行状况如下图
+
+<img src="./assets/image-20220124145641452.png" alt="image-20220124145641452" style="zoom: 100%;" /> 
+
+## 5 登入数据库中间件 Gaea
+
+数据库中间件 Gaea 启动后，直接启动中间件
+
+```bash
+# 登入 Gaea 指令如下
+$ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+```
+
+<img src="/home/panhong/.config/Typora/typora-user-images/image-20220124154131750.png" alt="image-20220124154131750" style="zoom:60%;" /> 
+
+## 6 测试数据库中间件 Gaea 的读写
 
 目前测试的资料如下
 
@@ -245,9 +308,7 @@ s Fiction');
 
 
 
-
-
-
+![image-20220124155312270](/home/panhong/.config/Typora/typora-user-images/image-20220124155312270.png)
 
 
 
