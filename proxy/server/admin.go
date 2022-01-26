@@ -233,11 +233,12 @@ func generateToken(protoType, addr string) (string, error) {
 }
 
 func (s *AdminServer) registerProxy() error {
+	// 如果设定值 s.configType 是为文档 File 就直接回传
 	if s.configType == models.ConfigFile {
 		return nil
 	}
-	// 这里再仔细处理
-	client := models.NewClient(models.ConfigEtcdV3, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
+	// 目前设定值 s.configType 可能为 models.ConfigEtcd 和 models.ConfigEtcdV3 两种
+	client := models.NewClient(s.configType, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
 	store := models.NewStore(client)
 	defer store.Close()
 	if err := store.CreateProxy(s.model); err != nil {

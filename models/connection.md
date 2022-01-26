@@ -284,31 +284,78 @@ $ /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea
 $ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
 ```
 
-<img src="/home/panhong/.config/Typora/typora-user-images/image-20220124154131750.png" alt="image-20220124154131750" style="zoom:60%;" /> 
+<img src="./assets/image-20220124154131750.png" alt="image-20220124154131750" style="zoom:60%;" /> 
 
 ## 6 测试数据库中间件 Gaea 的读写
 
-目前测试的资料如下
+> 登入数据库中间件 Gaea ，执行以下 SQL 语句
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Hi
+登入数据库中间件 Gaea，使用数据库 novel
+
+```bash
+# 登入数据库中间件 Gaea
+$ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+# Enter password: 
+# Welcome to the MariaDB monitor.  Commands end with ; or \g.
+# Your MySQL connection id is 10001
+# Server version: 5.6.20-gaea Source distribution
+
+# Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+# Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+# 使用数据库
+$ MySQL [(none)]> USE novel
+# Reading table information for completion of table and column names
+# You can turn off this feature to get a quicker startup with -A
+
+# Database changed
+# MySQL [novel]>
+```
+
+执行以下 SQL 语句
+
+```sql
+-- 第一本小说 三国演义
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Hi
 storical fiction'); 
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction'); 
+-- 第二本小说 水浒传
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction'); 
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demon
+-- 第三本小说 西游记
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demon
 s Fiction'); 
+```
 
+登入数据库中间件 Gaea，执行三笔写入小说资料的 SQL 语句
 
+<img src="./assets/image-20220124182118946.png" alt="image-20220124182118946" style="zoom:100%;" />
 
+登入第一组丛集，查询 Master 数据库的写入资料，三笔小说资料被分配到一笔
 
+![image-20220124182833234](./assets/image-20220124182833234.png)
 
+登入第一组丛集，查询第一台 Slave 数据库的写入资料，三笔小说资料被分配到一笔
 
+![image-20220124182944970](./assets/image-20220124182944970.png)
 
+登入第一组丛集，查询第二台 Slave 数据库的写入资料，三笔小说资料被分配到一笔
 
+![image-20220124183045456](./assets/image-20220124183045456.png)
 
+登入第二组丛集，查询 Master 数据库的写入资料，三笔小说资料被分配到两笔
 
+![image-20220124183141813](./assets/image-20220124183141813.png)
 
-![image-20220124155312270](/home/panhong/.config/Typora/typora-user-images/image-20220124155312270.png)
+登入第二组丛集，查询第一台 Slave 数据库的写入资料，三笔小说资料被分配到两笔
 
+![image-20220124183228814](./assets/image-20220124183228814.png)
 
+登入第二组丛集，查询第二台 Slave 数据库的写入资料，三笔小说资料被分配到两笔
 
+![image-20220124183310893](./assets/image-20220124183310893.png)
+
+最后直接在数据库中间件 Gaea 查询全部三笔的小说资料
+
+<img src="./assets/image-20220126175410955.png" alt="image-20220126175410955" style="zoom:80%;" /> 

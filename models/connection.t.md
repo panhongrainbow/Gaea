@@ -288,23 +288,74 @@ $ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
 
 ## 6 測試數據庫中間件 Gaea 的讀寫
 
-目前測試的資料如下
+> 登入數據庫中間件 Gaea ，執行以下 SQL 語句
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Hi
+登入數據庫中間件 Gaea，使用數據庫 novel
+
+```bash
+# 登入數據庫中間件 Gaea
+$ mysql -h 127.0.0.1 -P 13306 --protocol=TCP -u xiaomi -p
+# Enter password: 
+# Welcome to the MariaDB monitor.  Commands end with ; or \g.
+# Your MySQL connection id is 10001
+# Server version: 5.6.20-gaea Source distribution
+
+# Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+# Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+# 使用數據庫
+$ MySQL [(none)]> USE novel
+# Reading table information for completion of table and column names
+# You can turn off this feature to get a quicker startup with -A
+
+# Database changed
+# MySQL [novel]>
+```
+
+執行以下 SQL 語句
+
+```sql
+-- 第一本小說 三國演義
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(1, 9781517191276, 'Romance Of The Three Kingdoms', 'Luo Guanzhong', 1522, 'Hi
 storical fiction'); 
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction'); 
+-- 第二本小說 水滸傳
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(2, 9789869442060, 'Water Margin', 'Shi Nai an', 1589, 'Historical fiction'); 
 
-MySQL [novel]> INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demon
+-- 第三本小說 西遊記
+INSERT INTO novel.Book (BookID, Isbn, Title, Author, Publish, Category) VALUES(3, 9789575709518, 'Journey To The West', 'Wu Cheng en', 1592, 'Gods And Demon
 s Fiction'); 
+```
 
+登入數據庫中間件 Gaea，執行三筆寫入小說資料的 SQL 語句
 
+<img src="./assets/image-20220124182118946.png" alt="image-20220124182118946" style="zoom:100%;" />
 
+登入第一組叢集，查詢 Master 數據庫的寫入資料，三筆小說資料被分配到一筆
 
+![image-20220124182833234](./assets/image-20220124182833234.png)
 
+登入第一組叢集，查詢第一台 Slave 數據庫的寫入資料，三筆小說資料被分配到一筆
 
+![image-20220124182944970](./assets/image-20220124182944970.png)
 
+登入第一組叢集，查詢第二台 Slave 數據庫的寫入資料，三筆小說資料被分配到一筆
 
+![image-20220124183045456](./assets/image-20220124183045456.png)
 
+登入第二組叢集，查詢 Master 數據庫的寫入資料，三筆小說資料被分配到兩筆
 
+![image-20220124183141813](./assets/image-20220124183141813.png)
 
+登入第二組叢集，查詢第一台 Slave 數據庫的寫入資料，三筆小說資料被分配到兩筆
+
+![image-20220124183228814](./assets/image-20220124183228814.png)
+
+登入第二組叢集，查詢第二台 Slave 數據庫的寫入資料，三筆小說資料被分配到兩筆
+
+![image-20220124183310893](./assets/image-20220124183310893.png)
+
+最後直接在數據庫中間件 Gaea 查詢全部三筆的小說資料
+
+<img src="./assets/image-20220126175410955.png" alt="image-20220126175410955" style="zoom:80%;" /> 
