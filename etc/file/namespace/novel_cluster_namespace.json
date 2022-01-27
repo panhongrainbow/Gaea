@@ -1,0 +1,65 @@
+{
+  "name": "novel_cluster_namespace",
+  "online": true,
+  "read_only": false,
+  "allowed_dbs": {
+    "novel": true
+  },
+  "slow_sql_time": "1000",
+  "black_sql": [
+    ""
+  ],
+  "allowed_ip": null,
+  "slices": [
+    {
+      "name": "slice-0",
+      "user_name": "xiaomi",
+      "password": "12345",
+      "master": "192.168.122.2:3309",
+      "slaves": ["192.168.122.2:3310", "192.168.122.2:3311"],
+      "statistic_slaves": null,
+      "capacity": 12,
+      "max_capacity": 24,
+      "idle_timeout": 60
+    },
+    {
+      "name": "slice-1",
+      "user_name": "xiaomi",
+      "password": "12345",
+      "master": "192.168.122.2:3312",
+      "slaves": ["192.168.122.2:3313", "192.168.122.2:3314"],
+      "statistic_slaves": null,
+      "capacity": 12,
+      "max_capacity": 24,
+      "idle_timeout": 60
+    }
+  ],
+  "shard_rules": [
+    {
+      "db": "novel",
+      "table": "Book",
+      "type": "hash",
+      "key": "BookID",
+      "locations": [
+        1,
+        1
+      ],
+      "slices": [
+        "slice-0",
+        "slice-1"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "user_name": "xiaomi",
+      "password": "12345",
+      "namespace": "novel_cluster_namespace",
+      "rw_flag": 2,
+      "rw_split": 1,
+      "other_property": 0
+    }
+  ],
+  "default_slice": "slice-0",
+  "global_sequences": null
+}

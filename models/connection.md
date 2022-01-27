@@ -1,10 +1,53 @@
-# Gaea 数据库中间件连线启动说明
+# Gaea 数据库中间件连线说明
 
-> 此为 store.md 的辅助说明文件，当 store.go 把读取设定文档的接口制定后，数据库中间件就可以读取设定值正常启动
+> - 整个 Gaea 设定值读取和写入的逻辑由 Gaea/models/store.go 进行处理
+> - 这份文档主要在说明 如何在设定文档上，设定对数据库中间件 Gaea 连线相关设定值后，立即进行连线
+>   目前支援的设定方式
+>   1. 文档 File
+>   2. 网路 Etcd V2 API
+>   3. 网路 Etcd V3 API
+>
 
-## 1 读取环境说明
+## 1 测试环境说明
 
-先略过，因为要画架构图
+###  1 测试环境架构
+
+丛集名称为 gaea_cluster，内含两个数据库 Cluster
+
+1. 数据库丛集一 Cluster1，1台 Master 和 2 台 Slave，数据库名称为 novel ，数据表为 Book_0000
+2. 数据库丛集二 Cluster2，1台 Master 和 2 台 Slave，数据库名称为 novel ，数据表为 Book_0001
+
+以下为架构图
+
+<img src="./assets/image-20220127114256168.png" alt="image-20220127114256168" style="zoom:80%;" /> 
+
+### 2 测试环境的数据库 Schema
+
+表名不管是 Book_0000 或者是 Book_0001，都使用相同的 Schema
+
+```sql
+-- 创建数据表 Book_0000
+CREATE TABLE `novel`.`Book_0000` (
+  `BookID` int(11) NOT NULL,
+  `Isbn` bigint(50) NOT NULL,
+  `Title` varchar(100) NOT NULL,
+  `Author` varchar(30) DEFAULT NULL,
+  `Publish` int(4) DEFAULT NULL,
+  `Category` varchar(30) NOT NULL,
+  PRIMARY KEY (`BookID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 创建数据表 Book_0001
+CREATE TABLE `novel`.`Book_0001` (
+  `BookID` int(11) NOT NULL,
+  `Isbn` bigint(50) NOT NULL,
+  `Title` varchar(100) NOT NULL,
+  `Author` varchar(30) DEFAULT NULL,
+  `Publish` int(4) DEFAULT NULL,
+  `Category` varchar(30) NOT NULL,
+  PRIMARY KEY (`BookID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
 
 ## 2 设定值的内容
 
@@ -35,24 +78,24 @@
 
 | 演算法设定项目 | 演算法设定值          | 说明                                                         |
 | -------------- | --------------------- | ------------------------------------------------------------ |
-| 用户名称       | hash                  | kingshard hash分片演算法                                     |
+| 用户名称       | hash                  | Kingshard Hash 分片演算法                                    |
 | 分表依据的键值 | BookID                | 会以 BookID 的数值作为分表的依据                             |
-| 数据表数量     | [1,1]                 | 阵列 [1,1] 分别指出每一个切片的数据表数量，比如<br />slice-0 有 1 个 数据表，<br />slice-1 有 1 个 数据表 |
-| 切片列表阵列   | ["slice-0","slice-1"] | 这个命名空间里，有两个切片，分别为 slice-0 和 slice-1        |
+| 数据表数量     | [1,1]                 | 阵列 [1,1] 分别指出每一个切片的数据表数量，比如<br />slice-0 有 1 张 数据表，<br />slice-1 有 1 张 数据表 |
+| 切片列表阵列   | ["slice-0","slice-1"] | 此命名空间里，有两个切片，分别为 slice-0 和 slice-1          |
 
 ### 5 命名空间操作用户设定值
 
-| 用户设定项目   | 用户设定值                             | 说明                                                         |
-| -------------- | -------------------------------------- | ------------------------------------------------------------ |
-| 用户名称       | xiaomi                                 |                                                              |
-| 用户密码       | 12345                                  |                                                              |
-| 命名空间的名称 | novel_cluster_namespace                |                                                              |
-| 用户读写标记   | rw_flag 为 2 ，该用户可进行读写操作    | rw_flag 为 1，只能进行 唯读 操作<br />rw_flag 为 2，可进行 读写 操作 |
-| 读写分离标记   | rw_split 为 1，该用户进行 读写分离操作 | rw_split 为 0，进行 非读写 分离操作<br />rw_split 为 1，进行 读写 分离操作 |
+| 用户设定项目 | 用户设定值                              | 说明                                                         |
+| ------------ | --------------------------------------- | ------------------------------------------------------------ |
+| 用户名称     | xiaomi                                  |                                                              |
+| 用户密码     | 12345                                   |                                                              |
+| 命名空间名称 | novel_cluster_namespace                 |                                                              |
+| 用户读写标记 | rw_flag 为 2 ，该用户可进行 读写 操作   | rw_flag 为 1，只能进行 唯读 操作<br />rw_flag 为 2，可进行 读写 操作 |
+| 读写分离标记 | rw_split 为 1，该用户进行 读写分离 操作 | rw_split 为 0，进行 非读写分离 操作<br />rw_split 为 1，进行 读写分离 操作 |
 
 ### 6 命名空间 JSON 格式设定值
 
-JSON 格式的设定内容如下，这份设定值可以储存在文档里或网路中，设定值都一模一样
+命名空间 JSON 格式设定值 内容如下，这份设定值可以储存在 设定文档 里或 网路 中，设定值都一模一样
 
 ```json
 {
@@ -124,15 +167,15 @@ JSON 格式的设定内容如下，这份设定值可以储存在文档里或网
 
 ## 3 命名空间设定值储存方式
 
-> 目前支援设定档的读取方式为
+> 目前支援设定档的读取方式为，整个逻辑由 Gaea/models/store.go 控制
 >
-> 1. 方法一：使用 File 文档去储存设定值
-> 2. 方法二：使用 Etcd V2 API 去储存设定值
-> 3. 方法三：使用 Etcd V3 API 去储存设定值
+> 1. 方法一：使用文档 File 去储存设定值
+> 2. 方法二：使用网路 Etcd V2 API 去储存设定值
+> 3. 方法三：使用网路 Etcd V3 API 去储存设定值
 
 ### 1 使用文档 File 储存
 
-> 当准备使用 File 文档去储存设定值时，需要修改改两个设定文档
+> 当准备使用文档 File 去储存设定值时，需要修改改两个设定文档
 >
 > 1. 初始化设定文档，位于 Gaea/etc/gaea.ini
 > 2. 命名空间设定文档，集中于目录 Gaea/etc/file/namespace/
@@ -158,7 +201,7 @@ cluster_name=gaea_cluster
 ; 以下略过，因为重点要把前面的 config_type 设定值改成 file
 ```
 
-- 在目录 Gaea/etc/file/namespace 下新增一个命名空间设定档，档名为 novel_cluster_namespace.json，关于 小说数据库丛集 的相关设定
+- 在目录 Gaea/etc/file/namespace 下新增一个命名空间设定档，档名为 novel_cluster_namespace.json，内容为 小说数据库丛集 的相关设定
 
 - 在命名空间设定文档内 novel_cluster_namespace.json 内指定命名空间名称为 novel_cluster_namespace
 
@@ -196,7 +239,8 @@ cluster_name=gaea_cluster
 ```ini
 ; 这里的重点在把 config_type 值改成 file，并修改丛集名称!!!!!
 
-; config type, etcd/file, you can test gaea with file type, you shoud use etcd in production
+; config type, etcd/file/etcdv3, you can test gaea with file type, you shoud use etcd/etcdv3 in production
+; 请指定设定方式为 file 或 etcd 或 etcdv3
 config_type=etcdv3
 ; file config path, 具体配置放到file_config_path的namespace目录下，该下级目录为固定目录
 file_config_path=./etc/file
@@ -213,7 +257,7 @@ coordinator_addr=http://127.0.0.1:2379
 在 Etcd 服务器内写入以下内容
 
 - key 为 /gaea_cluster/namespace/novel_cluster_namespace
-- value 为 命名空间 Json 格式设定值
+- value 为 之前提到的命名空间 Json 格式设定值
 
 <img src="./assets/image-20220124113553383.png" alt="image-20220124113553383" style="zoom:80%;" /> 
 
@@ -236,7 +280,7 @@ $ mkdir -p Gaea/bin/
 先在终端机进行编译，后执行
 
 ```bash
-# 设定 GoRoot 和 GoPath
+# GoRoot 和 GoPath 设定值
 # GOROOT 位于 /usr/local/go #gosetup
 # GOPATH 位于 /home/panhong/go #gosetup
 
@@ -275,9 +319,33 @@ $ /home/panhong/go/src/github.com/panhongrainbow/Gaea/bin/gaea
 
 <img src="./assets/image-20220124145641452.png" alt="image-20220124145641452" style="zoom: 100%;" /> 
 
+### 4 启动后服务发现
+
+数据库中间件 Gaea 启动后，会在服务器 Etcd 里新增一个 key /gaea_cluster/proxy/proxy-127.0.0.1:13306
+
+其 value 内容如下
+
+```json
+{
+  "token": "127.0.0.1:13306",
+  "start_time": "2022-01-24 11:22:03.46517227 +0800 CST m=+0.066173904",
+  "ip": "127.0.0.1",
+  "proto_type": "tcp4",
+  "proxy_port": "13306",
+  "admin_port": "13307",
+  "pid": 10628,
+  "pwd": "/home/panhong/go/src/github.com/panhongrainbow/Gaea",
+  "sys": "Linux debian5 5.10.0-10-amd64 #1 SMP Debian 5.10.84-1 (2021-12-08) x86_64 GNU/Linux"
+}
+```
+
+执行状况如下图
+
+<img src="./assets/image-20220127142531692.png" alt="image-20220127142531692" style="zoom:80%;" /> 
+
 ## 5 登入数据库中间件 Gaea
 
-数据库中间件 Gaea 启动后，直接启动中间件
+数据库中间件 Gaea 启动后，直接进行登入
 
 ```bash
 # 登入 Gaea 指令如下
