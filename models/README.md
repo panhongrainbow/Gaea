@@ -6,7 +6,7 @@
 
 Model 目录包含以下功能
 
-- 处理设定文档的读写逻辑
+- 处理设定值的读写逻辑
 
 
 
@@ -14,7 +14,7 @@ Model 目录包含以下功能
 
 以下为相关文档
 
-- [指定设定值的读写方式 (file etcd etcdv3](./connection.md)
+- [指定设定值的读写方式 (file etcd etcdv3)](./connection.md)
 
 
 
