@@ -251,7 +251,8 @@ func (s *AdminServer) unregisterProxy() error {
 	if s.configType == models.ConfigFile {
 		return nil
 	}
-	client := models.NewClient(models.ConfigEtcd, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
+	// s.configType 设定为 models.ConfigEtcdV3 或 models.ConfigEtcd
+	client := models.NewClient(s.configType, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
 	store := models.NewStore(client)
 	defer store.Close()
 	if err := store.DeleteProxy(s.model.Token); err != nil {
@@ -282,7 +283,8 @@ func (s *AdminServer) prepareConfig(c *gin.Context) {
 		c.JSON(selfDefinedInternalError, "missing namespace name")
 		return
 	}
-	client := models.NewClient(models.ConfigEtcd, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
+	// s.configType 设定为 models.ConfigEtcdV3 或 models.ConfigEtcd
+	client := models.NewClient(s.configType, s.coordinatorAddr, s.coordinatorUsername, s.coordinatorPassword, s.coordinatorRoot)
 	defer client.Close()
 	err := s.proxy.ReloadNamespacePrepare(name, client)
 	if err != nil {
