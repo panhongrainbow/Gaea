@@ -16,10 +16,8 @@ package backend
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net"
 	"sync"
 	"testing"
@@ -45,10 +43,9 @@ func TestAppendSetVariable2(t *testing.T) {
 	t.Log(buf.String())
 }
 
-// TestDCWithoutDB 为使用直连函式去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
-func TestDCWithoutDB(t *testing.T) {
+var (
 	// 准备资料库的回应资料
-	mysqlResponse := []uint8{
+	mysqlInitHandShakeResponse = []uint8{
 		// 资料长度
 		93, 0, 0,
 		// 自增序列号码
@@ -88,36 +85,75 @@ func TestDCWithoutDB(t *testing.T) {
 		105, 118, 101, 95, 112, 97, 115, 115, 119, 111,
 		114, 100, 0,
 	}
+)
+
+// 再看看如何写最好
+
+// dcMocker 用来模拟数据库服务器的读取和回应
+type dcMocker struct {
+	t         *testing.T      // 单元测试的物件
+	bufReader *bufio.Reader   // 服务器的读取
+	bufWriter *bufio.Writer   // 服务器的回应
+	connRead  net.Conn        // pipe 的读取连线
+	connWrite net.Conn        // pipe 的读取连线
+	err       error           // 错误
+	wg        *sync.WaitGroup // 流程的操作边界
+}
+
+// 产生新的 dc 模拟物件
+func newDcMocker(t *testing.T, read, write net.Conn) *dcMocker {
+	return &dcMocker{
+		t:         t,                      // 单元测试的物件
+		bufReader: bufio.NewReader(read),  // 服务器的读取 (实现缓存)
+		bufWriter: bufio.NewWriter(write), // 服务器的回应 (实现缓存)
+		connRead:  read,                   // pipe 的读取连线
+		connWrite: write,                  // pipe 的读取连线
+		wg:        &sync.WaitGroup{},      // 流程的操作边界
+	}
+}
+
+// dc 模拟开始
+func (dcM *dcMocker) start() {
+	dcM.wg.Add(2)
+}
+
+// dc 模拟结束
+func (dcM *dcMocker) end() {
+	_ = dcM.connRead.Close()
+	dcM.wg.Done()
+	dcM.wg.Wait()
+}
+
+// dc 模拟传送数据
+func (dcM *dcMocker) send(data []uint8) { // 先读取 pipe 再写入
+	// 重新设定 pipe
+
+	// 启动数据库
+	_, err := dcM.bufWriter.Write(data) // 回传给客户端
+	err = dcM.bufWriter.Flush()         // 把缓存资料写进 pipe
+	require.Equal(dcM.t, err, nil)
+	err = dcM.connWrite.Close() // 资料写入完成，终结连线
+	require.Equal(dcM.t, err, nil)
+
+	// 写入工作完成
+	dcM.wg.Done()
+}
+
+// TestDCWithoutDB 为使用直连函式去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestDCWithoutDB(t *testing.T) {
 
 	// 测试开始
 	t.Run("测试数据库连线的直連流程", func(t *testing.T) {
-		// 先建立 pipe
-		read, write := net.Pipe()
+		// 开始模拟
 
-		// 实现缓存
-		// reader := bufio.NewReaderSize(read, connBufferSize) // 用来模拟 Gaea 读取数据
-		writer := bufio.NewWriter(write) // 用来模拟数据库回传数据
+		read, write := net.Pipe()                      // 先建立 pipe
+		mockServer := newDcMocker(t, read, write)      // 产生数据库模拟物件
+		mockServer.start()                             // 模拟正式开始
+		go mockServer.send(mysqlInitHandShakeResponse) // 模拟数据库开始交握
 
-		// 进行等待作业
-		wg := sync.WaitGroup{}
-		wg.Add(1)
-
-		// 启动数据库
-		go func() {
-			_, err := writer.Write(mysqlResponse) // 回传给客户端
-			require.Equal(t, err, nil)
-			err = writer.Flush() // 把缓存资料写进 pipe
-			require.Equal(t, err, nil)
-			err = write.Close() // 资料写入完成，终结连线
-			require.Equal(t, err, nil)
-
-			// 工作完成
-			wg.Done()
-		}()
-
-		// 產生 Conn 物件
+		// 產生 Mysql dc 直連物件
 		var dc DirectConnection
-		var mysqlConn = mysql.NewConn(read)
+		var mysqlConn = mysql.NewConn(mockServer.connRead)
 		dc.conn = mysqlConn
 		err := dc.readInitialHandshake()
 		require.Equal(t, err, nil)
@@ -173,10 +209,12 @@ func TestDCWithoutDB(t *testing.T) {
 		require.Equal(t, dc.status, mysql.ServerStatusAutocommit)                                                             // 检查服务器状态
 
 		// 等待中
-		wg.Wait()
+		mockServer.end()
+
+		// wg.Wait()
 
 		// 以下未完成之后再处理
-		read2, write2 := net.Pipe()
+		/*read2, write2 := net.Pipe()
 		mysqlConn = mysql.NewConn(read2)
 		mysqlConn.TestWriter(write2)
 		dc.conn = mysqlConn
@@ -190,7 +228,7 @@ func TestDCWithoutDB(t *testing.T) {
 
 		var data [20]byte
 		_, err = io.ReadFull(read2, data[:])
-		fmt.Println("data", data)
+		fmt.Println("data", data)*/
 	})
 
 }
