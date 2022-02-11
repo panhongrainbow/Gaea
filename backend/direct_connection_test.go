@@ -87,76 +87,138 @@ var (
 	}
 )
 
-// 再看看如何写最好
+// replyFuncType 回应函式的型态
+type replyFuncType func([]uint8) []uint8
 
-// dcMocker 用来模拟数据库服务器的读取和回应
+// testReplyFunc 在这里会处理常接收到什么讯息，要将下来跟着回应什么讯息
+// 目前此函式只是在测试验证流程，回应讯息为接收讯息加 1
+//     比如 当接收值为 1，就会回传值为 2 给对方
+//     比如 当接收值为 2，就会回传值为 3 给对方
+func testReplyFunc(data []uint8) []uint8 {
+	return []uint8{data[0] + 1} // 回应讯息为接收讯息加 1
+}
+
+// dcMocker 用来模拟数据库服务器的读取和回应的物件
 type dcMocker struct {
 	t         *testing.T      // 单元测试的物件
 	bufReader *bufio.Reader   // 服务器的读取
 	bufWriter *bufio.Writer   // 服务器的回应
 	connRead  net.Conn        // pipe 的读取连线
-	connWrite net.Conn        // pipe 的读取连线
-	err       error           // 错误
+	connWrite net.Conn        // pipe 的写入连线
 	wg        *sync.WaitGroup // 流程的操作边界
+	replyFunc replyFuncType   // 设定相对应的回应函式
+	err       error           // 错误
 }
 
-// 产生新的 dc 模拟物件
-func newDcMocker(t *testing.T, read, write net.Conn) *dcMocker {
+// newDcMocker 产生新的 dc 模拟物件
+func newDcMocker(t *testing.T, reply replyFuncType) *dcMocker {
+	read, write := net.Pipe() // 先建立 pipe
 	return &dcMocker{
 		t:         t,                      // 单元测试的物件
 		bufReader: bufio.NewReader(read),  // 服务器的读取 (实现缓存)
 		bufWriter: bufio.NewWriter(write), // 服务器的回应 (实现缓存)
 		connRead:  read,                   // pipe 的读取连线
-		connWrite: write,                  // pipe 的读取连线
+		connWrite: write,                  // pipe 的写入连线
 		wg:        &sync.WaitGroup{},      // 流程的操作边界
+		replyFunc: reply,                  // 回应函式
 	}
 }
 
-// dc 模拟开始
-func (dcM *dcMocker) start() {
-	dcM.wg.Add(2)
+// resetDcMocker 为重置 dc 模拟物件
+func (dcM *dcMocker) resetDcMocker() error {
+	newRead, newWrite := net.Pipe()           // 先建立 pipe
+	dcM.bufReader = bufio.NewReader(newRead)  // 服务器的读取 (实现缓存)
+	dcM.bufWriter = bufio.NewWriter(newWrite) // 服务器的回应 (实现缓存)
+	dcM.connRead = newRead                    // pipe 的读取连线
+	dcM.connWrite = newWrite                  // pipe 的写入连线
+	dcM.wg = &sync.WaitGroup{}                // 流程的操作边界
+	return nil                                // 正常回传
 }
 
-// dc 模拟结束
-func (dcM *dcMocker) end() {
-	_ = dcM.connRead.Close()
-	dcM.wg.Done()
+// sendOrReceive 为直连 dc 用来模拟接收或传入讯息
+func (dcM *dcMocker) sendOrReceive(data []uint8) *dcMocker {
+	// dc 模拟开始
+	dcM.wg.Add(1) // 只要等待直到确认资料有写入 pipe
+
+	// 在这里执行 1传送讯息 或者是 2接收讯息
+	go func() {
+		// 执行写入工作
+		_, err := dcM.bufWriter.Write(data) // 写入资料到 pipe
+		err = dcM.bufWriter.Flush()         // 把缓存资料写进 pipe
+		require.Equal(dcM.t, err, nil)
+		err = dcM.connWrite.Close() // 资料写入完成，终结连线
+		require.Equal(dcM.t, err, nil)
+
+		// 写入工作完成
+		dcM.wg.Done()
+	}()
+
+	// 重复使用物件
+	return dcM
+}
+
+// reply 为直连 dc 用来模拟 dc 回应数据
+func (dcM *dcMocker) reply() (msg []uint8) {
+	// 读取传送过来的讯息
+	b, _, err := dcM.bufReader.ReadLine()
+	require.Equal(dcM.t, err, nil)
+
+	// 等待和确认资料已经写入 pipe
 	dcM.wg.Wait()
-}
 
-// dc 模拟传送数据
-func (dcM *dcMocker) send(data []uint8) { // 先读取 pipe 再写入
-	// 重新设定 pipe
-
-	// 启动数据库
-	_, err := dcM.bufWriter.Write(data) // 回传给客户端
-	err = dcM.bufWriter.Flush()         // 把缓存资料写进 pipe
-	require.Equal(dcM.t, err, nil)
-	err = dcM.connWrite.Close() // 资料写入完成，终结连线
+	// 重置模拟物件
+	err = dcM.resetDcMocker()
 	require.Equal(dcM.t, err, nil)
 
-	// 写入工作完成
-	dcM.wg.Done()
+	// 回传回应讯息
+	if dcM.replyFunc != nil {
+		msg = dcM.replyFunc(b)
+	}
+
+	// 回应
+	return
 }
 
 // TestDCWithoutDB 为使用直连函式去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
 func TestDCWithoutDB(t *testing.T) {
+	t.Run("此为 DC 测试的验证测试，主要是用来确认整个测试流程没有问题", func(t *testing.T) {
+		// 开始模拟物件
+		mockClient := newDcMocker(t, testReplyFunc) // 产生 Gaea 模拟物件
+		mockServer := newDcMocker(t, testReplyFunc) // 产生 MariaDB 模拟物件
 
-	// 测试开始
-	t.Run("测试数据库连线的直連流程", func(t *testing.T) {
+		// 产生一开始的讯息和预期讯息
+		msg0 := []uint8{0}  // 起始传送讯息
+		correct := uint8(0) // 预期的正确讯息
+
+		// 产生一连串的接收和回应的操作
+		for i := 0; i < 5; i++ {
+			msg1 := mockClient.sendOrReceive(msg0).reply() // 接收和回应
+			correct++                                      // 每经过一个接收和回应的操作时，回应讯息会加1
+			require.Equal(t, msg1[0], correct)
+			msg0 = mockServer.sendOrReceive(msg1).reply() // 接收和回应
+			correct++                                     // 每经过一个接收和回应的操作时，回应讯息会加1
+			require.Equal(t, msg0[0], correct)
+		}
+	})
+	// 开始正式测试
+	t.Run("测试数据库连线的实际直連流程", func(t *testing.T) {
 		// 开始模拟
-
-		read, write := net.Pipe()                      // 先建立 pipe
-		mockServer := newDcMocker(t, read, write)      // 产生数据库模拟物件
-		mockServer.start()                             // 模拟正式开始
-		go mockServer.send(mysqlInitHandShakeResponse) // 模拟数据库开始交握
+		mockClient := newDcMocker(t, nil)                    // 产生数据库模拟物件
+		mockClient.sendOrReceive(mysqlInitHandShakeResponse) // 模拟数据库开始交握
 
 		// 產生 Mysql dc 直連物件
 		var dc DirectConnection
-		var mysqlConn = mysql.NewConn(mockServer.connRead)
+		var mysqlConn = mysql.NewConn(mockClient.connRead)
 		dc.conn = mysqlConn
 		err := dc.readInitialHandshake()
 		require.Equal(t, err, nil)
+
+		// 等待和确认资料已经写入 pipe
+		mockClient.wg.Wait()
+
+		// 重置模拟物件
+		err = mockClient.resetDcMocker()
+		require.Equal(mockClient.t, err, nil)
 
 		// 开始计算
 
@@ -207,11 +269,6 @@ func TestDCWithoutDB(t *testing.T) {
 		require.Equal(t, dc.conn.ConnectionID, uint32(16))                                                                    // 检查连线编号 connection id
 		require.Equal(t, dc.salt, []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}) // 检查 Salt
 		require.Equal(t, dc.status, mysql.ServerStatusAutocommit)                                                             // 检查服务器状态
-
-		// 等待中
-		mockServer.end()
-
-		// wg.Wait()
 
 		// 以下未完成之后再处理
 		/*read2, write2 := net.Pipe()
