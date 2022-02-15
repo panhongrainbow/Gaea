@@ -68,6 +68,44 @@ func (dcM *DcMocker) GetConnWrite() net.Conn {
 	return dcM.connWrite
 }
 
+// GetBufReader 为获得直连 dc 模拟物件的读取缓存
+func (dcM *DcMocker) GetBufReader() *bufio.Reader {
+	return dcM.bufReader
+}
+
+// GetBufWriter 为获得直连 dc 模拟物件的写入缓存
+func (dcM *DcMocker) GetBufWriter() *bufio.Writer {
+	return dcM.bufWriter
+}
+
+// PutConnRead 为临时修改直连 dc 模拟物件的读取连线
+func (dcM *DcMocker) PutConnRead(connRead net.Conn, bufReader *bufio.Reader) error {
+	// 先进行修改
+	if connRead != nil {
+		dcM.connRead = connRead // 修改连线
+	}
+	if bufReader != nil {
+		dcM.bufReader = bufReader // 修改缓存
+	}
+
+	// 正确回传
+	return nil
+}
+
+// PutConnWrite 为临时修改直连 dc 模拟物件的写入连线
+func (dcM *DcMocker) PutConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error {
+	// 先进行修改
+	if connWrite != nil {
+		dcM.connWrite = connWrite // 修改连线
+	}
+	if bufWriter != nil {
+		dcM.bufWriter = bufWriter // 修改缓存
+	}
+
+	// 正确回传
+	return nil
+}
+
 // ResetDcMockers 为重置单一连线方向的直连 dc 模拟物件
 func (dcM *DcMocker) ResetDcMockers(otherSide *DcMocker) error {
 	// 重新建立全新两组 Pipe
