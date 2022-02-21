@@ -13,7 +13,7 @@ class pipeTest.DcMocker {
     GetConnWrite() net.Conn
     GetBufReader() *bufio.Reader
     GetBufWriter() *bufio.Writer
-    PutConnRead(connRead net.Conn, bufReader *bufio.Reader) error
+    OverwriteConnRead(connRead net.Conn, bufReader *bufio.Reader) error
     PutConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error
     ResetDcMockers(otherSide *DcMocker) error
     SendOrReceive(data []uint8) *DcMocker

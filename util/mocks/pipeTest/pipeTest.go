@@ -11,50 +11,50 @@ import (
 // ReplyFuncType 回应函式的型态
 type ReplyFuncType func([]uint8) []uint8
 
-// TestReplyFunc 在这里会处理常接收到什么讯息，要将下来跟着回应什么讯息
-// 目前此函式只是在测试验证流程，回应讯息为接收讯息加 1
+// TestReplyFunc　，目前是用于验证测试流程是否正确，在这里会处理常接收到什么讯息，要将下来跟着回应什么讯息
+// 每次的回应讯息为接收讯息加 1
 //     比如 当接收值为 1，就会回传值为 2 给对方
 //     比如 当接收值为 2，就会回传值为 3 给对方
 func TestReplyFunc(data []uint8) []uint8 {
 	return []uint8{data[0] + 1} // 回应讯息为接收讯息加 1
 }
 
-// DcMocker 用来模拟数据库服务器的读取和回应的物件
+// DcMocker 用来模拟数据库服务器的读取和回应的对象
 type DcMocker struct {
-	t         *testing.T      // 单元测试的物件
-	bufReader *bufio.Reader   // 服务器的读取
-	bufWriter *bufio.Writer   // 服务器的回应
-	connRead  net.Conn        // pipe 的读取连线
-	connWrite net.Conn        // pipe 的写入连线
-	wg        *sync.WaitGroup // 流程的操作边界
+	t         *testing.T      // 单元测试对象
+	bufReader *bufio.Reader   // 服务器的读取 (实现缓存)
+	bufWriter *bufio.Writer   // 服务器的写入 (实现缓存)
+	connRead  net.Conn        // pipe 的读取连线 (接收端)
+	connWrite net.Conn        // pipe 的写入连线 (传送端)
+	wg        *sync.WaitGroup // 在测试流程的操作边界等待
 	replyFunc ReplyFuncType   // 设定相对应的回应函式
 	err       error           // 错误
 }
 
-// NewDcServerClient 产生直连 DC 模拟双方，包含客户端和服务端
+// NewDcServerClient 产生直连 DC 模拟双方对象，包含客户端对象和服务端对象
 func NewDcServerClient(t *testing.T, reply ReplyFuncType) (mockClient *DcMocker, mockServer *DcMocker) {
 	// 先产生两组 Pipe
 	read0, write0 := net.Pipe() // 第一组 Pipe
 	read1, write1 := net.Pipe() // 第二组 Pipe
 
-	// 产生客户端和服务端双方，分别为 mockClient 和 mockServer
-	mockClient = NewDcMocker(t, read0, write1, reply)
-	mockServer = NewDcMocker(t, read1, write0, reply)
+	// 产生客户端和服务端直连 DC 模拟双方对象，分别为 mockClient 和 mockServer
+	mockClient = NewDcMocker(t, read0, write1, reply) // 客户端
+	mockServer = NewDcMocker(t, read1, write0, reply) // 服务端
 
 	// 结束
 	return
 }
 
-// NewDcMocker 产生新的 dc 模拟物件
+// NewDcMocker 产生新的直连 dc 模拟物件
 func NewDcMocker(t *testing.T, connRead, connWrite net.Conn, reply ReplyFuncType) *DcMocker {
 	return &DcMocker{
 		t:         t,                          // 单元测试的物件
 		bufReader: bufio.NewReader(connRead),  // 服务器的读取 (实现缓存)
-		bufWriter: bufio.NewWriter(connWrite), // 服务器的回应 (实现缓存)
-		connRead:  connRead,                   // pipe 的读取连线
-		connWrite: connWrite,                  // pipe 的写入连线
-		wg:        &sync.WaitGroup{},          // 流程的操作边界
-		replyFunc: reply,                      // 回应函式
+		bufWriter: bufio.NewWriter(connWrite), // 服务器的写入 (实现缓存)
+		connRead:  connRead,                   // pipe 的读取连线 (接收端)
+		connWrite: connWrite,                  // pipe 的写入连线 (传送端)
+		wg:        &sync.WaitGroup{},          // 在测试流程的操作边界等待
+		replyFunc: reply,                      // 设定相对应的回应函式
 	}
 }
 
@@ -68,38 +68,39 @@ func (dcM *DcMocker) GetConnWrite() net.Conn {
 	return dcM.connWrite
 }
 
-// GetBufReader 为获得直连 dc 模拟物件的读取缓存
+// GetBufReader 为获得直连 dc 模拟物件的缓存读取
 func (dcM *DcMocker) GetBufReader() *bufio.Reader {
 	return dcM.bufReader
 }
 
-// GetBufWriter 为获得直连 dc 模拟物件的写入缓存
+// GetBufWriter 为获得直连 dc 模拟物件的缓存写入
 func (dcM *DcMocker) GetBufWriter() *bufio.Writer {
 	return dcM.bufWriter
 }
 
-// PutConnRead 为临时修改直连 dc 模拟物件的读取连线
-func (dcM *DcMocker) PutConnRead(connRead net.Conn, bufReader *bufio.Reader) error {
+// OverwriteConnRead 为临时覆写取代直连 dc 模拟物件的读取连线
+func (dcM *DcMocker) OverwriteConnRead(connRead net.Conn, bufReader *bufio.Reader) error {
 	// 先进行修改
 	if connRead != nil {
-		dcM.connRead = connRead // 修改连线
+		dcM.connRead = connRead // 修改读取连线
 	}
 	if bufReader != nil {
-		dcM.bufReader = bufReader // 修改缓存
+		dcM.bufReader = bufReader // 修改读取缓存
 	}
 
 	// 正确回传
 	return nil
 }
 
-// PutConnWrite 为临时修改直连 dc 模拟物件的写入连线
-func (dcM *DcMocker) PutConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error {
-	// 先进行修改
+// OverwriteConnWrite 为临时覆写取代直连 dc 模拟物件的 写入连线 connWrite 或者是 缓存写入 bufWriter
+func (dcM *DcMocker) OverwriteConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error {
+	// 如果 写入连线 connWrite 参数传入为空值时，则进行修改
 	if connWrite != nil {
-		dcM.connWrite = connWrite // 修改连线
+		dcM.connWrite = connWrite
 	}
+	// 如果 缓存写入 bufWriter 参数传入为空值时，则进行修改
 	if bufWriter != nil {
-		dcM.bufWriter = bufWriter // 修改缓存
+		dcM.bufWriter = bufWriter
 	}
 
 	// 正确回传

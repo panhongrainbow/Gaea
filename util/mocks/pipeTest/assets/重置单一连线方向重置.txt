@@ -1,0 +1,21 @@
+@startuml
+
+[MockCLient] #Orchid
+[MockServer] #Orchid
+[Pipe]
+[connRead]
+[connWrite]
+Pipe -[#0000ff]-- connWrite : belong
+Pipe -[#0000ff]-- connRead : belong
+MockCLient -[#0000ff]-> connWrite : send msg
+MockServer -[#0000ff]-> connRead : receive msg
+
+[Pipe2] #LightBlue
+[connRead2] #LightBlue
+[connWrite2] #LightBlue
+Pipe2 --- connWrite2 : belong
+Pipe2 --- connRead2 : belong
+MockCLient --> connWrite2 : send msg
+MockServer --> connRead2 : receive msg
+
+@enduml

@@ -3,12 +3,12 @@ participant MockClient
 participant Pipe
 participant MockServer
 
-group #yellow 初始化 [建立客户端和服务端的连接]
+group #LightYellow 初始化 [建立客户端和服务端的连接]
     MockClient->>Pipe: mockClient 连接到 Pipe
     MockServer->>Pipe: mockServer 连接到 Pipe
 end
 
-group #yellow 客户端传送讯息到服务端 [包含重置连接，等待连接读写完成]
+group #LightYellow 客户端传送讯息到服务端 [包含重置连接，等待连接读写完成]
     MockClient->>Pipe: 使用 SendOrReceive() 传送讯息1
 
     alt #Pink 进行修改的部份
@@ -21,7 +21,7 @@ group #yellow 客户端传送讯息到服务端 [包含重置连接，等待连�
     MockServer->>MockServer: 决定回传的讯息，在测试环境下，原讯息的数值加1，等于之后的讯息
 end
 
-group #yellow 服务端传送讯息到客户端 [包含重置连接，等待连接读写完成]
+group #LightYellow 服务端传送讯息到客户端 [包含重置连接，等待连接读写完成]
     MockServer->>Pipe: 使用 SendOrReceive() 传送讯息2
     MockClient->>Pipe: 使用 Reply() 读取 Pipe 里的讯息2
     MockServer->>MockServer: 等待 Pipe 读写操作流程完成
