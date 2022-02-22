@@ -15,11 +15,11 @@
 代码位于 Gaea/util/mocks/pipeTest/pipeTest.go，内容如下
 
 ```go
-// DcMocker 用来模拟数据库服务器的读取和回应的对象
+// DcMocker 用来模拟数据库服务器的读取和回应的类
 type DcMocker struct {
-	t         *testing.T      // 单元测试对象
-	bufReader *bufio.Reader   // 服务器的读取 (实现缓存)
-	bufWriter *bufio.Writer   // 服务器的写入 (实现缓存)
+	t         *testing.T      // 单元测试的类
+	bufReader *bufio.Reader   // 有缓存的读取 (接收端)
+	bufWriter *bufio.Writer   // 有缓存的写入 (传送端)
 	connRead  net.Conn        // pipe 的读取连线 (接收端)
 	connWrite net.Conn        // pipe 的写入连线 (传送端)
 	wg        *sync.WaitGroup // 在测试流程的操作边界等待
@@ -90,14 +90,14 @@ func (dcM *DcMocker) Reply(otherSide *DcMocker) (msg []uint8)
 ```
 
 
-   Reply 为直连 dc 用来模拟 dc 回应数据，大部份接连 SendOrReceive 函数后执行
+   Reply 为直连 dc 用来模拟回应数据，大部份接连 SendOrReceive 函数后执行
 
 ```go
 func (dcM *DcMocker) ResetDcMockers(otherSide *DcMocker) error 
 ```
 
 
-   ResetDcMockers 为重置单一连线方向的直连 dc 模拟对象，重置单一连线方向的方式后面在说明
+   ResetDcMockers 为重置单一连线方向的直连 dc 模拟对象 (重置单一连线方向的方式在后面说明)
 
 ```go
 func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker 
@@ -105,7 +105,7 @@ func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker
 
    SendOrReceive 为直连 dc 用来模拟接收或传入讯息，
 
-   比如客户端""传送"讯息到服务端、客户端再"接收"服务端的回传讯息
+   比如客户端 "传送 Send" 讯息到服务端、客户端再 "接收 Receive" 服务端的回传讯息
 
 ```go
 func (dcM *DcMocker) WaitAndReset(otherSide *DcMocker) error 
@@ -127,7 +127,7 @@ NewDcServerClient 函数会先使用产生 4 个连接 net.Conn，分别为 read
 
 其中 read0 和 write0 相通，read1 和 write1 相通，
 
-所以
+所以会有以下状况
 
 #### 状况一 mockClient 至 mockServer
 
@@ -142,6 +142,8 @@ NewDcServerClient 函数会先使用产生 4 个连接 net.Conn，分别为 read
 ### 单一连线方向重置
 
 当 Pipe 被写入 EOF 消息后，就会停止读取后面更多的数据，这时就要把 Pipe 进行重置，以方便后续使用
+
+会有以下状况
 
 #### 状况一 mockClient 至 mockServer
 
@@ -164,8 +166,8 @@ NewDcServerClient 函数会先使用产生 4 个连接 net.Conn，分别为 read
 ### 例子一 使用来回五次连续进行验证
 
 - 当 MockClient 和 MockServer 一连接到 Pipe 时，就可以进行后续测试
-- 一个循环为先 1客户端发送消息到服务端 再来 2 服务端发送消息到客户端，连续循环 5 次
-- 消息经过 reply() 函数，新消息的数值为原始消息加1，观察消息传递消息的数值是否有正常添加，就可以验证整个测试流程
+- 一个循环为先 "客户端发送消息到服务端" 再来 "服务端发送消息到客户端"，以上操作连续循环 5 次
+- 消息经过 reply() 函数，新消息的数值为原始消息加1，观察消息传递消息过程中，数值是否有正常添加，就可以验证整个测试流程是否正确
 - 当等待整个 Pipe 读取和写入完成时，消息就传递到对方，对方就能进行接收和读取动作
 
 ![PipeTest 连续测试时序图](./assets/pipeTest 连续测试时序图.png)
@@ -173,23 +175,23 @@ NewDcServerClient 函数会先使用产生 4 个连接 net.Conn，分别为 read
 代码位于 Gaea/util/mocks/pipeTest/pipeTest_test.go，内容如下
 
 ```go
-// TestPipeTestWorkable 为使用直连函数去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+// TestPipeTestWorkable 为验证测试 PipeTest 是否能正常运作，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
 func TestPipeTestWorkable(t *testing.T) {
-	t.Run("此为 DC 测试的验证测试，主要是用来确认整个测试流程没有问题", func(t *testing.T) {
+	t.Run("此为测试 PipeTest 的验证测试，主要是用来确认整个测试流程没有问题", func(t *testing.T) {
 		// 开始模拟对象
-		mockClient, mockServer := NewDcServerClient(t, TestReplyFunc) // 产生 Client 和 mockServer 模拟对象
+		mockClient, mockServer := NewDcServerClient(t, TestReplyFunc) // 产生 mockClient 和 mockServer 模拟对象
 
-		// 产生一开始的讯息和预期讯息
+		// 产生一开始的讯息和之后的预期正确讯息
 		msg0 := []uint8{0}  // 起始传送讯息
-		correct := uint8(0) // 预期的正确讯息
+		correct := uint8(0) // 之后的预期正确讯息
 
 		// 产生一连串的接收和回应的操作
 		for i := 0; i < 5; i++ {
 			msg1 := mockClient.SendOrReceive(msg0).Reply(mockServer) // 接收和回应
-			correct++                                                // 每经过一个接收和回应的操作时，回应讯息会加1
+			correct++                                                // 每经过一个reply() 函数时，回应讯息会加1
 			require.Equal(t, msg1[0], correct)
 			msg0 = mockServer.SendOrReceive(msg1).Reply(mockClient) // 接收和回应
-			correct++                                               // 每经过一个接收和回应的操作时，回应讯息会加1
+			correct++                                               // 每经过一个reply() 函数时，回应讯息会加1
 			require.Equal(t, msg0[0], correct)
 		}
 	})
@@ -198,7 +200,7 @@ func TestPipeTestWorkable(t *testing.T) {
 
 ### 例子二 临时函数介入
 
-- 整个测试流程不变，但是在中途要被测试的函数临时接入 Pipe，就可以仿真对方发送过来的消息，再仿真进行回应
+- 整个测试流程不变，但是在中途要 "被测试的函数" 临时接入 Pipe，就可以仿真对方发送过来的消息，再仿真进行回应
 
 ![TestPipe 测试临时函数介入时序图](./assets/pipeTest 测试临时函数介入时序图.png)
 
@@ -235,19 +237,19 @@ func TestDirectConnWithoutDB(t *testing.T) {
 
 ### 例子三 测试函数抽换缓存
 
-当 mockClient 和 mockServer 接通 Pipe 时，立刻使用 OverwriteBufConn 函数抽换缓存写入，并 Reset 写入连接，之后的仿真过程不变
+当 mockClient 和 mockServer 接通 Pipe 时，立刻使用 OverwriteBufConn 函数抽换缓存写入，并用 Reset 重置写入连接，之后的仿真过程不变
 
 ![PipeTest 测试函数抽换缓存时序图](./assets/PipeTest 测试函数抽换缓存时序图.png)
 
 代码位于 Gaea/mysql/conn_test.go，内容如下
 
 ```go
-// TestMysqlConnWithoutDB 为用来测试数据库一开始连线的详细流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
-func TestMysqlConnWithoutDB(t *testing.T) {
+// TestMariadbConnWithoutDB 为用来测试数据库一开始连线的详细流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestMariadbConnWithoutDB(t *testing.T) {
 	// 函数测试开始
-	t.Run("MariaDB 抽换缓存测试", func(t *testing.T) {
+	t.Run("MariaDB连接 的抽换缓存测试", func(t *testing.T) {
 		// 开始模拟
-		mockClient, mockServer := pipeTest.NewDcServerClient(t, pipeTest.TestReplyFunc) // 产生 Gaea 和 mockServer 模拟对象
+		mockClient, mockServer := pipeTest.NewDcServerClient(t, pipeTest.TestReplyFunc) // 产生 Gaea 和 MariaDB 模拟对象
 
 		// 针对这次测试进行临时修改
 		err := mockClient.OverwriteConnBufWrite(nil, writersPool.Get().(*bufio.Writer))
@@ -256,7 +258,7 @@ func TestMysqlConnWithoutDB(t *testing.T) {
 
 		// 产生一开始的讯息和预期讯息
 		msg0 := []uint8{0}  // 起始传送讯息
-		correct := uint8(0) // 预期的正确讯息
+		correct := uint8(0) // 预期之后的正确讯息
 
 		// 开始进行讯息操作
 

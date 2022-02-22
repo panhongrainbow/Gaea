@@ -34,11 +34,11 @@ pipeTest.DcMocker "1" *-- "2" net.Conn
 pipeTest.DcMocker "1" *-- "1" sync.WaitGroup
 
 note top of pipeTest.DcMocker
-    DcMocker 为 模拟连用的对象
+    DcMocker 为 模拟连用的类
 end note
 
 note bottom of testing.T
-    T 为 测试用的对象
+    T 为 测试用的类
 end note
 
 note bottom of bufio.Reader

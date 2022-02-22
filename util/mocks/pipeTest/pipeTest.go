@@ -19,11 +19,11 @@ func TestReplyFunc(data []uint8) []uint8 {
 	return []uint8{data[0] + 1} // 回应讯息为接收讯息加 1
 }
 
-// DcMocker 用来模拟数据库服务器的读取和回应的对象
+// DcMocker 用来模拟数据库服务器的读取和回应的类
 type DcMocker struct {
-	t         *testing.T      // 单元测试对象
-	bufReader *bufio.Reader   // 服务器的读取 (实现缓存)
-	bufWriter *bufio.Writer   // 服务器的写入 (实现缓存)
+	t         *testing.T      // 单元测试的类
+	bufReader *bufio.Reader   // 有缓存的读取 (接收端)
+	bufWriter *bufio.Writer   // 有缓存的写入 (传送端)
 	connRead  net.Conn        // pipe 的读取连线 (接收端)
 	connWrite net.Conn        // pipe 的写入连线 (传送端)
 	wg        *sync.WaitGroup // 在测试流程的操作边界等待
@@ -31,7 +31,7 @@ type DcMocker struct {
 	err       error           // 错误
 }
 
-// NewDcServerClient 产生直连 DC 模拟双方对象，包含客户端对象和服务端对象
+// NewDcServerClient 产生直连 DC 模拟双方对象，包含 客户端对象 和 服务端对象
 func NewDcServerClient(t *testing.T, reply ReplyFuncType) (mockClient *DcMocker, mockServer *DcMocker) {
 	// 先产生两组 Pipe
 	read0, write0 := net.Pipe() // 第一组 Pipe
@@ -128,7 +128,7 @@ func (dcM *DcMocker) ResetDcMockers(otherSide *DcMocker) error {
 }
 
 // SendOrReceive 为直连 dc 用来模拟接收或传入讯息
-// 比如客户端""传送"讯息到服务端、客户端再"接收"服务端的回传讯息
+// 比如客户端 "传送 Send" 讯息到服务端、客户端再 "接收 Receive" 服务端的回传讯息
 func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker {
 	// dc 模拟开始
 	dcM.wg.Add(1) // 只要等待直到确认资料有写入 pipe
@@ -150,7 +150,7 @@ func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker {
 	return dcM
 }
 
-// Reply 为直连 dc 用来模拟 dc 回应数据，大部份接连 SendOrReceive 函数后执行
+// Reply 为直连 dc 用来模拟回应数据，大部份接连 SendOrReceive 函数后执行
 func (dcM *DcMocker) Reply(otherSide *DcMocker) (msg []uint8) {
 	// 读取传送过来的讯息
 	b, _, err := otherSide.bufReader.ReadLine() // 由另一方接收传来的讯息

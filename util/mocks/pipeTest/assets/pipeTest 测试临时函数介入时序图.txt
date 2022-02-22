@@ -12,8 +12,8 @@ group #LightYellow 客户端传送讯息到服务端 [包含重置连接，等�
     MockClient->>Pipe: 使用 SendOrReceive() 传送讯息1
 
     alt #Pink 进行修改的部份
-        MockServer->>Pipe: 测试函数临时连接到 Pipe
-        MockServer->>Pipe: 测试函数读取 Pipe 里的讯息1
+        MockServer->>Pipe: 被测试函数临时连接到 Pipe
+        MockServer->>Pipe: 被测试函数读取 Pipe 里的讯息1
     end
 
     MockClient->>MockClient: 等待 Pipe 读写操作流程完成
