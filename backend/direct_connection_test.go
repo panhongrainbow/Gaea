@@ -15,11 +15,9 @@ package backend
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/XiaoMi/Gaea/util/mocks/pipeTest"
 	"github.com/stretchr/testify/require"
-	"io"
 	"testing"
 )
 
@@ -155,21 +153,5 @@ func TestDirectConnWithoutDB(t *testing.T) {
 		require.Equal(t, dc.conn.ConnectionID, uint32(16))                                                                    // 检查连线编号 connection id
 		require.Equal(t, dc.salt, []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}) // 检查 Salt
 		require.Equal(t, dc.status, mysql.ServerStatusAutocommit)                                                             // 检查服务器状态
-
-		// 以下未完成之后再处理
-		mysqlConn = mysql.NewConn(mockGaea.GetConnRead())
-		mysqlConn.TestWriter(mockMariaDB.GetConnWrite())
-		dc.conn = mysqlConn
-		dc.conn.SetConnectionID(uint32(16))
-
-		go func() {
-			_ = dc.writeHandshakeResponse41()
-			dc.conn.Flush()
-			mockMariaDB.GetConnWrite().Close()
-		}()
-
-		var data [20]byte
-		_, err = io.ReadFull(mockGaea.GetConnRead(), data[:])
-		fmt.Println("data", data)
 	})
 }
