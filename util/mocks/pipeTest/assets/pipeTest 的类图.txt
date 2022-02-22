@@ -13,8 +13,8 @@ class pipeTest.DcMocker {
     GetConnWrite() net.Conn
     GetBufReader() *bufio.Reader
     GetBufWriter() *bufio.Writer
-    OverwriteConnRead(connRead net.Conn, bufReader *bufio.Reader) error
-    PutConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error
+    OverwriteConnBufRead(connRead net.Conn, bufReader *bufio.Reader) error
+    OverwriteConnBufWrite(connWrite net.Conn, bufWriter *bufio.Writer) error
     ResetDcMockers(otherSide *DcMocker) error
     SendOrReceive(data []uint8) *DcMocker
     Reply(otherSide *DcMocker) (msg []uint8)
@@ -28,10 +28,10 @@ class net.Conn {}
 class sync.WaitGroup {}
 
 pipeTest.DcMocker "1" o-- "1" testing.T
-pipeTest.DcMocker "1" o-- "1" bufio.Reader
-pipeTest.DcMocker "1" o-- "1" bufio.Writer
+pipeTest.DcMocker "1" *-- "1" bufio.Reader
+pipeTest.DcMocker "1" *-- "1" bufio.Writer
 pipeTest.DcMocker "1" *-- "2" net.Conn
-pipeTest.DcMocker "1" o-- "1" sync.WaitGroup
+pipeTest.DcMocker "1" *-- "1" sync.WaitGroup
 
 note top of pipeTest.DcMocker
     DcMocker 为 模拟连用的对象

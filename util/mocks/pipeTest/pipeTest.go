@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// ReplyFuncType 回应函式的型态
+// ReplyFuncType 回应函数的型态，测试时，当客户端或服务端接收到讯息时，可以利用此函数去建立回传讯息
 type ReplyFuncType func([]uint8) []uint8
 
 // TestReplyFunc　，目前是用于验证测试流程是否正确，在这里会处理常接收到什么讯息，要将下来跟着回应什么讯息
@@ -27,7 +27,7 @@ type DcMocker struct {
 	connRead  net.Conn        // pipe 的读取连线 (接收端)
 	connWrite net.Conn        // pipe 的写入连线 (传送端)
 	wg        *sync.WaitGroup // 在测试流程的操作边界等待
-	replyFunc ReplyFuncType   // 设定相对应的回应函式
+	replyFunc ReplyFuncType   // 设定相对应的回应函数
 	err       error           // 错误
 }
 
@@ -45,41 +45,41 @@ func NewDcServerClient(t *testing.T, reply ReplyFuncType) (mockClient *DcMocker,
 	return
 }
 
-// NewDcMocker 产生新的直连 dc 模拟物件
+// NewDcMocker 产生新的直连 dc 模拟对象
 func NewDcMocker(t *testing.T, connRead, connWrite net.Conn, reply ReplyFuncType) *DcMocker {
 	return &DcMocker{
-		t:         t,                          // 单元测试的物件
+		t:         t,                          // 单元测试的对象
 		bufReader: bufio.NewReader(connRead),  // 服务器的读取 (实现缓存)
 		bufWriter: bufio.NewWriter(connWrite), // 服务器的写入 (实现缓存)
 		connRead:  connRead,                   // pipe 的读取连线 (接收端)
 		connWrite: connWrite,                  // pipe 的写入连线 (传送端)
 		wg:        &sync.WaitGroup{},          // 在测试流程的操作边界等待
-		replyFunc: reply,                      // 设定相对应的回应函式
+		replyFunc: reply,                      // 设定相对应的回应函数
 	}
 }
 
-// GetConnRead 为获得直连 dc 模拟物件的读取连线
+// GetConnRead 为获得直连 dc 模拟对象的读取连线
 func (dcM *DcMocker) GetConnRead() net.Conn {
 	return dcM.connRead
 }
 
-// GetConnWrite 为获得直连 dc 模拟物件的写入连线
+// GetConnWrite 为获得直连 dc 模拟对象的写入连线
 func (dcM *DcMocker) GetConnWrite() net.Conn {
 	return dcM.connWrite
 }
 
-// GetBufReader 为获得直连 dc 模拟物件的缓存读取
+// GetBufReader 为获得直连 dc 模拟对象的缓存读取
 func (dcM *DcMocker) GetBufReader() *bufio.Reader {
 	return dcM.bufReader
 }
 
-// GetBufWriter 为获得直连 dc 模拟物件的缓存写入
+// GetBufWriter 为获得直连 dc 模拟对象的缓存写入
 func (dcM *DcMocker) GetBufWriter() *bufio.Writer {
 	return dcM.bufWriter
 }
 
-// OverwriteConnRead 为临时覆写取代直连 dc 模拟物件的读取连线
-func (dcM *DcMocker) OverwriteConnRead(connRead net.Conn, bufReader *bufio.Reader) error {
+// OverwriteConnBufRead 为临时覆写取代直连 dc 模拟对象的 读取连线 connRead 或者是 缓存读取 bufReader
+func (dcM *DcMocker) OverwriteConnBufRead(connRead net.Conn, bufReader *bufio.Reader) error {
 	// 先进行修改
 	if connRead != nil {
 		dcM.connRead = connRead // 修改读取连线
@@ -92,8 +92,8 @@ func (dcM *DcMocker) OverwriteConnRead(connRead net.Conn, bufReader *bufio.Reade
 	return nil
 }
 
-// OverwriteConnWrite 为临时覆写取代直连 dc 模拟物件的 写入连线 connWrite 或者是 缓存写入 bufWriter
-func (dcM *DcMocker) OverwriteConnWrite(connWrite net.Conn, bufWriter *bufio.Writer) error {
+// OverwriteConnBufWrite 为临时覆写取代直连 dc 模拟对象的 写入连线 connWrite 或者是 缓存写入 bufWriter
+func (dcM *DcMocker) OverwriteConnBufWrite(connWrite net.Conn, bufWriter *bufio.Writer) error {
 	// 如果 写入连线 connWrite 参数传入为空值时，则进行修改
 	if connWrite != nil {
 		dcM.connWrite = connWrite
@@ -107,7 +107,7 @@ func (dcM *DcMocker) OverwriteConnWrite(connWrite net.Conn, bufWriter *bufio.Wri
 	return nil
 }
 
-// ResetDcMockers 为重置单一连线方向的直连 dc 模拟物件
+// ResetDcMockers 为重置单一连线方向的直连 dc 模拟对象
 func (dcM *DcMocker) ResetDcMockers(otherSide *DcMocker) error {
 	// 重新建立全新两组 Pipe
 	newRead, newWrite := net.Pipe() // 第一组 Pipe
@@ -128,6 +128,7 @@ func (dcM *DcMocker) ResetDcMockers(otherSide *DcMocker) error {
 }
 
 // SendOrReceive 为直连 dc 用来模拟接收或传入讯息
+// 比如客户端""传送"讯息到服务端、客户端再"接收"服务端的回传讯息
 func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker {
 	// dc 模拟开始
 	dcM.wg.Add(1) // 只要等待直到确认资料有写入 pipe
@@ -145,11 +146,11 @@ func (dcM *DcMocker) SendOrReceive(data []uint8) *DcMocker {
 		dcM.wg.Done()
 	}()
 
-	// 重复使用物件
+	// 重复使用对象
 	return dcM
 }
 
-// Reply 为直连 dc 用来模拟 dc 回应数据
+// Reply 为直连 dc 用来模拟 dc 回应数据，大部份接连 SendOrReceive 函数后执行
 func (dcM *DcMocker) Reply(otherSide *DcMocker) (msg []uint8) {
 	// 读取传送过来的讯息
 	b, _, err := otherSide.bufReader.ReadLine() // 由另一方接收传来的讯息
@@ -158,7 +159,7 @@ func (dcM *DcMocker) Reply(otherSide *DcMocker) (msg []uint8) {
 	// 等待和确认资料已经写入 pipe
 	dcM.wg.Wait()
 
-	// 重置模拟物件
+	// 重置模拟对象
 	err = dcM.ResetDcMockers(otherSide)
 	require.Equal(dcM.t, err, nil)
 
