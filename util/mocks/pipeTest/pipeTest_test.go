@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-// TestPipeTestWithoutDB 为使用直连函式去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
-func TestPipeTestWithoutDB(t *testing.T) {
+// TestPipeTestWorkable 为使用直连函数去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestPipeTestWorkable(t *testing.T) {
 	t.Run("此为 DC 测试的验证测试，主要是用来确认整个测试流程没有问题", func(t *testing.T) {
 		// 开始模拟物件
 		mockClient, mockServer := NewDcServerClient(t, TestReplyFunc) // 产生 Client 和 mockServer 模拟物件

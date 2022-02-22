@@ -12,9 +12,27 @@
 
 ![PipeTest 的类图](./assets/pipeTest 的类图.png)
 
+代码位于 Gaea/util/mocks/pipeTest/pipeTest.go，内容如下
+
+```go
+// DcMocker 用来模拟数据库服务器的读取和回应的对象
+type DcMocker struct {
+	t         *testing.T      // 单元测试对象
+	bufReader *bufio.Reader   // 服务器的读取 (实现缓存)
+	bufWriter *bufio.Writer   // 服务器的写入 (实现缓存)
+	connRead  net.Conn        // pipe 的读取连线 (接收端)
+	connWrite net.Conn        // pipe 的写入连线 (传送端)
+	wg        *sync.WaitGroup // 在测试流程的操作边界等待
+	replyFunc ReplyFuncType   // 设定相对应的回应函数
+	err       error           // 错误
+}
+```
+
 ### 类 DcMocker 函数列表
 
-> 以下内容可以使用以下命令去产生
+> - 代码位于 Gaea/util/mocks/pipeTest/pipeTest.go
+> - 以下内容可以使用以下命令去产生
+>
 > ```bash
 > $ cd Gaea/util/mocks/pipeTest
 > $ go doc -all
@@ -152,14 +170,105 @@ NewDcServerClient 函数会先使用产生 4 个连接 net.Conn，分别为 read
 
 ![PipeTest 连续测试时序图](./assets/pipeTest 连续测试时序图.png)
 
+代码位于 Gaea/util/mocks/pipeTest/pipeTest_test.go，内容如下
+
+```go
+// TestPipeTestWorkable 为使用直连函数去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestPipeTestWorkable(t *testing.T) {
+	t.Run("此为 DC 测试的验证测试，主要是用来确认整个测试流程没有问题", func(t *testing.T) {
+		// 开始模拟对象
+		mockClient, mockServer := NewDcServerClient(t, TestReplyFunc) // 产生 Client 和 mockServer 模拟对象
+
+		// 产生一开始的讯息和预期讯息
+		msg0 := []uint8{0}  // 起始传送讯息
+		correct := uint8(0) // 预期的正确讯息
+
+		// 产生一连串的接收和回应的操作
+		for i := 0; i < 5; i++ {
+			msg1 := mockClient.SendOrReceive(msg0).Reply(mockServer) // 接收和回应
+			correct++                                                // 每经过一个接收和回应的操作时，回应讯息会加1
+			require.Equal(t, msg1[0], correct)
+			msg0 = mockServer.SendOrReceive(msg1).Reply(mockClient) // 接收和回应
+			correct++                                               // 每经过一个接收和回应的操作时，回应讯息会加1
+			require.Equal(t, msg0[0], correct)
+		}
+	})
+}
+```
+
 ### 例子二 临时函数介入
 
 - 整个测试流程不变，但是在中途要被测试的函数临时接入 Pipe，就可以仿真对方发送过来的消息，再仿真进行回应
 
-![TestPipe 连续测试时序图](./assets/pipeTest 测试临时函数介入时序图.png)
+![TestPipe 测试临时函数介入时序图](./assets/pipeTest 测试临时函数介入时序图.png)
+
+代码位于 Gaea/backend/direct_connection_test.go，内容如下
+
+```go
+// TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestDirectConnWithoutDB(t *testing.T) {
+	// 开始正式测试
+	t.Run("测试数据库后端连线的初始交握", func(t *testing.T) {
+		// 开始模拟
+		mockGaea, mockMariaDB := pipeTest.NewDcServerClient(t, pipeTest.TestReplyFunc) // 产生 Gaea 和 mockServer 模拟对象
+		mockGaea.SendOrReceive(mysqlInitHandShakeResponse)                             // 模拟数据库开始交握
+
+		// 产生 Mysql dc 直连对象 (用以下内容取代 reply() 函数 !)
+		var dc DirectConnection
+		var mysqlConn = mysql.NewConn(mockMariaDB.GetConnRead())
+		dc.conn = mysqlConn
+		err := dc.readInitialHandshake()
+		require.Equal(t, err, nil)
+
+		// 等待和确认资料已经写入 pipe 并单方向重置模拟对象
+		err = mockGaea.WaitAndReset(mockMariaDB)
+		require.Equal(t, err, nil)
+        
+		// 计算后的检查
+		require.Equal(t, dc.capability, uint32(2181036030))                                                                   // 检查功能标志 capability
+		require.Equal(t, dc.conn.ConnectionID, uint32(16))                                                                    // 检查连线编号 connection id
+		require.Equal(t, dc.salt, []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}) // 检查 Salt
+		require.Equal(t, dc.status, mysql.ServerStatusAutocommit)                                                             // 检查服务器状态
+	})
+}
+```
 
 ### 例子三 测试函数抽换缓存
 
 当 mockClient 和 mockServer 接通 Pipe 时，立刻使用 OverwriteBufConn 函数抽换缓存写入，并 Reset 写入连接，之后的仿真过程不变
 
-![PipeTest 连续测试时序图](./assets/PipeTest 测试函数抽换缓存时序图.png)
+![PipeTest 测试函数抽换缓存时序图](./assets/PipeTest 测试函数抽换缓存时序图.png)
+
+代码位于 Gaea/mysql/conn_test.go，内容如下
+
+```go
+// TestMysqlConnWithoutDB 为用来测试数据库一开始连线的详细流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestMysqlConnWithoutDB(t *testing.T) {
+	// 函数测试开始
+	t.Run("MariaDB 抽换缓存测试", func(t *testing.T) {
+		// 开始模拟
+		mockClient, mockServer := pipeTest.NewDcServerClient(t, pipeTest.TestReplyFunc) // 产生 Gaea 和 mockServer 模拟对象
+
+		// 针对这次测试进行临时修改
+		err := mockClient.OverwriteConnBufWrite(nil, writersPool.Get().(*bufio.Writer))
+		mockClient.GetBufWriter().Reset(mockClient.GetConnWrite())
+		require.Equal(t, err, nil)
+
+		// 产生一开始的讯息和预期讯息
+		msg0 := []uint8{0}  // 起始传送讯息
+		correct := uint8(0) // 预期的正确讯息
+
+		// 开始进行讯息操作
+
+		// 写入部份
+		mockClient.SendOrReceive(msg0) // 模拟客户端传送讯息
+		require.Equal(t, msg0[0], correct)
+
+		// 读取部份
+		msg1 := mockClient.Reply(mockServer) // 模拟服务端接收讯息
+		correct++
+		require.Equal(t, msg1[0], correct)
+	})
+}
+```
+

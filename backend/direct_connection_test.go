@@ -44,7 +44,7 @@ func TestAppendSetVariable2(t *testing.T) {
 }
 
 var (
-	// 准备资料库的回应资料
+	// 准备数据库的回应资料
 	mysqlInitHandShakeResponse = []uint8{
 		// 资料长度
 		93, 0, 0,
@@ -87,15 +87,15 @@ var (
 	}
 )
 
-// TestDCWithoutDB 为使用直连函式去测试数据库的连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
-func TestDCWithoutDB(t *testing.T) {
+// TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试不使用 MariaDB 的服务器，只是单纯的单元测试
+func TestDirectConnWithoutDB(t *testing.T) {
 	// 开始正式测试
-	t.Run("测试数据库连线的实际直連流程", func(t *testing.T) {
+	t.Run("测试数据库后端连线的初始交握", func(t *testing.T) {
 		// 开始模拟
 		mockGaea, mockMariaDB := pipeTest.NewDcServerClient(t, pipeTest.TestReplyFunc) // 产生 Gaea 和 mockServer 模拟物件
 		mockGaea.SendOrReceive(mysqlInitHandShakeResponse)                             // 模拟数据库开始交握
 
-		// 產生 Mysql dc 直連物件 (用以下内容取代 reply() 函式 !)
+		// 產生 Mysql dc 直連物件 (用以下内容取代 reply() 函数 !)
 		var dc DirectConnection
 		var mysqlConn = mysql.NewConn(mockMariaDB.GetConnRead())
 		dc.conn = mysqlConn
