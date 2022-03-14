@@ -179,7 +179,10 @@ func TestDirectConnWithoutDB(t *testing.T) {
 		// 最好的状况是 Gaea 的 写入缓存 bufferReader 和这个测试整个分离，但目前现有代码的函数不支援，又不想修改现在代码，所以就把 写入缓存 捉进来一起测试
 
 		// 填入 Gaea 用户的资讯，包含 密码
+		dc.user = "xiaomi"
 		dc.password = "12345"
+		dc.charset = "utf8mb4"
+		dc.collation = 46 // 文字排序
 
 		// 印出传送到达对方的讯息
 		fmt.Println(
