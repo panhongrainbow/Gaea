@@ -2,11 +2,97 @@
 
 
 
-## 代码
+## 代码说明
+
+### 第一步 初始交握，传送讯息方向为 MariaDB 至 Gaea
+
+参考官方文档 https://mariadb.com/kb/en/connection/ ，有以下内容
+
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220315221559157.png" alt="image-20220315221559157" style="zoom:100%;" /> 
+
+根据官方文档，使用范例说明
+
+| 内容                            | 演示范例                                                     |
+| ------------------------------- | ------------------------------------------------------------ |
+| int<1> protocol version         | 协定 Protocol 版本为<br />10                                 |
+| string<NUL> server version      | 数据库的版本号 version 为<br /><br />[]uint8{<br />53, 46, 53, 46, 53,<br />45, 49, 48, 46, 53,<br />46, 49, 50, 45, 77,<br />97, 114, 105, 97, 68,<br />66, 45, 108, 111, 103<br />}<br /><br />对照 ASCII 表为<br />5.5.5-10.5.12-MariaDB-log |
+| int<4> connection id            | 连接编号为<br /><br />[]uint8{16, 0, 0, 0}<br />先反向排列为 []uint8{0, 0, 0, 16}<br /><br />最后求得的连接编号为 uint32(16) |
+| string<8> scramble 1st part     | 第一部份的 Scramble，Scramble 总共需要组成 20 bytes，<br />第一个部份共 8 bytes，其值为 []uint8{81, 64, 43, 85, 76, 90, 97, 91} |
+| string<1> reserved byte         | 数值为 0                                                     |
+| int<2> server capabilities      | 第一部份的功能标志 capability，数值为 []uint8{254, 247}      |
+| int<1> server default collation | 數據庫編碼 charset 为 33，经<br />以下文文档查询 [character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/)<br />或者是 命令 SHOW CHARACTER SET LIKE 'utf8'; 查询，<br />charset 的数值为 utf8_general_ci |
+| int<2> status flags             | 服务器状态为 []uint8{2, 0}<br />进行反向排列为[]uint8{0, 2}，再转成二进制为 []uint16{2}<br />对照 Gaea/mysql/constants.go 后，得知目前服务器的状况为<br />Autocommit (ServerStatusAutocommit) |
+| int<2> server capabilities      | 延伸的功能标志 capability，数值为 uint16[255, 129]           |
+
+先对 功能标志 capability 进行计算
+
+```
+先把所有的功能标志 capability 的数据收集起来，包含延伸部份
+
+数值分别为 []uint8{254, 247, 255, 129}
+并反向排列
+数值分别为 []uint8{129, 255, 247, 254}
+全部 十进制 转成 二进制，为 []uint8{10000001, 11111111, 11110111, 11111110} (转成十进制数值为 2181036030)
+
+再用文档 https://mariadb.com/kb/en/connection/ 进行对照
+比如，功能标志 capability 的第一个值为 0，意思为 CLIENT_MYSQL 值为 0，代表是由服务器发出的讯息
+```
+
+接续上表
+
+| 项目 | 内容                                                         |
+| ---- | ------------------------------------------------------------ |
+| 公式 | if (server_capabilities & PLUGIN_AUTH)<br/>        int<1> plugin data length <br/>    else<br/>        int<1> 0x00 |
+| 范例 | 跳过 1 个 byte                                               |
+
+接续上表
+
+| 项目 | 内容             |
+| ---- | ---------------- |
+| 公式 | string<6> filler |
+| 范例 | 跳过 6 个 bytes  |
+
+接续上表
+
+| 项目 | 内容                                                         |
+| ---- | ------------------------------------------------------------ |
+| 公式 | if (server_capabilities & CLIENT_MYSQL)<br/>        string<4> filler <br/>    else<br/>        int<4> server capabilities 3rd part .<br />        MariaDB specific flags /* MariaDB 10.2 or later */ |
+| 范例 | 跳过 4 个 bytes                                              |
+
+接续上表
+
+| 项目 | 内容                                                         |
+| ---- | ------------------------------------------------------------ |
+| 公式 | if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>        string<n> scramble 2nd part . Length = max(12, plugin data length - 9)<br/>        string<1> reserved byte |
+| 范例 | scramble 一共要 20 个 bytes，第一部份共 8 bytes，所以第二部份共有 20 - 8 = 12 bytes，该值为 []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125} |
+
+接续上表
+
+| 项目 | 内容                                                         |
+| ---- | ------------------------------------------------------------ |
+| 公式 | if (server_capabilities & PLUGIN_AUTH)<br/>        string<NUL> authentication plugin name |
+| 范例 | 之后的资料都不使用                                           |
+
+合拼所有 Scramble 的资料
+
+```
+第一部份 Scramble 为 []uint8{81, 64, 43, 85, 76, 90, 97, 91}
+第二部份 Scramble 为 []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
+
+两部份 Scramble 合拼后为 []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
+```
 
 
 
-## 测试
+### 第二步 回应交握，传送讯息方向为 Gaea 至 MariaDB
+
+
+
+### 第三步 交握完成，传送讯息方向为 MariaDB 至 Gaea
+
+
+
+## 测试说明
 
 > 以下会说明在写测试时考量的点
 

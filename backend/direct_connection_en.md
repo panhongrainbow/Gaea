@@ -4,6 +4,90 @@
 
 ## Code
 
+### The first step: Initial handshake packet in MariaDB
+
+Checking the official document (https://mariadb.com/kb/en/connection/) contains some details about the packet below.
+
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220315221559157.png" alt="image-20220315221559157" style="zoom:100%;" /> 
+
+I use an actual packet to demonstrate how this handshake works and arrange them into those tables below.
+
+| packet                          | exmaple                                                      |
+| ------------------------------- | ------------------------------------------------------------ |
+| int<1> protocol version         | Protocol Version 10                                          |
+| string<NUL> server version      | MariaDB version is <br /><br />[]uint8{<br />53, 46, 53, 46, 53,<br />45, 49, 48, 46, 53,<br />46, 49, 50, 45, 77,<br />97, 114, 105, 97, 68,<br />66, 45, 108, 111, 103<br />}<br /><br />I compare the array with ASCII table, it shows 5.5.5-10.5.12-MariaDB-log. |
+| int<4> connection id            | Connection ID is []uint8{16, 0, 0, 0}.<br /><br />After reversing the array, it becomes []uint8{0, 0, 0, 16} that equals to uint32(16). |
+| string<8> scramble 1st part     | The first part of Scramble:<br />Scramble contains 20 bytes of data totally，<br />The first part contains 8 bytes. That value is []uint8{81, 64, 43, 85, 76, 90, 97, 91}. |
+| string<1> reserved byte         | The value is 0.                                              |
+| int<2> server capabilities      | The first part of Capability. The value is []uint8{254, 247}. |
+| int<1> server default collation | The charset of MariaDB is 33.<br /><br />After I check<br />the official document [character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/)<br />or<br />use a command (SHOW CHARACTER SET LIKE 'utf8';),<br />I find out that number 33 means utf8_general_ci. |
+| int<2> status flags             | The value of status in MariaDB is []uint8{2, 0}.<br/><br />It is Revered to []uint8{0, 2} and then it is converted to binary  []uint16{2}.<br />I check the meaning from the code (Gaea/mysql/constants.go), it means Autocommit (ServerStatusAutocommit). |
+| int<2> server capabilities      | The second part of Capability value is uint16[255, 129]      |
+
+Calculate the whole capability
+
+```
+Gathering all of the Capability values and combining them, the result is []uint8{254, 247, 255, 129}. 
+
+After Converting the result to binary, the value is []uint8{10000001, 11111111, 11110111, 11111110}.
+
+After that, I can refer the value to the official document (https://mariadb.com/kb/en/connection/) easily.
+
+For example, the first value of the Capability is 0, which means the packet came from MariaDB to Gaea.
+```
+
+The following table describes more information.
+
+| Item    | Value                                                        |
+| ------- | ------------------------------------------------------------ |
+| Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        int<1> plugin data length <br/>    else<br/>        int<1> 0x00 |
+| Example | skip 1 byte                                                  |
+
+The following table describes more information.
+
+| Item    | Value            |
+| ------- | ---------------- |
+| Packet  | string<6> filler |
+| Example | skip 6 bytes     |
+
+The following table describes more information.
+
+| Item    | Value                                                        |
+| ------- | ------------------------------------------------------------ |
+| Packet  | if (server_capabilities & CLIENT_MYSQL)<br/>        string<4> filler <br/>    else<br/>        int<4> server capabilities 3rd part .<br />        MariaDB specific flags /* MariaDB 10.2 or later */ |
+| Example | skip 4 bytes                                                 |
+
+The following table describes more information.
+
+| Item    | Value                                                        |
+| ------- | ------------------------------------------------------------ |
+| Packet  | if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>        string<n> scramble 2nd part . Length = max(12, plugin data length - 9)<br/>        string<1> reserved byte |
+| Example | The Scramble contains 20 bytes of data totally.<br/>The first part contains 8 bytes.<br/>The rest will contain 12 bytes. (20-8=12)<br/><br/>After Reading the data from the packet, the value is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}. |
+
+The following table describes more information.
+
+| Item    | Value                                                        |
+| ------- | ------------------------------------------------------------ |
+| Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        string<NUL> authentication plugin name |
+| Example | Discard the rest of the data in the packet                   |
+
+combine the whole data of the Scramble:
+
+```
+The first part of the Scramble is []uint8{81, 64, 43, 85, 76, 90, 97, 91}
+The second part of the Scramble is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
+
+After combining them, the value is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
+```
+
+
+
+### The second step: The response to the first handshake.
+
+
+
+### The third step: Finish the handshake
+
 
 
 ## Testing
