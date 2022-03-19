@@ -1,27 +1,27 @@
 # Direct Connection in Backend package
 
+## Code Explanation
 
+### The first step:
 
-## Code
+> The first step is to send the initial handshake packet from MariaDB to Gaea.
 
-### The first step: Initial handshake packet in MariaDB
+Checking some details about the initial handshake packet in [the official document](https://mariadb.com/kb/en/connection/), and please see details below.
 
-Checking the official document (https://mariadb.com/kb/en/connection/) contains some details about the packet below.
+<img src="./assets/image-20220315221559157.png" alt="image-20220315221559157" style="zoom:100%;" /> 
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220315221559157.png" alt="image-20220315221559157" style="zoom:100%;" /> 
-
-I use an actual packet to demonstrate how this handshake works and arrange them into those tables below.
+The actual packet demonstrates how this handshake works, and please see details below.
 
 | packet                          | exmaple                                                      |
 | ------------------------------- | ------------------------------------------------------------ |
 | int<1> protocol version         | Protocol Version 10                                          |
-| string<NUL> server version      | MariaDB version is <br /><br />[]uint8{<br />53, 46, 53, 46, 53,<br />45, 49, 48, 46, 53,<br />46, 49, 50, 45, 77,<br />97, 114, 105, 97, 68,<br />66, 45, 108, 111, 103<br />}<br /><br />I compare the array with ASCII table, it shows 5.5.5-10.5.12-MariaDB-log. |
+| string<NUL> server version      | MariaDB version is <br /><br />[]uint8{<br />53, 46, 53, 46, 53,<br />45, 49, 48, 46, 53,<br />46, 49, 50, 45, 77,<br />97, 114, 105, 97, 68,<br />66, 45, 108, 111, 103<br />}<br /><br />Converting the array to ASCII, The result is "5.5.5-10.5.12-MariaDB-log". |
 | int<4> connection id            | Connection ID is []uint8{16, 0, 0, 0}.<br /><br />After reversing the array, it becomes []uint8{0, 0, 0, 16} that equals to uint32(16). |
-| string<8> scramble 1st part     | The first part of Scramble:<br />Scramble contains 20 bytes of data totally，<br />The first part contains 8 bytes. That value is []uint8{81, 64, 43, 85, 76, 90, 97, 91}. |
-| string<1> reserved byte         | The value is 0.                                              |
-| int<2> server capabilities      | The first part of Capability. The value is []uint8{254, 247}. |
-| int<1> server default collation | The charset of MariaDB is 33.<br /><br />After I check<br />the official document [character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/)<br />or<br />use a command (SHOW CHARACTER SET LIKE 'utf8';),<br />I find out that number 33 means utf8_general_ci. |
-| int<2> status flags             | The value of status in MariaDB is []uint8{2, 0}.<br/><br />It is Revered to []uint8{0, 2} and then it is converted to binary  []uint16{2}.<br />I check the meaning from the code (Gaea/mysql/constants.go), it means Autocommit (ServerStatusAutocommit). |
+| string<8> scramble 1st part     | The first part of the scramble:<br /><br />MariaDB utilizes the scramble for secure password authentication.<br /><br />The scramble is 20 bytes of data; the first part occupies 8 bytes, []uint8{81, 64, 43, 85, 76, 90, 97, 91}. |
+| string<1> reserved byte         | It occupies 1 byte, []uint8{0}.                              |
+| int<2> server capabilities      | The first part of the capability occupies 2 bytes,  []uint8{254, 247}. |
+| int<1> server default collation | The charset of MariaDB in the current exameple is 33.<br /><br />After checking<br />[character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/)<br />or<br />using a command "SHOW CHARACTER SET LIKE 'utf8'",<br />finding out that number 33 means "utf8_general_ci". |
+| int<2> status flags             | The status of MariaDB in the current exameple is []uint8{2, 0}.<br/><br />Reversing from the status flags to []uint8{0, 2} and then converting them to binary, []uint16{2}.<br /><br />I check the meaning from the code (Gaea/mysql/constants.go), it means Autocommit (ServerStatusAutocommit). |
 | int<2> server capabilities      | The second part of Capability value is uint16[255, 129]      |
 
 Calculate the whole capability
