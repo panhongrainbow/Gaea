@@ -6,7 +6,7 @@
 
 > The first step is to send the initial handshake packet from MariaDB to Gaea.
 
-Checking some details about the initial handshake packet in [the official document](https://mariadb.com/kb/en/connection/), and please see details below.
+There are some details about the initial handshake packet in [the official document](https://mariadb.com/kb/en/connection/), and please see the details below.
 
 <img src="./assets/image-20220315221559157.png" alt="image-20220315221559157" style="zoom:100%;" /> 
 
@@ -21,72 +21,168 @@ The actual packet demonstrates how this handshake works, and please see details 
 | string<1> reserved byte         | It occupies 1 byte, []uint8{0}.                              |
 | int<2> server capabilities      | The first part of the capability occupies 2 bytes,  []uint8{254, 247}. |
 | int<1> server default collation | The charset of MariaDB in the current exameple is 33.<br /><br />After checking<br />[character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/)<br />or<br />using a command "SHOW CHARACTER SET LIKE 'utf8'",<br />finding out that number 33 means "utf8_general_ci". |
-| int<2> status flags             | The status of MariaDB in the current exameple is []uint8{2, 0}.<br/><br />Reversing from the status flags to []uint8{0, 2} and then converting them to binary, []uint16{2}.<br /><br />I check the meaning from the code (Gaea/mysql/constants.go), it means Autocommit (ServerStatusAutocommit). |
-| int<2> server capabilities      | The second part of Capability value is uint16[255, 129]      |
+| int<2> status flags             | The status of MariaDB in the current exameple is []uint8{2, 0}.<br/><br />Reversing from the status flags to []uint8{0, 2} and then converting them to binary, []uint16{2}.<br /><br />After referring to "Gaea/mysql/constants.go", the result means "Autocommit." |
+| int<2> server capabilities      | The second part of the capability occupies 2 bytes,  []uint8{255, 129}. |
 
 Calculate the whole capability
 
 ```
-Gathering all of the Capability values and combining them, the result is []uint8{254, 247, 255, 129}. 
+Gathering two capability parts and combining them, the result is []uint8{254, 247, 255, 129}.
 
-After Converting the result to binary, the value is []uint8{10000001, 11111111, 11110111, 11111110}.
+After Converting the result to binary, the value becomes []uint8{0b10000001, 0b11111111, 0b11110111, 0b11111110}.
 
-After that, I can refer the value to the official document (https://mariadb.com/kb/en/connection/) easily.
+After that, refer to https://mariadb.com/kb/en/connection/ and ensure some details without difficulty.
 
-For example, the first value of the Capability is 0, which means the packet came from MariaDB to Gaea.
+For example, the first element of the capability is 0, which means the packet came from MariaDB to Gaea.
 ```
 
-The following table describes more information.
+The next table follows on from the previous one.
 
 | Item    | Value                                                        |
 | ------- | ------------------------------------------------------------ |
 | Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        int<1> plugin data length <br/>    else<br/>        int<1> 0x00 |
 | Example | skip 1 byte                                                  |
 
-The following table describes more information.
+The next table follows on from the previous one.
 
 | Item    | Value            |
 | ------- | ---------------- |
 | Packet  | string<6> filler |
 | Example | skip 6 bytes     |
 
-The following table describes more information.
+The next table follows on from the previous one.
 
 | Item    | Value                                                        |
 | ------- | ------------------------------------------------------------ |
 | Packet  | if (server_capabilities & CLIENT_MYSQL)<br/>        string<4> filler <br/>    else<br/>        int<4> server capabilities 3rd part .<br />        MariaDB specific flags /* MariaDB 10.2 or later */ |
 | Example | skip 4 bytes                                                 |
 
-The following table describes more information.
+The next table follows on from the previous one.
 
 | Item    | Value                                                        |
 | ------- | ------------------------------------------------------------ |
 | Packet  | if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>        string<n> scramble 2nd part . Length = max(12, plugin data length - 9)<br/>        string<1> reserved byte |
-| Example | The Scramble contains 20 bytes of data totally.<br/>The first part contains 8 bytes.<br/>The rest will contain 12 bytes. (20-8=12)<br/><br/>After Reading the data from the packet, the value is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}. |
+| Example | The scramble is 20 bytes of data; the second part occupies 12(20-8=12) bytes, []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}. |
 
-The following table describes more information.
+The next table follows on from the previous one.
 
 | Item    | Value                                                        |
 | ------- | ------------------------------------------------------------ |
 | Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        string<NUL> authentication plugin name |
-| Example | Discard the rest of the data in the packet                   |
+| Example | Gaea discards the rest of the data in the packet because there is no use for "PLUGIN_AUTH". |
 
 combine the whole data of the Scramble:
 
 ```
-The first part of the Scramble is []uint8{81, 64, 43, 85, 76, 90, 97, 91}
-The second part of the Scramble is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
+The first part of the scramble is []uint8{81, 64, 43, 85, 76, 90, 97, 91}
+The second part of the scramble is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
 
-After combining them, the value is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
+After combining them, the final result is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
 ```
 
+### The second step:
+
+> The second step is to calculate the auth base on the scramble, combined with two parts of the scramble.
+
+There are some details about the auth formula in [the official document](https://dev.mysql.com/doc/internals/en/secure-password-authentication.html).
+
+```
+some formulas for the auth
+
+SHA1( password ) XOR SHA1( "20-bytes random data from server" <concat> SHA1( SHA1( password ) ) )
+    其中
+    stage1 = SHA1( password )
+    stage1Hash = SHA1( stage1 ) = SHA1( SHA1( password ) )
+    scramble = SHA1( scramble <concat> SHA1( stage1Hash ) ) // the first new scramble
+    scramble = stage1 XOR scramble // the second new scramble
+```
+
+假设
+
+- The password for a secure login process in MariaDB is 12345.
+- The auth base on the scramble, combined with two parts of the scramble, is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
+  The result that converted from decimal to Hexadecimal is []uint8{51, 40, 2B, 55, 4c, 5a, 61, 5b, 22, 35, 24, 55, 5d, 56,  75,  69, 31, 57, 41,  7d}.
+  It is the same as  51402B554c5A615b223524555d5675693157417d.
+
+Regarding the stage1 formula, Linux Bash calculates the result and compares it.
+
+```bash
+# stage1 = SHA1( password )
+
+# calculate stage1
+$ echo -n 12345 | sha1sum | head -c 40 # convert password 12345 to stage1
+8cb2237d0679ca88db6464eac60da96345513964 # stage1
+```
+
+As regards the stage1Hash formula, Linux Bash calculates the result and compares it.
+
+```bash
+# stage1Hash = SHA1( stage1 ) = SHA1( SHA1( password ) )
+
+$ echo -n 12345 | sha1sum | xxd -r -p | sha1sum | head -c 40
+00a51f3f48415c7d4e8908980d443c29c69b60c9 # stage1hash
+
+$ echo -n 8cb2237d0679ca88db6464eac60da96345513964 | xxd -r -p | sha1sum | head -c 40
+00a51f3f48415c7d4e8908980d443c29c69b60c9 # stage1hash
+```
+
+Linux Bash concatenates the scramble and stage1Hash into the string concat.
+
+```bash
+# scramble is 51402B554c5A615b223524555d5675693157417d, the first half part.
+# stage1Hash is 00a51f3f48415c7d4e8908980d443c29c69b60c9, the second half part.
+
+# calculate "20-bytes random data from server" <concatenate> SHA1( SHA1( password ) )
+$ echo -n 51402B554c5A615b223524555d5675693157417d 00a51f3f48415c7d4e8908980d443c29c69b60c9 |  sed "s/ //g"
+51402B554c5A615b223524555d5675693157417d00a51f3f48415c7d4e8908980d443c29c69b60c9 # concat
+```
+
+In terms of the first new scramble, Linux Bash calculates the result and compares it.
+
+```bash
+# scramble = SHA1( concat ) = SHA1( scramble <concatenate> SHA1( stage1Hash ) )
+
+$ echo -n 51402B554c5A615b223524555d5675693157417d00a51f3f48415c7d4e8908980d443c29c69b60c9 | xxd -r -p | sha1sum | head -c 40
+0ca0f764a59d1cdb10a87f0155d61aa54be1c71a # The first new scramble
+```
+
+In the case of the second new scramble, Linux Bash calculates the result and compares it.
+
+```bash
+# scramble = stage1 XOR scramble
+$ stage1=0x8cb2237d0679ca88db6464eac60da96345513964 # stage1
+$ scramble=0x0ca0f764a59d1cdb10a87f0155d61aa54be1c71a # The first new scramble
+$ echo $(( $stage1^$scramble ))
+-7792437067003134338 # insufficient precision
+
+$ stage1=0x8cb2237d0679ca88db6464eac60da96345513964
+$ scramble=0x0ca0f764a59d1cdb10a87f0155d61aa54be1c71a
+$ printf "0x%X" $(( (($stage1>>40)) ^ (($scrambleFirst>>40)) ))
+0xFFFFFFFFFF93DBB3 # insufficient precision
+
+# Linux Bash divides stage1 and the first new scramble into four parts and individually makes four bitwise XOR operations.
+$ printf "0x%X" $(( ((0x8cb2237d06)) ^ ((0x0ca0f764a5)) ))
+$ printf "%X" $(( ((0x79ca88db64)) ^ ((0x9d1cdb10a8)) ))
+$ printf "%X" $(( ((0x64eac60da9)) ^ ((0x7f0155d61a)) ))
+$ printf "%X" $(( ((0x6345513964)) ^ ((0xa54be1c71a)) ))
+0x8012D419A3E4D653CBCC1BEB93DBB3C60EB0FE7E # correct
+
+# scramble is []uint8{ 80, 12,  D4, 19,  A3,  E4,  D6, 53,  CB,  CC, 1B,  EB,  93,  DB,  B3,  C6, 0E,  B0,  FE,  7E} // hexadecimal
+# decimal
+# scramble 为 []uint8{128, 18, 212, 25, 163, 228, 214, 83, 203, 204, 27, 235, 147, 219, 179, 198, 14, 176, 254, 126} // the same as the result in Gaea
+```
+
+The correct result, auth, is the same as Gaea's.
+
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220318183833245.png" alt="image-20220318183833245" style="zoom:70%;" /> 
 
 
-### The second step: The response to the first handshake.
+
+### The third step: The response to the first handshake.
 
 
 
-### The third step: Finish the handshake
+### The fourth step: Finish the handshake
 
 
 
