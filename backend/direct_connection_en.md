@@ -2,7 +2,7 @@
 
 ## Code Explanation
 
-### The first step:
+### The first step
 
 > The first step is to send the initial handshake packet from MariaDB to Gaea.
 
@@ -38,38 +38,38 @@ For example, the first element of the capability is 0, which means the packet ca
 
 The next table follows on from the previous one.
 
-| Item    | Value                                                        |
+| item    | value                                                        |
 | ------- | ------------------------------------------------------------ |
-| Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        int<1> plugin data length <br/>    else<br/>        int<1> 0x00 |
-| Example | skip 1 byte                                                  |
+| packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        int<1> plugin data length <br/>    else<br/>        int<1> 0x00 |
+| example | skip 1 byte                                                  |
 
 The next table follows on from the previous one.
 
-| Item    | Value            |
+| item    | value            |
 | ------- | ---------------- |
-| Packet  | string<6> filler |
-| Example | skip 6 bytes     |
+| packet  | string<6> filler |
+| example | skip 6 bytes     |
 
 The next table follows on from the previous one.
 
-| Item    | Value                                                        |
+| item    | value                                                        |
 | ------- | ------------------------------------------------------------ |
-| Packet  | if (server_capabilities & CLIENT_MYSQL)<br/>        string<4> filler <br/>    else<br/>        int<4> server capabilities 3rd part .<br />        MariaDB specific flags /* MariaDB 10.2 or later */ |
-| Example | skip 4 bytes                                                 |
+| packet  | if (server_capabilities & CLIENT_MYSQL)<br/>        string<4> filler <br/>    else<br/>        int<4> server capabilities 3rd part .<br />        MariaDB specific flags /* MariaDB 10.2 or later */ |
+| example | skip 4 bytes                                                 |
 
 The next table follows on from the previous one.
 
-| Item    | Value                                                        |
+| item    | value                                                        |
 | ------- | ------------------------------------------------------------ |
-| Packet  | if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>        string<n> scramble 2nd part . Length = max(12, plugin data length - 9)<br/>        string<1> reserved byte |
-| Example | The scramble is 20 bytes of data; the second part occupies 12(20-8=12) bytes, []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}. |
+| packet  | if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>        string<n> scramble 2nd part . Length = max(12, plugin data length - 9)<br/>        string<1> reserved byte |
+| example | The scramble is 20 bytes of data; the second part occupies 12(20-8=12) bytes, []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}. |
 
 The next table follows on from the previous one.
 
-| Item    | Value                                                        |
+| item    | value                                                        |
 | ------- | ------------------------------------------------------------ |
-| Packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        string<NUL> authentication plugin name |
-| Example | Gaea discards the rest of the data in the packet because there is no use for "PLUGIN_AUTH". |
+| packet  | if (server_capabilities & PLUGIN_AUTH)<br/>        string<NUL> authentication plugin name |
+| example | Gaea discards the rest of the data in the packet because there is no use for "PLUGIN_AUTH". |
 
 combine the whole data of the Scramble:
 
@@ -80,7 +80,7 @@ The second part of the scramble is []uint8{34, 53, 36, 85, 93, 86, 117, 105, 49,
 After combining them, the final result is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
 ```
 
-### The second step:
+### The second step
 
 > The second step is to calculate the auth base on the scramble, combined with two parts of the scramble.
 
@@ -90,14 +90,13 @@ There are some details about the auth formula in [the official document](https:/
 some formulas for the auth
 
 SHA1( password ) XOR SHA1( "20-bytes random data from server" <concat> SHA1( SHA1( password ) ) )
-    其中
     stage1 = SHA1( password )
     stage1Hash = SHA1( stage1 ) = SHA1( SHA1( password ) )
     scramble = SHA1( scramble <concat> SHA1( stage1Hash ) ) // the first new scramble
     scramble = stage1 XOR scramble // the second new scramble
 ```
 
-假设
+Assume
 
 - The password for a secure login process in MariaDB is 12345.
 - The auth base on the scramble, combined with two parts of the scramble, is []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}.
@@ -176,11 +175,96 @@ The correct result, auth, is the same as Gaea's.
 
 <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220318183833245.png" alt="image-20220318183833245" style="zoom:70%;" /> 
 
+### The third step
 
+> The second step is to reply to MariaDB after receiving the initial handshake packet.
 
-### The third step: The response to the first handshake.
+There are some details about the response packet in [the official document](https://mariadb.com/kb/en/connection/), and please see the details below.
 
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220318083633693.png" alt="image-20220318083633693" style="zoom:100%;" /> 
 
+The actual packet demonstrates how this response works, and please see details below.
+
+| capability                   | binary             | decimal |
+| ---------------------------- | ------------------ | ------- |
+| mysql.ClientProtocol41       | 0b0000001000000000 | 512     |
+| mysql.ClientSecureConnection | 0b1000000000000000 | 32768   |
+| mysql.ClientLongPassword     | 0b0000000000000001 | 1       |
+| mysql.ClientTransactions     | 0b0010000000000000 | 8192    |
+| mysql.ClientLongFlag         | 0b0000000000000100 | 4       |
+|                              |                    |         |
+| sum                          |                    |         |
+| Gaea's capability            | 0b1010001000000101 | 41477   |
+
+Calculate the new capability that coordinates with MariaDB's.
+
+```
+With regard to the first step, the dc object's capability is 0b10000001111111111111011111111110, which equals 2181036030 in decimal.
+
+Obviously, it does not support "mysql.ClientLongPassword".
+
+SpeedCrunch calculator takes both Gaea's capability and the capability to make a bitwise AND operation. The result is the mutual capability.
+Gaea's capability & dc.capability = uint32(41477) & uint32(2181036030) = uint32(41476)
+```
+
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220319002738908.png" alt="image-20220319002738908" style="zoom:70%;" /> 
+
+| packet                            | exmaple                                                      |
+| --------------------------------- | ------------------------------------------------------------ |
+| int<4> client capabilities        | Gaea reverses from the mutual capability uint32(41476) to []uint8{4, 162, 0, 0} when sending the packet to MariaDB.<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220319113026919.png" alt="image-20220319113026919" style="zoom:50%;" /> |
+| int<4> max packet size            | It occupies 4 bytes, []uint8{0, 0, 0, 0}.                    |
+| int<1> client character collation | After checking[character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/), finding out that number 46 means "utf8mb4_bin". |
+| string<19> reserved               | It occupies 19 bytes,  []uint8{<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0,<br />                                                   } |
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | if not (server_capabilities & CLIENT_MYSQL)<br/>    int<4> extended client capabilities <br/>else<br/>    string<4> reserved |
+| example | CLIENT_MYSQL means this packet belongs to Gaea, True.<br /><br />It occupies 4 bytes, []uint8{0, 0, 0, 0}, because the formula, <br />not (server_capabilities & CLIENT_MYSQL)<br />, produces False. |
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | string<NUL> username                                         |
+| example | xiaomi is an account to log in to MariaDB. However, it needs one byte to terminate it.<br />It will occupy 7 bytes, []uint8{120, 105, 97, 111, 109, 105, 0} |
+
+With respect to the second new scramble, Linux Bash calculates the result and compares it.
+
+```bash
+$ echo -n xiaomi | od -td1
+0000000  120  105   97  111  109  105
+0000006
+```
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | if (server_capabilities & PLUGIN_AUTH_LENENC_CLIENT_DATA)<br/>    string<lenenc> authentication data <br/>else if (server_capabilities & CLIENT_SECURE_CONNECTION)<br/>    int<1> length of authentication response<br/>    string<fix> authentication response (length is indicated by previous field) <br/>else<br/>    string<NUL> authentication response null ended |
+| example | Gaea supports CLIENT_SECURE_CONNECTION in this case.<br /><br />In the second step, the auth is []uint8{128, 18, 212, 25, 163, 228, 214, 83, 203, 204, 27, 235, 147, 219, 179, 198, 14, 176, 254, 126}.<br />However, Gaea has to send the length of the auth first.<br /><br />It will occupy 21 bytes, []uint8{20, 128, 18, 212, 25, 163, 228, 214, 83, 203, 204, 27, 235, 147, 219, 179, 198, 14, 176, 254, 126}< |
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | if (server_capabilities & CLIENT_CONNECT_WITH_DB)<br/>    string<NUL> default database name |
+| example | Gaea supports capabilities that are<br />mysql.ClientProtocol41,<br/>mysql.ClientSecureConnection,<br/>mysql.ClientTransactions,<br/>and mysql.ClientLongFlag.<br /><br />The example skips this one because Gaea doesn't support CLIENT_CONNECT_WITH_DB. |
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | if (server_capabilities & CLIENT_PLUGIN_AUTH)<br/>    string<NUL> authentication plugin name |
+| example | Gaea supports capabilities that are<br />mysql.ClientProtocol41,<br/>mysql.ClientSecureConnection,<br/>mysql.ClientTransactions,<br/>and mysql.ClientLongFlag.<br /><br />The example skips this one because Gaea doesn't support CLIENT_PLUGIN_AUTH. |
+
+The next table follows on from the previous one.
+
+| item    | value                                                        |
+| ------- | ------------------------------------------------------------ |
+| packet  | if (server_capabilities & CLIENT_CONNECT_ATTRS)<br/>    int<lenenc> size of connection attributes<br/>    while packet has remaining data<br/>        string<lenenc> key<br/>        string<lenenc> value |
+| example | Gaea supports capabilities that are<br />mysql.ClientProtocol41,<br/>mysql.ClientSecureConnection,<br/>mysql.ClientTransactions,<br/>and mysql.ClientLongFlag.<br /><br />The example skips this one because Gaea doesn't support CLIENT_CONNECT_ATTRS. |
 
 ### The fourth step: Finish the handshake
 
