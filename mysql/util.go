@@ -43,32 +43,39 @@ var (
 
 // CalcPassword calculate password hash
 func CalcPassword(scramble, password []byte) []byte {
+	// if no dc.password, return
 	// 如果客户端没有输入密码，就直接中断回传
 	if len(password) == 0 {
 		return nil
 	}
 
-	// 3 计算 stage1
-	// stage1 = SHA1(password)
+	// calculate stage1
+	// 计算 stage1
+	// 公式 stage1 = SHA1(password)
 	crypt := sha1.New()
 	crypt.Write(password)
 	stage1 := crypt.Sum(nil)
 
-	// 4 计算 stage1Hash
+	// calculate stage1Hash
+	// 计算 stage1Hash
+	// stage1Hash = SHA1( stage1 ) = SHA1( SHA1( password ) )
 	// inner Hash
 	crypt.Reset()
 	crypt.Write(stage1)
 	stage1hash := crypt.Sum(nil)
 
-	// 5 第一次重写 scramble
+	// The first new scramble
+	// 第一次重写 scramble
+	// scramble = SHA1( scramble <concat> SHA1( stage1Hash ) )
 	// outer Hash
 	crypt.Reset()
 	crypt.Write(scramble)
 	crypt.Write(stage1hash)
 	scramble = crypt.Sum(nil)
 
-	// 6 第二次重写 scramble
-	// token = scrambleHash XOR stage1Hash
+	// The second new scramble (token)
+	// 第二次重写 scramble 为 最后 token
+	// scramble = stage1 XOR scramble
 	for i := range scramble {
 		scramble[i] ^= stage1[i]
 	}

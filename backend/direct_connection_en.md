@@ -266,10 +266,6 @@ The next table follows on from the previous one.
 | packet  | if (server_capabilities & CLIENT_CONNECT_ATTRS)<br/>    int<lenenc> size of connection attributes<br/>    while packet has remaining data<br/>        string<lenenc> key<br/>        string<lenenc> value |
 | example | Gaea supports capabilities that are<br />mysql.ClientProtocol41,<br/>mysql.ClientSecureConnection,<br/>mysql.ClientTransactions,<br/>and mysql.ClientLongFlag.<br /><br />The example skips this one because Gaea doesn't support CLIENT_CONNECT_ATTRS. |
 
-### The fourth step: Finish the handshake
-
-
-
 ## Testing
 
 > I will describe what I consider about in Unit Test below.
@@ -302,7 +298,7 @@ I consider about it again and again. It seems correct.
 	})
 ```
 
-## Check
+## Check Result
 
 When I use the Linux command to calculate Sha1sum or Use tools on other websites, the result is Hexadecimal.
 However, the IDE tools show the result in Decimal.

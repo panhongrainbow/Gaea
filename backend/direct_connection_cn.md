@@ -263,10 +263,6 @@ $ echo -n xiaomi | od -td1
 | 公式 | if (server_capabilities & CLIENT_CONNECT_ATTRS)<br/>    int<lenenc> size of connection attributes<br/>    while packet has remaining data<br/>        string<lenenc> key<br/>        string<lenenc> value |
 | 范例 | 目前 Gaea 支扰的 capabilities 如下<br />mysql.ClientProtocol41<br/>mysql.ClientSecureConnection<br/>mysql.ClientTransactions<br/>mysql.ClientLongFlag<br /><br />并没有支援 CLIENT_CONNECT_ATTRS，所以略过此步骤 |
 
-### 第四步 交握完成，传送讯息方向为 MariaDB 至 Gaea
-
-
-
 ## 测试说明
 
 > 以下会说明在写测试时考量的点
