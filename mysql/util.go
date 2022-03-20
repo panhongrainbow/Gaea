@@ -48,47 +48,17 @@ func CalcPassword(scramble, password []byte) []byte {
 		return nil
 	}
 
-	// 1 公式说明
-	// https://dev.mysql.com/doc/internals/en/secure-password-authentication.html
-	// 安全密码产生规则如下，并整理成以下公式
-	// SHA1( password ) XOR SHA1( "20-bytes random data from server" <concat> SHA1( SHA1( password ) ) )
-	// 修改成 SHA1( password ) XOR SHA1( scramble <直接连接> SHA1( stage1 ) )
-	//     stage1 = SHA1( password )
-	//     stage1Hash = SHA1( stage1 ) = SHA1( SHA1( password ) )
-	//     scramble = SHA1( scramble + SHA1( stage1Hash ) ) // 第一次修改 scramble 的数值
-	//     scramble = stage1 XOR scramble // 第二次修改 scramble 的数值
-
-	// 2 假设参数传入
-	// 2-1 假设 输入密码参数 password
-	// 客户端的输入密码 password 为 12345
-	// 2-2 假设 数数库服务器回传的乱数 scramble
-	// 十进位
-	// scramble 为 []uint8{81, 64, 43, 85, 76, 90, 97, 91, 34, 53, 36, 85, 93, 86, 117, 105, 49, 87, 65, 125}
-	// 十六进位
-	// scramble 为 []uint8{51, 40, 2B, 55, 4c, 5a, 61, 5b, 22, 35, 24, 55, 5d, 56,  75,  69, 31, 57, 41,  7d}
-	// 在 Bash 的十六进位输入
-	// scramble 的值为 51402B554c5A615b223524555d5675693157417d
-
 	// 3 计算 stage1
 	// stage1 = SHA1(password)
 	crypt := sha1.New()
 	crypt.Write(password)
 	stage1 := crypt.Sum(nil)
 
-	// 使用 Linux Bash 去验证 stage1
-	// echo 12345 | sha1sum | head -c 40 # 把 密码 12345 转成 stage1
-	// 8cb2237d0679ca88db6464eac60da96345513964 # 此为 stage1 的值
-
 	// 4 计算 stage1Hash
 	// inner Hash
 	crypt.Reset()
 	crypt.Write(stage1)
 	stage1hash := crypt.Sum(nil)
-
-	// 使用 Linux Bash 去验证 stage1Hash
-	// echo -n 12345 | sha1sum | xxd -r -p | sha1sum | head -c 40
-	// 也可似用以下命令求出 echo -n 8cb2237d0679ca88db6464eac60da96345513964 | xxd -r -p | sha1sum | head -c 40
-	// 00a51f3f48415c7d4e8908980d443c29c69b60c9 # 此为 stage1hash 的值
 
 	// 5 第一次重写 scramble
 	// outer Hash
@@ -97,28 +67,11 @@ func CalcPassword(scramble, password []byte) []byte {
 	crypt.Write(stage1hash)
 	scramble = crypt.Sum(nil)
 
-	// 使用 Linux Bash 去验证 第一次重写 scramble
-	// scramble 的值为 51402B554c5A615b223524555d5675693157417d，为连接的前半段
-	// stage1Hash 的值为 00a51f3f48415c7d4e8908980d443c29c69b60c9，为连接的后半段
-	// echo 51402B554c5A615b223524555d5675693157417d 00a51f3f48415c7d4e8908980d443c29c69b60c9 | xxd -r -p | sha1sum | head -c 40
-	// 0ca0f764a59d1cdb10a87f0155d61aa54be1c71a # 此为第一次修改的 scramble
-
 	// 6 第二次重写 scramble
 	// token = scrambleHash XOR stage1Hash
 	for i := range scramble {
 		scramble[i] ^= stage1[i]
 	}
-
-	// 使用 Linux Bash 去验证 第二次重写 scramble
-	// stage1=0x8cb2237d0679ca88db6464eac60da96345513964 # 之前计算出来的 stage1 的数值
-	// scrambleFirst=0x0ca0f764a59d1cdb10a87f0155d61aa54be1c71a # 第一次修改 scramble 的数值
-	// echo $(( $stage1^$scrambleFirst ))
-	// -7792437067003134338 # 十进位的结果，转换成 十六进位为 0x 93 DB B3 C6 0E B0 FE 7E，因为 Bash 精度不够，只能显示部份数度进行检查
-
-	// 第二次重写 scramble 正确的数值
-	// scramble 为 []uint8{128, 18, 212, 25, 163, 228, 214, 83, 203, 204, 27, 235, 147, 219, 179, 198, 14, 176, 254, 126} // 十进位
-	// scramble 为 []uint8{ 80, 12,  D4, 19,  A3,  E4,  D6, 53,  CB,  CC, 1B,  EB,  93,  DB,  B3,  C6, 0E,  B0,  FE,  7E} // 十六进位
-	// scramble 的值为 8012D419A3E4D653CBCC1BEB93DBB3C60EB0FE7E // 十六进位
 
 	// 最后回传 第二次重写 scramble 正确的数值
 	return scramble

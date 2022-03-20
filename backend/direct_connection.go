@@ -257,16 +257,10 @@ func (dc *DirectConnection) writeHandshakeResponse41() error {
 	// Adjust client capability flags based on server support
 	capability := mysql.ClientProtocol41 | mysql.ClientSecureConnection |
 		mysql.ClientLongPassword | mysql.ClientTransactions | mysql.ClientLongFlag
-	// mysql.ClientProtocol41 为 0b1000000000 (十进位为 512)
-	// mysql.ClientSecureConnection 为 0b1000000000000000 (十进位为 32768)
-	// mysql.ClientLongPassword 为 0b1 (十进位为 1)
-	// mysql.ClientTransactions 为 0b10000000000000 (十进位为 8192)
-	// mysql.ClientLongFlag 为 0b100 (十进位为 4)
-	// mysql.ClientProtocol41 | mysql.ClientSecureConnection | mysql.ClientLongPassword | mysql.ClientTransactions | mysql.ClientLongFlag 为 0b1010001000000101 (十进位为 41477)
+	// capability 为 0b1010001000000101 (十进位为 41477)
 
+	// dc.capability 为数据库服务器所提供的功能
 	capability &= dc.capability
-	// dc.capability 为 0b10000001111111111111011111111110 (十进位为 2181036030)，为数据库服务器所提供的功能
-	// capability &= dc.capability 运作后，capability 的值为 0b1010001000000100 (十进位为 41476)
 
 	// we only support secure connection
 	auth := mysql.CalcPassword(dc.salt, []byte(dc.password))
