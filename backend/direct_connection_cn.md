@@ -206,7 +206,7 @@ Gaea支援的capability & dc.capability = []uint32{41477} & []uint32{2181036030}
 
 | 内容                              | 演示范例                                                     |
 | --------------------------------- | ------------------------------------------------------------ |
-| int<4> client capabilities        | 经由上述计算为 []uint32{41476}，但是传输过程中，会反向排列，所以传送的资料为 []uint8{4, 162, 0, 0}<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220319113026919.png" alt="image-20220319113026919" style="zoom:50%;" /> |
+| int<4> client capabilities        | 经由上述计算为 []uint32{41476}，但是传输过程中，会反向排列，所以传送的资料为 []uint8{4, 162, 0, 0}<br /><img src="./assets/image-20220319113026919.png" alt="image-20220319113026919" style="zoom:50%;" /> |
 | int<4> max packet size            | 官方文件有提到写入的值都为 0，传送的数值为 []uint8{0, 0, 0, 0} |
 | int<1> client character collation | 在官方文件 https://mariadb.com/kb/en/supported-character-sets-and-collations/ 里有说明，以这个例子为 46 ，意思为 utf8mb4_bin |
 | string<19> reserved               | 全部写入为 0  的数值，传送的数值为 []uint8{<br />                                                                                    0, 0, 0, 0, 0,<br />                                                                                    0, 0, 0, 0, 0,<br />                                                                                    0, 0, 0, 0, 0,<br />                                                                                    0, 0, 0, 0,<br />                                                                               } |

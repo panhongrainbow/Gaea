@@ -174,7 +174,7 @@ $ printf "%X" $(( ((0x6345513964)) ^ ((0xa54be1c71a)) ))
 
 The correct result, auth, is the same as Gaea's.
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220318183833245.png" alt="image-20220318183833245" style="zoom:70%;" /> 
+<img src="./assets/image-20220318183833245.png" alt="image-20220318183833245" style="zoom:70%;" /> 
 
 ### The third step
 
@@ -182,7 +182,7 @@ The correct result, auth, is the same as Gaea's.
 
 There are some details about the response packet in [the official document](https://mariadb.com/kb/en/connection/), and please see the details below.
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220318083633693.png" alt="image-20220318083633693" style="zoom:100%;" /> 
+<img src="./assets/image-20220318083633693.png" alt="image-20220318083633693" style="zoom:100%;" /> 
 
 The actual packet demonstrates how this response works, and please see details below.
 
@@ -208,11 +208,11 @@ SpeedCrunch calculator takes both Gaea's capability and the capability to make a
 Gaea's capability & dc.capability = []uint32{41477} & []uint32{2181036030} = []uint32{41476}
 ```
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220319002738908.png" alt="image-20220319002738908" style="zoom:70%;" /> 
+<img src="./assets/image-20220319002738908.png" alt="image-20220319002738908" style="zoom:70%;" /> 
 
 | packet                            | exmaple                                                      |
 | --------------------------------- | ------------------------------------------------------------ |
-| int<4> client capabilities        | Gaea reverses from the mutual capability []uint32{41476} to []uint8{4, 162, 0, 0} when sending the packet to MariaDB.<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220319113026919.png" alt="image-20220319113026919" style="zoom:50%;" /> |
+| int<4> client capabilities        | Gaea reverses from the mutual capability []uint32{41476} to []uint8{4, 162, 0, 0} when sending the packet to MariaDB.<br /><img src="./assets/image-20220319113026919.png" alt="image-20220319113026919" style="zoom:50%;" /> |
 | int<4> max packet size            | It occupies 4 bytes, []uint8{0, 0, 0, 0}.                    |
 | int<1> client character collation | After checking [character-sets-and-collations](https://mariadb.com/kb/en/supported-character-sets-and-collations/), finding out that number 46 means "utf8mb4_bin". |
 | string<19> reserved               | It occupies 19 bytes,  []uint8{<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0, 0,<br />                                                       0, 0, 0, 0,<br />                                                   } |
