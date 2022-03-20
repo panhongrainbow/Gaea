@@ -15,10 +15,10 @@ package backend
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/XiaoMi/Gaea/util/mocks/pipeTest"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 )
 
@@ -45,44 +45,47 @@ func TestAppendSetVariable2(t *testing.T) {
 var (
 	// preparation 准备数据库的回应资料
 
+	// The initial handshake packet from MariaDB to Gaea
 	// 第一个交握讯息，由 MariaDB 传送欢迎讯息到 Gaea
 	mysqlInitHandShakeFirstResponseFromMaraiadbToGaea = []uint8{
-		// 资料长度
+		// length. 资料长度
 		93, 0, 0,
-		// 自增序列号码
+		// the increment numbers. 自增序列号码
 		0,
-		// 以下 93 笔数据
-		// 协定 Protocol 版本
+
+		// 93 bytes of data. 以下 93 笔数据
+
+		// protocol 协定版本
 		10,
-		// 数据库 Version 版本
+		// version 数据库 版本
 		53, 46, 53, 46, 53,
 		45, 49, 48, 46, 53,
 		46, 49, 50, 45, 77,
 		97, 114, 105, 97, 68,
 		66, 45, 108, 111, 103,
-		// 数据库的版本结尾
+		// terminated 数据库的版本结尾
 		0,
-		// 连线编号 connection id
+		// connection id 连线编号
 		16, 0, 0, 0,
-		// 第一部份的 Scramble
+		// The first scramble. 第一部份的 scramble
 		81, 64, 43, 85, 76, 90, 97, 91,
-		// 保留数据 reserved byte
+		// reserved byte 保留数据
 		0,
-		// 取得功能标志 capability
+		// capability 取得功能标志
 		254, 247,
-		// 數據庫編碼 charset
-		33, // 可以用 SHOW CHARACTER SET LIKE 'utf8'; 查询
-		// 服务器状态，在 Gaea/mysql/constants.go 的 Server information
+		// charset 數據庫編碼
+		33,
+		// status 服务器状态
 		2, 0,
-		// 延伸的功能标志 capability
+		// capability 延伸的功能标志
 		255, 129,
-		// Auth 资料和保留值
+		// auth 资料和保留值
 		21, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0,
-		// 延伸的 Scramble
+		// the second scramble. 延申的 scramble
 		34, 53, 36, 85,
 		93, 86, 117, 105,
 		49, 87, 65, 125,
-		// 其他未用到的资料
+		// unused data. 其他未用到的资料
 		0, 109, 121, 115, 113, 108, 95, 110, 97, 116,
 		105, 118, 101, 95, 112, 97, 115, 115, 119, 111,
 		114, 100, 0,
@@ -155,7 +158,7 @@ func TestDirectConnWithoutDB(t *testing.T) {
 
 		// use the anonymous function to send the message.
 		// 使用支援使用匿名函式传送讯息
-		msgArrived := mockGaea.UseAnonymousFuncSendMsg(
+		responseMsg := mockGaea.UseAnonymousFuncSendMsg(
 			// start using anonymous function
 			// 自订的匿名函式开始
 			func() {
@@ -170,7 +173,15 @@ func TestDirectConnWithoutDB(t *testing.T) {
 			// 自订的匿名函式结束
 		).CheckArrivedMsg(mockMariaDB) // get the arrived message and check. 对传送到达对方的讯息取出进行确认
 
-		// require.Equal(t, msgArrived, "")
-		fmt.Println(msgArrived)
+		// check result. 确认结果
+		require.Equal(t, len(responseMsg), 64) // check length of the packet. 确认封包长度
+
+		require.Equal(t, strings.Contains(string(responseMsg), "xiaomi"), true) // check the existence of the account in the packet. 确认 用户帐户 是否真的写到封包里
+
+		scramble := mysql.CalcPassword(dc.salt, []byte("12345"))                        // calculate token. 计算 token
+		require.Equal(t, strings.Contains(string(responseMsg), string(scramble)), true) // check the existence of the token in the packet. 确认 token 是否真的写到封包里
+
+		require.Equal(t, strings.Contains(string(responseMsg), dc.password), false) // check the non-existence of the password in the packet. 确认 密码 不行写到封包里
+
 	})
 }
