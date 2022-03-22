@@ -1,0 +1,44 @@
+@startuml
+
+package "cache" {
+[LRUCache] --> [map]
+}
+
+note left of list
+  LRU 缓存组件图
+end note
+
+package "list" {
+[List]
+
+node {
+[Element 0] -[#Blue]-> [Value]
+[Value] -[#Blue]-> interface: 可以储存任何数值
+interface -[#Blue]-> [entry]: 指向储存的数值
+}
+
+node {
+[Element 1] -[#Blue]-> [Value.]
+[Value.] -[#Blue]-> interface.: 可以储存任何数值
+interface. -[#Blue]-> [entry.]: 指向储存的数值
+}
+
+node {
+[Element 2] -[#Blue]-> [Value..]
+[Value..] -[#Blue]-> interface..: 可以储存任何数值
+interface.. -[#Blue]-> [entry..]: 指向储存的数值
+}
+
+[LRUCache] --> [List]
+
+[map] --> [Element 2]: 用key2对应到
+[map] --> [Element 1]: 用key1对应到
+[map] --> [Element 0]: 用key0对应到
+
+[List] --> [Element 2]: 连结到根部
+
+[Element 2] <-[#Purple]-> [Element 1]: 双向连结
+[Element 1] <-[#Purple]-> [Element 0]: 双向连结
+}
+
+@enduml

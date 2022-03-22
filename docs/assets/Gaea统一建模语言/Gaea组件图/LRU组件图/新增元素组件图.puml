@@ -1,0 +1,63 @@
+@startuml
+
+package "cache" {
+[LRUCache] --> [map]
+}
+
+note top of list
+    LRU 新增元表组件图，执行 addNew 函数
+end note
+
+package "list" {
+[List]
+
+node {
+[Element 0] -[#Blue]-> [Value]
+[Value] -[#Blue]-> interface: 可以储存任何数值
+interface -[#Blue]-> [entry]: 指向储存的数值
+}
+
+node {
+[Element 1] -[#Blue]-> [Value.]
+[Value.] -[#Blue]-> interface.: 可以储存任何数值
+interface. -[#Blue]-> [entry.]: 指向储存的数值
+}
+
+node {
+[Element 2] -[#Blue]-> [Value..]
+[Value..] -[#Blue]-> interface..: 可以储存任何数值
+interface.. -[#Blue]-> [entry..]: 指向储存的数值
+}
+
+node {
+note left of [entry...] #Pink
+    第1步 建立要储存的对象或变量
+end note
+note top of [Element 3] #Pink
+    第2步 储存后 entry... 回传新的元素 Element 3，并把 Element 3 移动到 List 的最前面
+end note
+
+[Element 3] #Pink
+[Value...] #Pink
+[entry...] #Pink
+
+[Element 3] -[#Red]-> [Value...]
+[Value...] -[#Red]-> interface...: 可以储存任何数值
+interface... -[#Red]-> [entry...]: 指向储存的数值
+}
+
+[List] --> [Element 3]: 连结到新的根部
+
+[LRUCache] --> [List]
+
+[Element 1] <-[#Purple]-> [Element 0]: 双向连结
+[Element 2] <-[#Purple]-> [Element 1]: 双向连结
+[Element 3] <-[#Purple]-> [Element 2]: 新增元素的双向连结
+
+[map] --> [Element 0]: 用key0对应到
+[map] --> [Element 1]: 用key1对应到
+[map] --> [Element 2]: 用key2对应到
+[map] --> [Element 3]: 用key3对应到新的元素
+}
+
+@enduml
