@@ -1,0 +1,8 @@
+{
+  "name": "mariadb-sakila",
+  "image": "mariadb",
+  "container": "empty",
+  "task": "empty",
+  "sehema": "sakila",
+  "ip": "empty"
+}

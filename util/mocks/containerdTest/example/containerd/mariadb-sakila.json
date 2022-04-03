@@ -1,0 +1,10 @@
+{
+  "name": "mariadb-sakila",
+  "image": "mariadb",
+  "container": "empty",
+  "task": "empty",
+  "ip": "empty",
+  "sehema": "sakila",
+  "user": "xiaomi",
+  "password": "12345"
+}
