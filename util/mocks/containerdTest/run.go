@@ -10,7 +10,7 @@ import (
 
 // Run 为用来执行容器服务
 type Run struct {
-	client Client
+	client map[string]Client
 	prefix string
 }
 
@@ -37,6 +37,7 @@ func (r *Run) listContainerD() ([]string, error) {
 	return list, nil
 }
 
+// loadContainerD 载入指定的設定檔轉成 ContainerD 設定值
 func (r *Run) loadContainerD(file string) (ContainerD, error) {
 	path := r.ContainerdPath()
 	config := filepath.Join(path, file)
@@ -52,7 +53,7 @@ func (r *Run) loadContainerD(file string) (ContainerD, error) {
 	return c, nil
 }
 
-// loadAllContainerD 把所有 ContainerD 的設定檔轉成設定值
+// loadAllContainerD 把所有的設定檔轉成 ContainerD 設定值
 func (r *Run) loadAllContainerD() (map[string]ContainerD, error) {
 	files, err := r.listContainerD()
 	if err != nil {
