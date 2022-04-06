@@ -25,6 +25,7 @@ func init() {
 
 // ContainerD 为 Containerd 容器服务所要 Parse 对应的内容
 type ContainerD struct {
+	Sock      string `json:"sock"`      // 容器服务在 Linux 的连接位置
 	Type      string `json:"type"`      // 容器服务类型
 	Name      string `json:"name"`      // 容器服务名称
 	Image     string `json:"image"`     // 容器服务镜像
@@ -42,7 +43,7 @@ func (c *ContainerD) NewClient() *containerd.Client {
 
 // ContainderdManager 容器服务管理員
 type ContainderdManager struct {
-	run        *Run
+	run        *Load
 	task       chan *ContainerdTask
 	configPath string
 }
