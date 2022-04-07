@@ -120,10 +120,11 @@ $ mv ./cnitool /usr/local/bin
 
 ```bash
 # 写入网路设定档，并指定子网分割为 10.10.10.8/30
-$ cat << EOF | tee /etc/cni/net.d/gaea.conf
+# 在 gaea 环境下，用 mariaDB 容器测试 sakila Schema
+$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
 {
     "cniVersion": "0.4.0",
-    "name": "gaea",
+    "name": "gaea-mariadb-sakila",
     "type": "bridge",
     "bridge": "cni0",
     "isDefaultGateway": true,
@@ -138,17 +139,17 @@ $ cat << EOF | tee /etc/cni/net.d/gaea.conf
 EOF
 
 # 建立网路的 namespace 进行网路隔离
-$ ip netns add gaea
+$ ip netns add gaea-mariadb-sakila
 
 $ ip netns list
-gaea
+gaea-mariadb-sakila
 
 $ ls /var/run/netns/
-gaea
+gaea-mariadb-sakila
 
-# 把 gaea 加入 namespace
+# 把 gaea-mariadb-sakila 加入 namespace
 $ export CNI_PATH=/opt/cni/bin
-$ cnitool add gaea /var/run/netns/gaea
+$ cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
 
 # 进行连线测试
 $ ip a | grep cni0
@@ -168,6 +169,29 @@ $ ping -c 5 10.10.10.9
 - 在子网切割里 10.10.10.8/30，预留 4 个 IP 可以供容器自由使用，但前后网域和广播会各占一个，穚接器也会占用一个 10.10.10.9
 - 最后容器可以被分配的 IP 只剩一个，为 10.10.10.10
 
+Linux 的 namespace 并不是永远储存的，所以要在 cronjob 上设定，使开机时可以重新建立 namespace
+
+- export CNI_PATH=/opt/cni/bin 这一行写到 /etc/bash.bashrc
+  ```bash
+  # 新增以下内容
+  
+  # 新增 containerd 的动态网咯介面 
+  export CNI_PATH=/opt/cni/bin
+  ```
+
+- 在 crontab 内新增以下内容
+  ```bash
+  # 使用 root 身份
+  $ sudo su -
+  
+  # 执行 crontab 并新增以下内容
+  $ crontab -e
+  
+  # 新增 containerd 的动态网咯介面
+  @reboot ip netns add gaea-mariadb-sakila
+  @reboot cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
+  ```
+
 ## ContainerdTest 单元测试
 
 
@@ -177,3 +201,19 @@ $ ping -c 5 10.10.10.9
 
 
 ### 操作演示
+
+
+
+=== RUN   TestRunMariadb
+&{1.0.2-dev 0xc0003f6000 0xc00025a510  [{/proc proc proc [nosuid noexec nodev]} {/dev tmpfs tmpfs [nosuid strictatime mode=755 size=65536k]} {/dev/pts devpts devpts [nosuid noexec newinstance ptmxmode=0666 mode=0620 gid=5]} {/dev/shm tmpfs shm [nosuid noexec nodev mode=1777 size=65536k]} {/dev/mqueue mqueue mqueue [nosuid noexec nodev]} {/sys sysfs sysfs [nosuid noexec nodev ro]} {/run tmpfs tmpfs [nosuid strictatime mode=755 size=65536k]}] <nil> map[] 0xc0003f60f0 <nil> <nil> <nil>}
+1:C 07 Apr 2022 09:57:59.684 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+1:C 07 Apr 2022 09:57:59.684 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=1, just started
+1:C 07 Apr 2022 09:57:59.684 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+1:M 07 Apr 2022 09:57:59.684 # You requested maxclients of 10000 requiring at least 10032 max file descriptors.
+1:M 07 Apr 2022 09:57:59.684 # Server can't set maximum open files to 10032 because of OS error: Operation not permitted.
+1:M 07 Apr 2022 09:57:59.684 # Current maximum open files is 1024. maxclients has been reduced to 992 to compensate for low ulimit. If you need higher maxclients increase 'ulimit -n'.
+1:M 07 Apr 2022 09:57:59.684 * monotonic clock: POSIX clock_gettime
+1:M 07 Apr 2022 09:57:59.685 * Running mode=standalone, port=6379.
+1:M 07 Apr 2022 09:57:59.685 # Server initialized
+1:M 07 Apr 2022 09:57:59.685 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+1:M 07 Apr 2022 09:57:59.685 * Ready to accept connections
