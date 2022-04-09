@@ -99,6 +99,8 @@ $ go build .
 $ mv ./cnitool /usr/local/bin
 ```
 
+## 子网切割计算
+
 ### 计算容器子网
 
 > 目的为保留两个容器可分配 IP，让 containerdTest 包可以快速在网路上找到容器并进行连线
@@ -118,7 +120,58 @@ $ mv ./cnitool /usr/local/bin
 
 ### 容器网路设定
 
+| 项目       | 容器IP      | 子网计算                                                     |
+| ---------- | ----------- | ------------------------------------------------------------ |
+| 预设用     | 2.2.2.2     | $ sipcalc 2.2.2.0/30<br /><img src="./assets/image-20220409143439805.png" alt="image-20220409143439805" style="zoom:50%;" /><br /> |
+| etcd 用    | 6.6.6.6     | $ sipcalc 6.6.6.4/30<br /><img src="./assets/image-20220409143801312.png" alt="image-20220409143801312" style="zoom:50%;" /><br /> |
+| mariadb 用 | 10.10.10.10 | $ sipcalc 10.10.10.8/30<br /><img src="./assets/image-20220409144331574.png" alt="image-20220409144331574" style="zoom:50%;" /><br /> |
+| 保留       | 14.14.14.14 | $ sipcalc 14.14.14.12/30<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220409144749186-16494875936295.png" alt="image-20220409144749186" style="zoom:50%;" /><br /> |
+| 保留       | 18.18.18.18 | $ sipcalc 18.18.18.16/30<br /><img src="./assets/image-20220409145025336.png" alt="image-20220409145025336" style="zoom:50%;" /><br /> |
+
+
+
 ```bash
+# 以下使用 root 身份执行
+$ sudo su -
+
+# 写入网路设定档，并指定子网分割为 2.2.2.0/30
+# 在 gaea 环境下，用于容器的环境测试
+$ cat << EOF | tee /etc/cni/net.d/gaea-default.conf
+{
+    "cniVersion": "0.4.0",
+    "name": "gaea-default",
+    "type": "bridge",
+    "bridge": "cni0",
+    "isDefaultGateway": true,
+    "forceAddress": false,
+    "ipMasq": true,
+    "hairpinMode": true,
+    "ipam": {
+        "type": "host-local",
+        "subnet": "2.2.2.0/30"
+    }
+}
+EOF
+
+# 写入网路设定档，并指定子网分割为 6.6.6.4/30
+# 在 gaea 环境下，用 etcd 容器测试
+$ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
+{
+    "cniVersion": "0.4.0",
+    "name": "gaea-etcd",
+    "type": "bridge",
+    "bridge": "cni1",
+    "isDefaultGateway": true,
+    "forceAddress": false,
+    "ipMasq": true,
+    "hairpinMode": true,
+    "ipam": {
+        "type": "host-local",
+        "subnet": "6.6.6.4/30"
+    }
+}
+EOF
+
 # 写入网路设定档，并指定子网分割为 10.10.10.8/30
 # 在 gaea 环境下，用 mariaDB 容器测试 sakila Schema
 $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
@@ -126,7 +179,7 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
     "cniVersion": "0.4.0",
     "name": "gaea-mariadb-sakila",
     "type": "bridge",
-    "bridge": "cni0",
+    "bridge": "cni2",
     "isDefaultGateway": true,
     "forceAddress": false,
     "ipMasq": true,
@@ -139,21 +192,27 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
 EOF
 
 # 建立网路的 namespace 进行网路隔离
+$ ip netns add gaea-default
+$ ip netns add gaea-etcd
 $ ip netns add gaea-mariadb-sakila
 
 $ ip netns list
 gaea-mariadb-sakila
+gaea-etcd
+gaea-default
 
 $ ls /var/run/netns/
-gaea-mariadb-sakila
+gaea-default  gaea-etcd  gaea-mariadb-sakila
 
 # 把 gaea-mariadb-sakila 加入 namespace
 $ export CNI_PATH=/opt/cni/bin
+$ cnitool add gaea-default /var/run/netns/gaea-default
+$ cnitool add gaea-etcd /var/run/netns/gaea-etcd
 $ cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
 
 # 进行连线测试
-$ ip a | grep cni0
-# 6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+$ ip a | grep cni2
+# 6: cni2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
 #     inet 10.10.10.9/30 brd 10.10.10.11 scope global cni0
 # 7: veth8e852839@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master cni0 state UP group default
 
@@ -165,6 +224,8 @@ $ ping -c 5 10.10.10.9
 # 64 bytes from 10.10.10.9: icmp_seq=4 ttl=64 time=0.100 ms
 # 64 bytes from 10.10.10.9: icmp_seq=5 ttl=64 time=0.099 ms
 ```
+
+以 mariaDB 数据库网路为例
 
 - 在子网切割里 10.10.10.8/30，预留 4 个 IP 可以供容器自由使用，但前后网域和广播会各占一个，穚接器也会占用一个 10.10.10.9
 - 最后容器可以被分配的 IP 只剩一个，为 10.10.10.10
@@ -201,6 +262,43 @@ Linux 的 namespace 并不是永远储存的，所以要在 cronjob 上设定，
 
 
 ### 操作演示
+
+
+
+## 未整理的资料
+
+```bash
+
+ctr task kill -s SIGKILL debian
+
+ctr task del debian
+
+ctr container del debian
+
+ctr image del docker.io/library/debian:buster
+ctr image del docker.io/library/redis:alpine3.13
+
+
+
+
+ctr image pull docker.io/library/redis:alpine3.13
+
+ctr run --with-ns=network:/var/run/netns/gaea-mariadb-sakila -d docker.io/library/redis:alpine3.13 debian
+
+ctr task exec -t --exec-id debian debian sh
+
+
+
+
+
+ctr image pull docker.io/library/debian:buster
+
+ctr run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:buster debian
+
+ctr task exec -t --exec-id debian debian sh
+```
+
+
 
 
 
