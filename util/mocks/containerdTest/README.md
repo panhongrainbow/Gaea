@@ -269,11 +269,9 @@ Linux 的 namespace 并不是永远储存的，所以要在 cronjob 上设定，
 
 ```bash
 
-ctr task kill -s SIGKILL debian
-
-ctr task del debian
-
-ctr container del debian
+ctr task kill -s SIGKILL default-server
+ctr task del default-server
+ctr container del default-server
 
 ctr image del docker.io/library/debian:buster
 ctr image del docker.io/library/redis:alpine3.13

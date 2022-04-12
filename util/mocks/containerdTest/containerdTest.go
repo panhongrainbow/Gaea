@@ -13,10 +13,10 @@ func init() {
 
 // Run is an interface for containerd client to implement. 容器對象，在這裡要可以直接操作容器
 type Run interface {
-	Pull(client *containerd.Client, ctx context.Context, image string) error
-	Create(container string, image string) error
+	Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error)
+	Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
 	Task(container string) (string, error)
 	Start(container string) error
 	Stop(container string) error
-	Delete(container string) error
+	Delete(container containerd.Container, ctx context.Context) error
 }

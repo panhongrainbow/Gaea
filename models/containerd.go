@@ -1,10 +1,5 @@
 package models
 
-import (
-	"gopkg.in/ini.v1"
-	"strings"
-)
-
 // Containerd 容器服务设定值
 type Containerd struct {
 	ConfigPath string `ini:"config_path"`
@@ -17,7 +12,7 @@ type CMConfig struct {
 }
 
 // ParseCMConfig 解析 Containerd 容器服务管理员配置
-func ParseCMConfig(cfgFile string) (*CMConfig, error) {
+/*func ParseCMConfig(cfgFile string) (*CMConfig, error) {
 	cfg, err := ini.Load(cfgFile)
 
 	if err != nil {
@@ -33,4 +28,4 @@ func ParseCMConfig(cfgFile string) (*CMConfig, error) {
 		ccConfig.CoordinatorType = ConfigEtcd
 	}
 	return ccConfig, err
-}
+}*/

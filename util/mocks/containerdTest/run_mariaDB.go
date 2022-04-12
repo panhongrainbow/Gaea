@@ -13,14 +13,13 @@ type mariaDB struct {
 // defined interface 约定的接口
 
 // Pull is to pull image from registry. 为容器拉取镜像
-func (m *mariaDB) Pull(client *containerd.Client, ctx context.Context, image string) error {
-	_, err := client.Pull(ctx, image, containerd.WithPullUnpack)
-	return err
+func (m *mariaDB) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
+	return nil, nil
 }
 
 // Create is to create container. 为容器创建
-func (m *mariaDB) Create(container string, image string) error {
-	return nil
+func (m *mariaDB) Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error) {
+	return nil, nil
 }
 
 // Task is to create task. 为容器任务创建
@@ -39,6 +38,6 @@ func (m *mariaDB) Stop(container string) error {
 }
 
 // Delete is to delete task. 为容器任务停止
-func (m *mariaDB) Delete(container string) error {
-	return nil
+func (m *mariaDB) Delete(container containerd.Container, ctx context.Context) error {
+	return container.Delete(ctx, containerd.WithSnapshotCleanup)
 }
