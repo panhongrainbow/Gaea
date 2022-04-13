@@ -3,6 +3,7 @@ package containerdTest
 import (
 	"context"
 	"github.com/containerd/containerd"
+	"syscall"
 )
 
 // defined data 数据定义
@@ -23,8 +24,8 @@ func (m *mariaDB) Create(client *containerd.Client, ctx context.Context, contain
 }
 
 // Task is to create task. 为容器任务创建
-func (m *mariaDB) Task(container string) (string, error) {
-	return "", nil
+func (m *mariaDB) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
+	return nil, nil
 }
 
 // Start is to start task. 为容器任务启动
@@ -32,9 +33,10 @@ func (m *mariaDB) Start(container string) error {
 	return nil
 }
 
-// Stop is to stop task. 为容器任务停止
-func (m *mariaDB) Stop(container string) error {
-	return nil
+// Interrupt is to stop task immediately. 为立刻停止容器任务
+func (m *mariaDB) Interrupt(task containerd.Task, ctx context.Context) error {
+	// kill the process work. 删除容器工作
+	return task.Kill(ctx, syscall.SIGKILL)
 }
 
 // Delete is to delete task. 为容器任务停止

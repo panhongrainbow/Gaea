@@ -15,8 +15,8 @@ func init() {
 type Run interface {
 	Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error)
 	Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
-	Task(container string) (string, error)
-	Start(container string) error
-	Stop(container string) error
+	Task(container containerd.Container, ctx context.Context) (containerd.Task, error)
+	Start(task containerd.Task, ctx context.Context) error
+	Interrupt(task containerd.Task, ctx context.Context) error
 	Delete(container containerd.Container, ctx context.Context) error
 }

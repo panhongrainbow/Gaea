@@ -38,7 +38,7 @@ func TestRunContainerdEnv(t *testing.T) {
 		"default-server",
 		containerd.WithImage(image),
 		containerd.WithNewSnapshot("default-server-snapshot", image),
-		containerd.WithNewSpec(oci.WithImageConfig(image), oci.WithLinuxNamespace(defaultNS)),
+		containerd.WithNewSpec(oci.WithImageConfig(image), oci.WithLinuxNamespace(defaultNS)), // 在这里添加网路环境 add the network environment
 	)
 	require.Nil(t, err)
 	defer func() {
