@@ -3,7 +3,6 @@ package containerdTest
 import (
 	"context"
 	"github.com/containerd/containerd"
-	"syscall"
 )
 
 // defined data 数据定义
@@ -35,11 +34,10 @@ func (m *etcd) Start(container string) error {
 
 // Interrupt is to stop task immediately. 为立刻停止容器任务
 func (m *etcd) Interrupt(task containerd.Task, ctx context.Context) error {
-	// kill the process work. 删除容器工作
-	return task.Kill(ctx, syscall.SIGKILL)
+	return nil
 }
 
 // Delete is to delete task. 为容器任务停止
-func (m *etcd) Delete(container containerd.Container, ctx context.Context) error {
-	return container.Delete(ctx, containerd.WithSnapshotCleanup)
+func (m *etcd) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
+	return nil
 }

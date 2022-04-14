@@ -18,5 +18,5 @@ type Run interface {
 	Task(container containerd.Container, ctx context.Context) (containerd.Task, error)
 	Start(task containerd.Task, ctx context.Context) error
 	Interrupt(task containerd.Task, ctx context.Context) error
-	Delete(container containerd.Container, ctx context.Context) error
+	Delete(task containerd.Task, container containerd.Container, ctx context.Context) error
 }

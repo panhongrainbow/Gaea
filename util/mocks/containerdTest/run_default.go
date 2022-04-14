@@ -7,6 +7,7 @@ import (
 	"github.com/containerd/containerd/oci"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	"syscall"
+	"time"
 )
 
 // defined data 数据定义
@@ -18,8 +19,50 @@ type defaults struct {
 
 // Pull is to pull image from registry. 为容器拉取镜像
 func (d *defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
-	// create a new client connected to the default socket path for containerd. 建立新的容器的连接客户端
-	return client.Pull(ctx, imageUrl, containerd.WithPullUnpack)
+
+	// pull image from registry. 从注册中心拉取镜像
+	download := func(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
+		image, err := client.Pull(ctx, imageUrl, containerd.WithPullUnpack)
+		if err != nil {
+			return nil, err
+		}
+		return image, nil
+	}
+
+	// message. 消息
+	type message struct {
+		image containerd.Image
+		err   error
+	}
+
+	// channel. 通道
+	chMessage := make(chan message)
+
+RETRY:
+	// goroutine to pull image from registry. 开启一个goroutine从注册中心拉取镜像
+	go func(client *containerd.Client, ctx context.Context, imageUrl string) {
+		image, err := download(client, ctx, imageUrl)
+		chMessage <- message{image: image, err: err} // return the message. 回传消息
+	}(client, ctx, imageUrl)
+
+	// wait for image pull. 等待镜像拉取
+	for {
+		select {
+		case <-ctx.Done():
+			// stop downloading the image because the context is canceled. 逾时停止下载镜像
+			return nil, ctx.Err()
+		case downloadMsg := <-chMessage:
+			// download the image failed. 下载镜像失败
+			if downloadMsg.err == nil {
+				goto RETRY
+			}
+			// download the image successfully. 下载镜像成功
+			return downloadMsg.image, downloadMsg.err
+		default:
+			// wait for a while. 等待一段时间
+			time.Sleep(1 * time.Second)
+		}
+	}
 }
 
 // Create is to create container. 为容器创建
@@ -70,6 +113,8 @@ LOOP:
 				// container is not running. 容器工作不为正在运行
 				break LOOP
 			}
+			// wait for a while. 等待一段时间
+			time.Sleep(1 * time.Second)
 		}
 	}
 
@@ -84,8 +129,24 @@ func (d *defaults) Interrupt(task containerd.Task, ctx context.Context) error {
 }
 
 // Delete is to delete task. 为容器任务停止
-func (d *defaults) Delete(container containerd.Container, ctx context.Context) error {
-	return container.Delete(ctx, containerd.WithSnapshotCleanup)
+func (d *defaults) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
+
+	// delete the task. 刪除容器工作
+	if task != nil { // check task exist. 确认容器工作存在
+		if _, err := task.Delete(ctx); err != nil {
+			return err
+		}
+	}
+
+	// delete the container. 刪除容器
+	if container != nil { // check container exist. 确认容器存在
+		if err := container.Delete(ctx, containerd.WithSnapshotCleanup); err != nil {
+			return err
+		}
+	}
+
+	// delete success. 刪除成功
+	return nil
 }
 
 // non-defined interface 非约定的函数

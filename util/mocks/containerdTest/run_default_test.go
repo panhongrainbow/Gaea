@@ -102,7 +102,7 @@ func TestDefaultContainerd(t *testing.T) {
 		require.Nil(t, err)
 
 		// 删除容器和获得离开讯息 kill the process and get the exit status
-		err = d.Delete(c, ctx)
+		err = d.Delete(nil, c, ctx)
 		require.Nil(t, err)
 	})
 	// 测试非约定的函数 test the non-default function
