@@ -53,7 +53,7 @@ RETRY:
 			return nil, ctx.Err()
 		case downloadMsg := <-chMessage:
 			// download the image failed. 下载镜像失败
-			if downloadMsg.err == nil {
+			if downloadMsg.err != nil {
 				goto RETRY
 			}
 			// download the image successfully. 下载镜像成功
@@ -83,7 +83,7 @@ func (d *defaults) Create(client *containerd.Client, ctx context.Context, contai
 // Task is to create task. 为容器任务创建
 func (d *defaults) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
 
-	// create a task from the container (离开后移除 remove after leaving the test). 建立新的容器工作
+	// create a task from the container. 建立新的容器工作
 	return container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 }
 

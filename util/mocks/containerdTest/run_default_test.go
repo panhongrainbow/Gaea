@@ -7,6 +7,7 @@ import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/opencontainers/runtime-spec/specs-go"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"syscall"
 	"testing"
@@ -95,14 +96,26 @@ func TestDefaultContainerd(t *testing.T) {
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
 		img, err := d.Pull(client, ctx, "docker.io/library/debian:latest")
-		require.Nil(t, err)
+		assert.Nil(t, err)
 
 		// 建立一个新的预设容器 create a default container
 		c, err := d.Create(client, ctx, "default-server", "/var/run/netns/gaea-default", img, "default-server-snapshot")
-		require.Nil(t, err)
+		assert.Nil(t, err)
+
+		// 建立新的容器工作 create a task from the container
+		tsk, err := d.Task(c, ctx)
+		assert.Nil(t, err)
+
+		// start the task. 開始执行容器工作
+		err = d.Start(tsk, ctx)
+		assert.Nil(t, err)
+
+		// interrupt the task. 强制终止容器工作
+		err = d.Interrupt(tsk, ctx)
+		assert.Nil(t, err)
 
 		// 删除容器和获得离开讯息 kill the process and get the exit status
-		err = d.Delete(nil, c, ctx)
+		err = d.Delete(tsk, c, ctx)
 		require.Nil(t, err)
 	})
 	// 测试非约定的函数 test the non-default function

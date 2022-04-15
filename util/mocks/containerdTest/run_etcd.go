@@ -28,7 +28,7 @@ func (m *etcd) Task(container containerd.Container, ctx context.Context) (contai
 }
 
 // Start is to start task. 为容器任务启动
-func (m *etcd) Start(container string) error {
+func (m *etcd) Start(task containerd.Task, ctx context.Context) error {
 	return nil
 }
 
