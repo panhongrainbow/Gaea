@@ -1,7 +1,6 @@
 package containerdTest
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
@@ -14,8 +13,8 @@ var (
 func TestMain(m *testing.M) {
 	// 想辨法精简这里
 	setup()
-	Version = "10"
-	fmt.Println(Version)
+	/*Version = "10"
+	fmt.Println(Version)*/
 
 	// 退出
 	exitCode := m.Run()

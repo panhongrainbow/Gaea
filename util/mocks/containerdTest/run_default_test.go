@@ -110,8 +110,6 @@ func TestDefaultContainerd(t *testing.T) {
 		err = d.Start(tsk, ctx)
 		assert.Nil(t, err)
 
-		time.Sleep(100 * 60 * time.Second)
-
 		// interrupt the task. 强制终止容器工作
 		err = d.Interrupt(tsk, ctx)
 		assert.Nil(t, err)

@@ -28,11 +28,12 @@ func TestMariaDBContainerd(t *testing.T) {
 		m := mariaDB{}
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
-		img, err := m.Pull(client, ctx, "docker.io/ubuntu/mysql:latest")
+		// img, err := m.Pull(client, ctx, "docker.io/ubuntu/mysql:latest")
+		img, err := m.Pull(client, ctx, "localhost/mariadb:latest")
 		assert.Nil(t, err)
 
 		// 建立一个新的预设容器 create a default container
-		c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-mariadb-sakila", img, "mariadb-server-snapshot")
+		c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-mariadb", img, "mariadb-server-snapshot")
 		assert.Nil(t, err)
 
 		// 建立新的容器工作 create a task from the container

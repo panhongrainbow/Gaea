@@ -123,10 +123,10 @@ $ mv ./cnitool /usr/local/bin
 | 项目              | 容器IP      | 子网计算                                                     |
 | ----------------- | ----------- | ------------------------------------------------------------ |
 | 预设用            | 2.2.2.2     | $ sipcalc 2.2.2.0/30<br /><img src="./assets/image-20220409143439805.png" alt="image-20220409143439805" style="zoom:50%;" /><br /> |
-| docker 用         | 6.6.6.6     | $ sipcalc 6.6.6.4/30<br /><img src="./assets/image-20220409143801312.png" alt="image-20220409143801312" style="zoom:50%;" /><br /> |
-| etcd 用           | 10.10.10.10 | $ sipcalc 10.10.10.8/30<br /><img src="./assets/image-20220409144331574.png" alt="image-20220409144331574" style="zoom:50%;" /><br /> |
-| mariadb 用        | 14.14.14.14 | $ sipcalc 14.14.14.12/30<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220409144749186-16494875936295.png" alt="image-20220409144749186" style="zoom:50%;" /><br /> |
-| mariadb-sakila 用 | 18.18.18.18 | $ sipcalc 18.18.18.16/30<br /><img src="./assets/image-20220409145025336.png" alt="image-20220409145025336" style="zoom:50%;" /><br /> |
+| etcd 用           | 6.6.6.6     | $ sipcalc 6.6.6.4/30<br /><img src="./assets/image-20220409143801312.png" alt="image-20220409143801312" style="zoom:50%;" /><br /> |
+| mariadb 用        | 10.10.10.10 | $ sipcalc 10.10.10.8/30<br /><img src="./assets/image-20220409144331574.png" alt="image-20220409144331574" style="zoom:50%;" /><br /> |
+| mariadb-sakila 用 | 14.14.14.14 | $ sipcalc 14.14.14.12/30<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220409144749186-16494875936295.png" alt="image-20220409144749186" style="zoom:50%;" /><br /> |
+| 保留用            | 18.18.18.18 | $ sipcalc 18.18.18.16/30<br /><img src="./assets/image-20220409145025336.png" alt="image-20220409145025336" style="zoom:50%;" /><br /> |
 
 
 
@@ -154,11 +154,11 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-default.conf
 EOF
 
 # 写入网路设定档，并指定子网分割为 6.6.6.4/30
-# 在 gaea 环境下，用 docker 容器测试
-$ cat << EOF | tee /etc/cni/net.d/gaea-docker.conf
+# 在 gaea 环境下，用 etcd 容器测试
+$ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
 {
     "cniVersion": "0.4.0",
-    "name": "gaea-docker",
+    "name": "gaea-etcd",
     "type": "bridge",
     "bridge": "cni1",
     "isDefaultGateway": true,
@@ -172,12 +172,12 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-docker.conf
 }
 EOF
 
-# 写入网路设定档，并指定子网分割为 10.10.10.8/30
-# 在 gaea 环境下，用 etcd 容器测试 sakila Schema
-$ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
+# 写入网路设定档，并指定子网分割为 14.14.14.12/30
+# 在 gaea 环境下，用 mariaDB 容器测试
+$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
 {
     "cniVersion": "0.4.0",
-    "name": "gaea-etcd",
+    "name": "gaea-mariadb",
     "type": "bridge",
     "bridge": "cni2",
     "isDefaultGateway": true,
@@ -191,12 +191,12 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
 }
 EOF
 
-# 写入网路设定档，并指定子网分割为 14.14.14.12/30
-# 在 gaea 环境下，用 mariaDB 容器测试
-$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
+# 写入网路设定档，并指定子网分割为 18.18.18.16/30
+# 在 gaea 环境下，用 mariaDB 容器测试 sakila Schema
+$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
 {
     "cniVersion": "0.4.0",
-    "name": "gaea-mariadb",
+    "name": "gaea-mariadb-sakila",
     "type": "bridge",
     "bridge": "cni3",
     "isDefaultGateway": true,
@@ -210,102 +210,81 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
 }
 EOF
 
-# 写入网路设定档，并指定子网分割为 18.18.18.16/30
-# 在 gaea 环境下，用 mariaDB 容器测试 sakila Schema
-$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
-{
-    "cniVersion": "0.4.0",
-    "name": "gaea-mariadb-sakila",
-    "type": "bridge",
-    "bridge": "cni4",
-    "isDefaultGateway": true,
-    "forceAddress": false,
-    "ipMasq": true,
-    "hairpinMode": true,
-    "ipam": {
-        "type": "host-local",
-        "subnet": "18.18.18.16/30"
-    }
-}
-EOF
-
 # 建立网路的 namespace 进行网路隔离
 $ ip netns add gaea-default
-$ ip netns add gaea-docker
 $ ip netns add gaea-etcd
 $ ip netns add gaea-mariadb
 $ ip netns add gaea-mariadb-sakila
 
 $ ip netns list
-gaea-default
-gaea-docker
-gaea-etcd
-gaea-mariadb
-gaea-mariadb-sakila
+# gaea-default
+# gaea-etcd
+# gaea-mariadb
+# gaea-mariadb-sakila
 
 $ ls /var/run/netns/
-gaea-default gaea-docker gaea-etcd gaea-mariadb gaea-mariadb-sakila
+# gaea-default gaea-etcd gaea-mariadb gaea-mariadb-sakila
 
 # 把 gaea-mariadb-sakila 加入 namespace
 $ export CNI_PATH=/opt/cni/bin
 $ cnitool add gaea-default /var/run/netns/gaea-default
-$ cnitool add gaea-docker /var/run/netns/gaea-docker
 $ cnitool add gaea-etcd /var/run/netns/gaea-etcd
 $ cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
 $ cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
 
 # 进行连线测试
-$ ip a | grep cni3
-# 6: cni3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-#     inet 14.14.14.12/30 brd 14.14.14.15 scope global cni3
-# 7: veth8e852839@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master cni3 state UP group default
+$ ip a | grep cni0
+# 6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+#     inet 2.2.2.0/30 brd 2.2.2.3 scope global cni0
+# 7: veth8e852839@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master cni0 state UP group default
 
-$ ping -c 5 
-# PING 14.14.14.13 (14.14.14.13) 56(84) bytes of data.
-# 64 bytes from 14.14.14.13: icmp_seq=1 ttl=64 time=0.107 ms
-# 64 bytes from 14.14.14.13: icmp_seq=2 ttl=64 time=0.099 ms
-# 64 bytes from 14.14.14.13: icmp_seq=3 ttl=64 time=0.099 ms
-# 64 bytes from 14.14.14.13: icmp_seq=4 ttl=64 time=0.100 ms
-# 64 bytes from 14.14.14.13: icmp_seq=5 ttl=64 time=0.099 ms
+$ ping -c 5 2.2.2.1
+# PING 2.2.2.1 (2.2.2.1) 56(84) bytes of data.
+# 64 bytes from 2.2.2.1: icmp_seq=1 ttl=64 time=0.107 ms
+# 64 bytes from 2.2.2.1: icmp_seq=2 ttl=64 time=0.099 ms
+# 64 bytes from 2.2.2.1: icmp_seq=3 ttl=64 time=0.099 ms
+# 64 bytes from 2.2.2.1: icmp_seq=4 ttl=64 time=0.100 ms
+# 64 bytes from 2.2.2.1: icmp_seq=5 ttl=64 time=0.099 ms
 ```
 
-以 mariaDB 数据库网路为例
+以预设网路为例
 
-- 在子网切割里 14.14.14.12/30，预留 4 个 IP 可以供容器自由使用，但前后网域和广播会各占一个，穚接器也会占用一个 14.14.14.13
+- 在子网切割里 2.2.2.0/30，预留 4 个 IP 可以供容器自由使用，但前后网域和广播会各占一个，穚接器也会占用一个 2.2.2.1
 - 最后容器可以被分配的 IP 只剩一个，为 14.14.14.14
 
-Linux 的 namespace 并不是永远储存的，所以要在 cronjob 上设定，使开机时可以重新建立 namespace
+Linux 的 namespace 并不是永远储存的，所以要在建立重新设定 namespace 的脚本
 
 - export CNI_PATH=/opt/cni/bin 这一行写到 /etc/bash.bashrc
+  
   ```bash
   # 新增以下内容
   
   # 新增 containerd 的动态网咯介面 
   export CNI_PATH=/opt/cni/bin
   ```
-
+  
 - 使用脚本去管理容器的网路
   
   ```bash
   #!/bin/bash
   
+  # 先开启防火墙转发
+  iptables -P FORWARD ACCEPT
+  
   # 先删除 network
   cnitool del gaea-default /var/run/netns/gaea-default
-  cnitool del gaea-docker /var/run/netns/gaea-docker
   cnitool del gaea-etcd /var/run/netns/gaea-etcd
   cnitool del gaea-mariadb /var/run/netns/gaea-mariadb
   cnitool del gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
   
   # 先删除 namespace
   ip netns del gaea-default
-  ip netns del gaea-docker
   ip netns del gaea-etcd
   ip netns del gaea-mariadb
   ip netns del gaea-mariadb-sakila
   
   # 先新建 namespace
   ip netns add gaea-default
-  ip netns add gaea-docker
   ip netns add gaea-etcd
   ip netns add gaea-mariadb
   ip netns add gaea-mariadb-sakila
@@ -313,44 +292,135 @@ Linux 的 namespace 并不是永远储存的，所以要在 cronjob 上设定，
   # 先新建 network
   export CNI_PATH=/opt/cni/bin
   cnitool add gaea-default /var/run/netns/gaea-default
-  cnitool add gaea-docker /var/run/netns/gaea-docker
   cnitool add gaea-etcd /var/run/netns/gaea-etcd
   cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
   cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
   ```
 
-### 使用 ctr 命令去操作 containerd
+## 使用 ctr 命令操作
 
  使用以下命令操作
 
 ```bash
+# 开始建立容器 >>>>> >>>>> >>>>> >>>>> >>>>>
+
 # 建立 namespace
-$ ctr ns create dcoker
+$ ctr ns create default
 
-# 下载镜像档 docker
-$ ctr -n docker image pull docker.io/library/docker:latest
+# 下载镜像档 debian
+$ ctr -n default image pull docker.io/library/debian:latest
 
-# 检查镜像档 docker
-ctr -n docker i ls
+# 检查镜像档 default
+$ ctr -n default i ls
 # REF TYPE DIGEST SIZE PLATFORMS LABELS 
-# docker.io/library/docker:latest application/vnd.docker.distribution.manifest.list.v2+json sha256:41978d1974f05f80e1aef23ac03040491a7e28bd4551d4b469b43e558341864e 66.2 MiB linux/amd64,linux/arm64/v8 -
+# docker.io/library/debian:latest application/vnd.docker.distribution.manifest.list.v2+json sha256:87eefc7c15610cca61db5c0fd280911c6a737c0680d807432c0bd80cd0cca39b 52.4 MiB linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/mips64le,linux/ppc64le,linux/s390x -
 
-# 启动容器 docker
-$ ctr -n docker run --with-ns=network:/var/run/netns/gaea-docker -d docker.io/library/docker:latest docker
+# 启动容器 default
+$ ctr -n default run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:latest default
 
-# 检查容器 docker
-$ ctr -n docker container ls
+# 检查容器 default
+$ ctr -n default container ls
 # CONTAINER    IMAGE                              RUNTIME                  
-# docker       docker.io/library/docker:latest    io.containerd.runc.v2 
+# default      docker.io/library/debian:latest    io.containerd.runc.v2 
 
-# 检查容器 docker 的工作
-$ ctr -n docker task ls
-# TASK      PID      STATUS    
-# docker    26018    RUNNING
+# 检查容器 default 的工作
+$ ctr -n default task ls
+# TASK      PID      STATUS 
+# default    8371    RUNNING
 
 # 进入容器
-$ ctr -n docker task exec -t --exec-id docker docker sh
+$ ctr -n default task exec -t --exec-id default default sh
+
+# 开始删除容器 >>>>> >>>>> >>>>> >>>>> >>>>>
+
+# 中止容器运行
+$ ctr -n default task kill -s SIGKILL default
+
+# 检查容器 default 的工作是否停止
+$ ctr -n default task ls
+# TASK      PID      STATUS    
+# default    8371    STOPPED
+
+# 删除容器 default 的工作
+$ ctr -n default task rm default
+# WARN[0000] task default exit with non-zero exit code 137
+
+# 删除容器 default
+$ ctr -n default container rm default
 ```
+
+经由上述操作，就可以成功操作单元测试
+
+<img src="./assets/image-20220417194510163.png" alt="image-20220417194510163" style="zoom:100%;" /> 
+
+## 重新打包数据库镜像
+
+> 因为数据库容器都无法在 containerd 上正常启动，所以要进行修正，重新打包
+
+使用以下命令重新打包镜像
+
+```bash
+# 安装打包工具 buildah
+$ apt-get install buildah
+
+# 建立 Dockerfile
+$ cat << EOF > Dockerfile
+FROM debian:latest
+
+# 安装数据库
+RUN apt-get update
+RUN apt-get install -y mariadb-server mariadb-client
+
+# 进行修正
+RUN mkdir /var/run/mysqld
+# RUN useradd -m mysql
+RUN chown mysql:mysql /var/run/mysqld
+RUN chmod 777 /var/run/mysqld
+
+# 启动数据库
+ENTRYPOINT ["mysqld"]
+EOF
+
+# 进行打包
+$ buildah bud -t mariadb:latest .
+
+# 查询打包结果
+$ buildah images
+# REPOSITORY        TAG    IMAGE ID     CREATED        SIZE
+# localhost/mariadb latest e4fe0437050b 5 minutes ago  484 MB
+```
+
+把镜像载入到 containerd 内
+
+```bash
+# 安装容器工具 podman
+$ apt-get install -y podman
+
+# 保存打包档 mariadb-latest.tar
+$ podman image save localhost/mariadb:latest -o mariadb-latest.tar
+# WARN[0000] Error validating CNI config file /etc/cni/net.d/10-containerd-net.conflist: [plugin bridge does not support config version "1.0.0" plugin portmap does not support config version "1.0.0"]
+
+# 检查把包结果
+$ ls
+# Dockerfile  mariadb-latest.tar
+
+# 建立名称空间 mariadb 
+$ ctr namespace create mariadb
+
+# containerd 载入打包的镜像
+$ ctr -n mariadb i import mariadb-latest.tar
+
+# 检查载入容器结果
+$ ctr -n mariadb i ls
+# REF TYPE DIGEST SIZE PLATFORMS LABELS 
+# localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
+
+$
+```
+
+
+
+
 
 ## ContainerdTest 单元测试
 
@@ -361,54 +431,3 @@ $ ctr -n docker task exec -t --exec-id docker docker sh
 
 
 ### 操作演示
-
-
-
-## 未整理的资料
-
-```bash
-
-ctr task kill -s SIGKILL default-server
-ctr task del default-server
-ctr container del default-server
-
-ctr image del docker.io/library/debian:buster
-ctr image del docker.io/library/redis:alpine3.13
-
-
-
-
-
-
-ctr run --with-ns=network:/var/run/netns/gaea-mariadb-sakila -d docker.io/library/redis:alpine3.13 debian
-
-ctr task exec -t --exec-id debian debian sh
-
-
-
-
-
-ctr image pull docker.io/library/debian:buster
-
-
-
-ctr task exec -t --exec-id debian debian sh
-```
-
-
-
-
-
-=== RUN   TestRunMariadb
-&{1.0.2-dev 0xc0003f6000 0xc00025a510  [{/proc proc proc [nosuid noexec nodev]} {/dev tmpfs tmpfs [nosuid strictatime mode=755 size=65536k]} {/dev/pts devpts devpts [nosuid noexec newinstance ptmxmode=0666 mode=0620 gid=5]} {/dev/shm tmpfs shm [nosuid noexec nodev mode=1777 size=65536k]} {/dev/mqueue mqueue mqueue [nosuid noexec nodev]} {/sys sysfs sysfs [nosuid noexec nodev ro]} {/run tmpfs tmpfs [nosuid strictatime mode=755 size=65536k]}] <nil> map[] 0xc0003f60f0 <nil> <nil> <nil>}
-1:C 07 Apr 2022 09:57:59.684 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-1:C 07 Apr 2022 09:57:59.684 # Redis version=6.2.6, bits=64, commit=00000000, modified=0, pid=1, just started
-1:C 07 Apr 2022 09:57:59.684 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
-1:M 07 Apr 2022 09:57:59.684 # You requested maxclients of 10000 requiring at least 10032 max file descriptors.
-1:M 07 Apr 2022 09:57:59.684 # Server can't set maximum open files to 10032 because of OS error: Operation not permitted.
-1:M 07 Apr 2022 09:57:59.684 # Current maximum open files is 1024. maxclients has been reduced to 992 to compensate for low ulimit. If you need higher maxclients increase 'ulimit -n'.
-1:M 07 Apr 2022 09:57:59.684 * monotonic clock: POSIX clock_gettime
-1:M 07 Apr 2022 09:57:59.685 * Running mode=standalone, port=6379.
-1:M 07 Apr 2022 09:57:59.685 # Server initialized
-1:M 07 Apr 2022 09:57:59.685 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
-1:M 07 Apr 2022 09:57:59.685 * Ready to accept connections
