@@ -33,7 +33,7 @@ func (m *mariaDB) Create(client *containerd.Client, ctx context.Context, contain
 		containerd.WithNewSpec(
 			oci.WithImageConfig(imagePulled),
 			oci.WithLinuxNamespace(defaultNS),
-			oci.WithEnv([]string{"MYSQL_ROOT_PASSWORD=12345"})),
+			oci.WithEnv([]string{"MYSQL_ROOT_PASSWORD=12345", "MYSQL_USER=xiaomi", "MYSQL_PASSWORD=12345"})),
 	)
 }
 

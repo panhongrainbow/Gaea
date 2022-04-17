@@ -28,7 +28,7 @@ func TestMariaDBContainerd(t *testing.T) {
 		m := mariaDB{}
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
-		img, err := m.Pull(client, ctx, "docker.io/library/mysql:8.0.28-debian")
+		img, err := m.Pull(client, ctx, "docker.io/ubuntu/mysql:latest")
 		assert.Nil(t, err)
 
 		// 建立一个新的预设容器 create a default container
