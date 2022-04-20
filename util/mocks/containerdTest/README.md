@@ -355,31 +355,44 @@ $ ctr -n default container rm default
 
 ## 重新打包数据库镜像
 
-> 因为数据库容器都无法在 containerd 上正常启动，所以要进行修正，重新打包
+> 因为数据库容器都无法在 containerd 上正常启动，所以要进行修正，重新打包，使用以下命令重新打包镜像
 
-使用以下命令重新打包镜像
+先产生帐户资料文档 user.sql
 
-```bash
-# 安装打包工具 buildah
-$ apt-get install buildah
+```sql
+CREATE USER 'xiaomi'@'2.2.2.1' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON my_db.* TO 'xiaomi'@'2.2.2.1';
+```
 
-# 建立 Dockerfile
-$ cat << EOF > Dockerfile
+编写新的 Dockerfile
+
+```dockerfile
 FROM debian:latest
 
 # 安装数据库
 RUN apt-get update
 RUN apt-get install -y mariadb-server mariadb-client
 
+# 修改數据库設定 (正规表示式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
+RUN sed -i "s/bind-address.*/bind-address=0.0.0.0/g" /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# 设定用户密码
+RUN mkdir -p /home/mysql/
+ADD user.sql /home/mysql/
+
 # 进行修正
-RUN mkdir /var/run/mysqld
-# RUN useradd -m mysql
-RUN chown mysql:mysql /var/run/mysqld
-RUN chmod 777 /var/run/mysqld
+ADD mysqld_init.sh /home/mysql/
+RUN chmod +x /home/mysql/mysqld_init.sh
 
 # 启动数据库
-ENTRYPOINT ["mysqld"]
-EOF
+ENTRYPOINT ["/home/mysql/mysqld_init.sh"]
+```
+
+进行容器镜像档打包
+
+```bash
+# 安装打包工具 buildah
+$ apt-get install buildah
 
 # 进行打包
 $ buildah bud -t mariadb:latest .
@@ -414,13 +427,7 @@ $ ctr -n mariadb i import mariadb-latest.tar
 $ ctr -n mariadb i ls
 # REF TYPE DIGEST SIZE PLATFORMS LABELS 
 # localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
-
-$
 ```
-
-
-
-
 
 ## ContainerdTest 单元测试
 
@@ -431,3 +438,15 @@ $
 
 
 ### 操作演示
+
+
+
+之后可以登入容器内部进行测试或者是远端连线都可以
+
+```bash
+# 直接登入容器内部进行测试
+$ ctr -n default task exec -t --exec-id default-server default-server sh
+
+# 或者是远端登入进行测试
+$ mysql -h 2.2.2.2 -P 3306 -u root -p
+```

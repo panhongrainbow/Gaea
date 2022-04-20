@@ -62,7 +62,7 @@ func TestRunContainerdEnv(t *testing.T) {
 	require.Nil(t, err)
 
 	// 等待 3 秒 sleep for 3 seconds
-	time.Sleep(3 * time.Second)
+	time.Sleep(30 * 60 * time.Second)
 
 	// 删除容器和获得离开讯息 kill the process and get the exit status
 	err = task.Kill(ctx, syscall.SIGKILL)

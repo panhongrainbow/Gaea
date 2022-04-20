@@ -22,7 +22,7 @@ func (d *defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl
 
 	// pull image from registry. 从注册中心拉取镜像
 	download := func(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
-		image, err := client.Pull(ctx, imageUrl, containerd.WithPullUnpack)
+		image, err := client.GetImage(ctx, imageUrl)
 		if err != nil {
 			return nil, err
 		}

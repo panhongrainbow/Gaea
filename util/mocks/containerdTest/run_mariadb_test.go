@@ -33,7 +33,8 @@ func TestMariaDBContainerd(t *testing.T) {
 		assert.Nil(t, err)
 
 		// 建立一个新的预设容器 create a default container
-		c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-mariadb", img, "mariadb-server-snapshot")
+		// c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-mariadb", img, "mariadb-server-snapshot")
+		c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-default", img, "mariadb-server-snapshot")
 		assert.Nil(t, err)
 
 		// 建立新的容器工作 create a task from the container
@@ -44,11 +45,13 @@ func TestMariaDBContainerd(t *testing.T) {
 		err = m.Start(tsk, ctx)
 		assert.Nil(t, err)
 
-		time.Sleep(time.Second * 60 * 10)
+		time.Sleep(time.Second * 60 * 10) // 先暫停進行測試，之後移除
 
 		// interrupt the task. 强制终止容器工作
 		err = m.Interrupt(tsk, ctx)
 		assert.Nil(t, err)
+
+		time.Sleep(time.Second * 30) // 这里有问题，之后再解决
 
 		// 删除容器和获得离开讯息 kill the process and get the exit status
 		err = m.Delete(tsk, c, ctx)

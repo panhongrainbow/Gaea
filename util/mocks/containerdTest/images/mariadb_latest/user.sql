@@ -1,0 +1,2 @@
+CREATE USER 'xiaomi'@'2.2.2.1' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON my_db.* TO 'xiaomi'@'2.2.2.1';
