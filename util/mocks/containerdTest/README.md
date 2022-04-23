@@ -395,7 +395,7 @@ ENTRYPOINT ["/home/mysql/mysqld_init.sh"]
 $ apt-get install buildah
 
 # 进行打包
-$ buildah bud -t mariadb:latest .
+$ buildah bud -t mariadb:testing .
 
 # 查询打包结果
 $ buildah images
@@ -410,7 +410,7 @@ $ buildah images
 $ apt-get install -y podman
 
 # 保存打包档 mariadb-latest.tar
-$ podman image save localhost/mariadb:latest -o mariadb-latest.tar
+$ podman image save localhost/mariadb:testing -o mariadb-testing.tar
 # WARN[0000] Error validating CNI config file /etc/cni/net.d/10-containerd-net.conflist: [plugin bridge does not support config version "1.0.0" plugin portmap does not support config version "1.0.0"]
 
 # 检查把包结果
@@ -428,6 +428,41 @@ $ ctr -n mariadb i ls
 # REF TYPE DIGEST SIZE PLATFORMS LABELS 
 # localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
 ```
+
+## 上传镜像档到远端仓库
+
+> 目前容器的远端仓库有 [docker hub](https://hub.docker.com/) 和 [qury io](https://quay.io/)，目前打算在 [docker hub](https://hub.docker.com/) 上进行测试，功能较完整的镜象档上传到 [qury io](https://quay.io/)
+
+先把测试用的数据库镜像上传到 [docker hub](https://hub.docker.com/)
+
+```bash
+# 到容器目录之下
+$ cd gaea/util/mocks/containerdTest/images/mariadb_testing
+
+# 打包容器镜像档
+$ buildah bud -t mariadb:testing .
+
+# 上传容器镜象
+$ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrainbow/mariadb:testing --dest-creds panhongrainbow:<token>
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## ContainerdTest 单元测试
 

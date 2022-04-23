@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	bazil.org/fuse v0.0.0-20200524192727-fb710f7dfd05
-	github.com/containerd/containerd v1.5.9
+	github.com/containerd/containerd v1.5.11
 	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548
 	github.com/emirpasic/gods v1.12.0
@@ -12,6 +12,7 @@ require (
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-ini/ini v1.42.0
 	github.com/golang/mock v1.4.1
+	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417
 	github.com/pingcap/check v0.0.0-20190102082844-67f458068fc8
 	github.com/pingcap/errors v0.11.1
 	github.com/pingcap/tipb v0.0.0-20190226124958-833c2ffd2fe7
@@ -22,7 +23,7 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.4.17 // indirect
-	github.com/Microsoft/hcsshim v0.8.23 // indirect
+	github.com/Microsoft/hcsshim v0.8.24 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
@@ -55,7 +56,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
-	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
 	github.com/opencontainers/selinux v1.8.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -64,6 +64,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190321074620-2f0d2b0e0001 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	go.opencensus.io v0.22.3 // indirect

@@ -7,4 +7,4 @@ chown mysql:mysql /var/run/mysqld
 chmod 777 /var/run/mysqld
 
 # 启动数据库
-mysqld --init-file=/home/mysql/user.sql
+mysqld --init-file=/home/mariadb/user.sql
