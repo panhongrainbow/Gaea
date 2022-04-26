@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 // TestDefaultContainerd 使用约定的接口进行测试 test default containerd interface
@@ -15,7 +14,7 @@ func TestMariaDBContainerd(t *testing.T) {
 	// 测试约定的接口 test the default interface
 	t.Run("test mariadb interface", func(t *testing.T) {
 		// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
-		client, err := containerd.New("/run/containerd/containerd.sock")
+		client, err := containerd.New(defaultSock)
 		require.Nil(t, err)
 		defer func() {
 			_ = client.Close()
@@ -25,7 +24,7 @@ func TestMariaDBContainerd(t *testing.T) {
 		ctx := namespaces.WithNamespace(context.Background(), "mariadb")
 
 		// 建立测试对象 create a test object
-		m := mariaDB{}
+		m := MariaDB{}
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
 		img, err := m.Pull(client, ctx, "docker.io/panhongrainbow/mariadb:testing")
@@ -44,13 +43,9 @@ func TestMariaDBContainerd(t *testing.T) {
 		err = m.Start(tsk, ctx)
 		assert.Nil(t, err)
 
-		time.Sleep(time.Second * 60 * 10) // 先暫停進行測試，之後移除
-
-		// interrupt the task. 强制终止容器工作
+		// 強制中斷容器工作 interrupt the task.
 		err = m.Interrupt(tsk, ctx)
 		assert.Nil(t, err)
-
-		time.Sleep(time.Second * 30) // 这里有问题，之后再解决
 
 		// 删除容器和获得离开讯息 kill the process and get the exit status
 		err = m.Delete(tsk, c, ctx)

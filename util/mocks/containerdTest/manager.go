@@ -28,10 +28,12 @@ type ContainerD struct {
 	Sock      string `json:"sock"`      // 容器服务在 Linux 的连接位置
 	Type      string `json:"type"`      // 容器服务类型
 	Name      string `json:"name"`      // 容器服务名称
+	NameSpace string `json:"namespace"` // 容器服务命名空间
 	Image     string `json:"image"`     // 容器服务镜像
-	Container string `json:"container"` // 容器服务容器名称
 	Task      string `json:"task"`      // 容器服务任务名称
+	NetworkNs string `json:"networkNs"` // 容器服务网络
 	IP        string `json:"ip"`        // 容器服务 IP
+	SnapShot  string `json:"snapshot"`  // 容器服务快照
 	Schema    string `json:"schema"`    // 容器服务 Schema，用於數據庫設定
 	User      string `json:"user"`      // 容器服务用户名
 	Password  string `json:"password"`  // 容器服务密码

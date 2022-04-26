@@ -15,11 +15,18 @@ package backend
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"github.com/XiaoMi/Gaea/mysql"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest"
 	"github.com/XiaoMi/Gaea/util/mocks/pipeTest"
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/namespaces"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestAppendSetVariable(t *testing.T) {
@@ -184,4 +191,96 @@ func TestDirectConnWithoutDB(t *testing.T) {
 		require.Equal(t, strings.Contains(string(responseMsg), dc.password), false) // check the non-existence of the password in the packet. 确认 密码 不行写到封包里
 
 	})
+}
+
+// 以下还要再进行修正
+
+func TestDirectConnWithDB(t *testing.T) {
+	cfg := containerdTest.ContainerD{
+		Sock:      "",
+		Type:      "mariadb",
+		Name:      "mariadb-server",
+		NameSpace: "mariadb",
+		Image:     "docker.io/panhongrainbow/mariadb:testing",
+		Task:      "mariadb-server",
+		NetworkNs: "/var/run/netns/gaea-mariadb",
+		IP:        "10.10.10.10:3306",
+		SnapShot:  "mariadb-server-snapshot",
+		Schema:    "",
+		User:      "xiaomi",
+		Password:  "12345",
+	}
+	client, _ := containerdTest.NewContainerdClient(cfg)
+	err := client.Build()
+	fmt.Println(err)
+}
+
+// TestDirectConnWithoutDB is to test the initial handshake packet. The test uses MariaDB.
+// TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试将会使用 MariaDB 的服务器
+func TestDirectConnWithDB2(t *testing.T) {
+	// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
+	client, err := containerd.New("/run/containerd/containerd.sock")
+	require.Nil(t, err)
+	defer func() {
+		_ = client.Close()
+	}()
+
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	ctx := namespaces.WithNamespace(context.Background(), "mariadb")
+
+	// 建立测试对象 create a test object
+	m := containerdTest.MariaDB{}
+
+	// 拉取预设的测试印象档 pull the default test image from DockerHub
+	img, err := m.Pull(client, ctx, "docker.io/panhongrainbow/mariadb:testing")
+	// img, err := m.Pull(client, ctx, "localhost/mariadb:latest")
+	assert.Nil(t, err)
+
+	// 建立一个新的预设容器 create a default container
+	c, err := m.Create(client, ctx, "mariadb-server", "/var/run/netns/gaea-mariadb", img, "mariadb-server-snapshot")
+	assert.Nil(t, err)
+
+	// 建立新的容器工作 create a task from the container
+	tsk, err := m.Task(c, ctx)
+	assert.Nil(t, err)
+
+	// start the task. 開始执行容器工作
+	err = m.Start(tsk, ctx)
+	assert.Nil(t, err)
+
+	// 产生直连对象 Create dc connection.
+	var dc = DirectConnection{
+		// login to the mariadb. 登入数据库
+		user:      "xiaomi",           // user 帐户名称
+		password:  "12345",            // password 密码
+		charset:   "utf8mb4",          // charset 数据库编码
+		collation: 46,                 // collation 文本排序
+		addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
+
+	}
+
+LOOP:
+	// 建立新的数据库连线 create a new connection to the mariadb.
+	for i := 0; i < 10; i++ {
+		err = dc.connect() // 连接数据库 connect to the mariadb.
+		if err == nil {
+			break LOOP // 如果连接成功，则跳出循环 break the loop if the connection is successful.
+		}
+		time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
+	}
+
+	// 十次要有一次能连上数据库，否则测试失败. one time should be able to connect to the mariadb.
+	assert.Equal(t, err, nil)
+
+	// 确认连接是否正常 ping the mariadb.
+	err = dc.Ping()
+	assert.Equal(t, err, nil)
+
+	// 強制中斷容器工作 interrupt the task.
+	err = m.Interrupt(tsk, ctx)
+	require.Nil(t, err)
+
+	// 删除容器和获得离开讯息 kill the process and get the exit status
+	err = m.Delete(tsk, c, ctx)
+	require.Nil(t, err)
 }

@@ -110,7 +110,7 @@ LOOP:
 				return err
 			}
 			if status.Status == containerd.Running {
-				// container is not running. 容器工作不为正在运行
+				// container work is running. 容器工作正在运行
 				break LOOP
 			}
 			// wait for a while. 等待一段时间
@@ -118,14 +118,35 @@ LOOP:
 		}
 	}
 
-	// 容器工作执行成功 container work executed successfully
+	// container work executed successfully. 容器工作执行成功
 	return nil
 }
 
 // Interrupt is to stop task immediately. 为立刻停止容器任务
 func (d *defaults) Interrupt(task containerd.Task, ctx context.Context) error {
-	// kill the process work. 删除容器工作
-	return task.Kill(ctx, syscall.SIGKILL)
+
+	// stop task immediately. 停止任务
+LOOP:
+	for {
+		// stop the task. 停止任务
+		_ = task.Kill(ctx, syscall.SIGKILL)
+
+		// start listening for the container status. 開始監聽容器状态
+		status, err := task.Status(ctx)
+		if err != nil {
+			// container monitor failed. 容器工作监听失败
+			return err
+		}
+		if status.Status != containerd.Running {
+			// container is not running. 容器工作不为正在运行
+			break LOOP
+		}
+		// wait for a while. 等待一段时间
+		time.Sleep(1 * time.Second)
+	}
+
+	// stop task successfully. 容器工作中止成功
+	return nil
 }
 
 // Delete is to delete task. 为容器任务停止

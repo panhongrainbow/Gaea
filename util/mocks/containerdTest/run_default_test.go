@@ -17,7 +17,7 @@ import (
 // TestRunContainerdEnv 测试容器的运行环境 test containerd env
 func TestRunContainerdEnv(t *testing.T) {
 	// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
-	client, err := containerd.New("/run/containerd/containerd.sock")
+	client, err := containerd.New(defaultSock)
 	require.Nil(t, err)
 	defer func() {
 		_ = client.Close()
@@ -80,7 +80,7 @@ func TestDefaultContainerd(t *testing.T) {
 	// 测试约定的接口 test the default interface
 	t.Run("test default interface", func(t *testing.T) {
 		// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
-		client, err := containerd.New("/run/containerd/containerd.sock")
+		client, err := containerd.New(defaultSock)
 		require.Nil(t, err)
 		defer func() {
 			_ = client.Close()
