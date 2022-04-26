@@ -128,7 +128,7 @@ $ mv ./cnitool /usr/local/bin
 | mariadb-sakila 用 | 14.14.14.14 | $ sipcalc 14.14.14.12/30<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220409144749186-16494875936295.png" alt="image-20220409144749186" style="zoom:50%;" /><br /> |
 | 保留用            | 18.18.18.18 | $ sipcalc 18.18.18.16/30<br /><img src="./assets/image-20220409145025336.png" alt="image-20220409145025336" style="zoom:50%;" /><br /> |
 
-
+### 建立网路设定档
 
 ```bash
 # 以下使用 root 身份执行
@@ -209,7 +209,13 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
     }
 }
 EOF
+```
 
+### 执行网路设定
+
+请依照以下步骤进行网路设定
+
+```bash
 # 建立网路的 namespace 进行网路隔离
 $ ip netns add gaea-default
 $ ip netns add gaea-etcd
@@ -246,6 +252,8 @@ $ ping -c 5 2.2.2.1
 # 64 bytes from 2.2.2.1: icmp_seq=4 ttl=64 time=0.100 ms
 # 64 bytes from 2.2.2.1: icmp_seq=5 ttl=64 time=0.099 ms
 ```
+
+### 网路设定说明
 
 以预设网路为例
 
@@ -297,9 +305,9 @@ Linux 的 namespace 并不是永远储存的，所以要在建立重新设定 na
   cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
   ```
 
-## 使用 ctr 命令操作
+## 容器 ctr 命令操作
 
- 使用以下命令操作
+### 下载容器镜像
 
 ```bash
 # 开始建立容器 >>>>> >>>>> >>>>> >>>>> >>>>>
@@ -314,7 +322,11 @@ $ ctr -n default image pull docker.io/library/debian:latest
 $ ctr -n default i ls
 # REF TYPE DIGEST SIZE PLATFORMS LABELS 
 # docker.io/library/debian:latest application/vnd.docker.distribution.manifest.list.v2+json sha256:87eefc7c15610cca61db5c0fd280911c6a737c0680d807432c0bd80cd0cca39b 52.4 MiB linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/mips64le,linux/ppc64le,linux/s390x -
+```
 
+### 容器工作新建
+
+```bash
 # 启动容器 default
 $ ctr -n default run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:latest default
 
@@ -327,10 +339,21 @@ $ ctr -n default container ls
 $ ctr -n default task ls
 # TASK      PID      STATUS 
 # default    8371    RUNNING
+```
 
+### 进入容器内部
+
+```bash
 # 进入容器
 $ ctr -n default task exec -t --exec-id default default sh
 
+# 如果是数据库容器时，可以对数据库进行连线
+$ mysql -h 2.2.2.2 -P 3306 -u xiaomi -p
+```
+
+### 容器工作移除
+
+```bash
 # 开始删除容器 >>>>> >>>>> >>>>> >>>>> >>>>>
 
 # 中止容器运行
@@ -349,46 +372,65 @@ $ ctr -n default task rm default
 $ ctr -n default container rm default
 ```
 
-经由上述操作，就可以成功操作单元测试
-
-<img src="./assets/image-20220417194510163.png" alt="image-20220417194510163" style="zoom:100%;" /> 
-
 ## 重新打包数据库镜像
 
 > 因为数据库容器都无法在 containerd 上正常启动，所以要进行修正，重新打包，使用以下命令重新打包镜像
 
-先产生帐户资料文档 user.sql
+### 建立帐户资料档案
+
+档案位于 Gaea/util/mocks/containerdTest/images/mariadb_testing/mariadb/user.sql
 
 ```sql
-CREATE USER 'xiaomi'@'2.2.2.1' IDENTIFIED BY '12345';
-GRANT ALL PRIVILEGES ON my_db.* TO 'xiaomi'@'2.2.2.1';
+-- SQL 档案，当容器启动时，会立即执行以下命令，就会建立新用户 xiaomi ，和 root 相同权限
+CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
 ```
 
-编写新的 Dockerfile
+### 数据库容器的执行脚本
+
+档案位于 Gaea/util/mocks/containerdTest/images/mariadb_testing/mariadb/mysqld_init.sh
+
+```bash
+#!/bin/bash
+
+# 一般原本 Docker 的数据库容器无法在 containerd 上执行，进行以下修正
+mkdir /var/run/mysqld
+# RUN useradd -m mysql
+chown mysql:mysql /var/run/mysqld
+chmod 777 /var/run/mysqld
+
+# user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会建立一个用户 xiaomi，并且设置密码
+mysqld --init-file=/home/mariadb/user.sql
+```
+
+### 数据库容器的 Dockerfile
+
+档案位于 Gaea/util/mocks/containerdTest/images/mariadb_testing/Dockerfile
 
 ```dockerfile
 FROM debian:latest
 
 # 安装数据库
-RUN apt-get update
-RUN apt-get install -y mariadb-server mariadb-client
+RUN apt-get update && apt-get install -y mariadb-server && apt-get clean
 
-# 修改數据库設定 (正规表示式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
+# 修改數据库连线設定 (正规表示式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
 RUN sed -i "s/bind-address.*/bind-address=0.0.0.0/g" /etc/mysql/mariadb.conf.d/50-server.cnf
 
-# 设定用户密码
-RUN mkdir -p /home/mysql/
-ADD user.sql /home/mysql/
+# 设定用户密码和修正
+RUN mkdir -p /home/mariadb/
+ADD mariadb /home/mariadb/
 
 # 进行修正
-ADD mysqld_init.sh /home/mysql/
-RUN chmod +x /home/mysql/mysqld_init.sh
+RUN chmod +x /home/mariadb/mysqld_init.sh
 
 # 启动数据库
-ENTRYPOINT ["/home/mysql/mysqld_init.sh"]
+ENTRYPOINT ["/home/mariadb/mysqld_init.sh"]
 ```
 
-进行容器镜像档打包
+### 进行容器镜像档打包
+
+执行以下命令进行打包
 
 ```bash
 # 安装打包工具 buildah
@@ -400,23 +442,29 @@ $ buildah bud -t mariadb:testing .
 # 查询打包结果
 $ buildah images
 # REPOSITORY        TAG    IMAGE ID     CREATED        SIZE
-# localhost/mariadb latest e4fe0437050b 5 minutes ago  484 MB
+# localhost/mariadb latest e4fe0437050b 5 minutes ago  484 MB # 产生新的镜像
 ```
 
-把镜像载入到 containerd 内
+### 镜像档打包后保存
+
+执行以下命令进行保存
 
 ```bash
 # 安装容器工具 podman
 $ apt-get install -y podman
 
-# 保存打包档 mariadb-latest.tar
+# 保存容器镜像为 tar 档 mariadb-latest.tar
 $ podman image save localhost/mariadb:testing -o mariadb-testing.tar
 # WARN[0000] Error validating CNI config file /etc/cni/net.d/10-containerd-net.conflist: [plugin bridge does not support config version "1.0.0" plugin portmap does not support config version "1.0.0"]
 
-# 检查把包结果
+# 检查保存结果
 $ ls
-# Dockerfile  mariadb-latest.tar
+# Dockerfile  mariadb-latest.tar # 新的 tar 档产生
+```
 
+### 载入镜像 tar 档到 containerd
+
+```bash
 # 建立名称空间 mariadb 
 $ ctr namespace create mariadb
 
@@ -425,7 +473,7 @@ $ ctr -n mariadb i import mariadb-latest.tar
 
 # 检查载入容器结果
 $ ctr -n mariadb i ls
-# REF TYPE DIGEST SIZE PLATFORMS LABELS 
+# REF TYPE DIGEST SIZE PLATFORMS LABELS # 镜像 tar 档载入成功
 # localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
 ```
 
