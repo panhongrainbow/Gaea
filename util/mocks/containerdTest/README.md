@@ -15,7 +15,7 @@
 
 此为 containerd 的早期版本，已经去除 docker 那一层去进行效能的提升<img src="./assets/image-20220331141145598.png" alt="image-20220331141145598" style="zoom:100%;" /> 
 
-### containerd 主体安装
+### Containerd 主体安装
 
 > 参考以下网址进行安装 [containerd安装文件](https://containerd.io/downloads/)
 
@@ -55,7 +55,7 @@ $ ctr container list
 # 会显示 CONTAINER    IMAGE    RUNTIME
 ```
 
-### containerd 插件設定
+### Containerd 插件設定
 
 ```bash
 # 检查 cni 元件是否存在
