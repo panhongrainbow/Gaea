@@ -1,0 +1,82 @@
+@startuml
+
+'预设背景的颜色
+skinparam NoteBackgroundColor white
+
+'整个 Containerd 运作的类图
+
+package containerdTest包 {
+    '核心类
+    class ContainerdClient {
+        Distinguish() error
+        Build() error
+        TearDown() error
+    }
+    class ContainerdClient #back:red
+    note top of ContainerdClient {
+        容器服务的核心客户端 ContainerdClient is core component of Containerd client.
+        由 NewContainerdClient Parse 得来的 Generated from NewContainerdClient
+    }
+
+    '核心类的设定
+
+    '核心类的容器设定
+    class ClientContainerd {
+    }
+    class ClientContainerd #back:orange
+    note bottom of ClientContainerd {
+        ClientContainerd 为客戶端的容器服务設定 containerd is configured for Containerd.
+    }
+
+    '核心类的 Schema 设定
+    class ClientSchema {
+    }
+    class ClientSchema #back:orange
+    note bottom of ClientSchema {
+        ClientSchema 客戶端的 Schema 設定 ClientSchema is the schema of the containerd client.
+    }
+
+    '核心类的容器运行时的对象
+    class ClientRunning {
+    }
+    class ClientRunning #back:tomato
+    note bottom of ClientRunning {
+        ClientRunning 客戶端的运行时的对象 ClientRunning is the running object of the containerd client.
+    }
+
+    '核心类的执行接口
+    interface Run {
+    	+ Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error)
+    	+ Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
+    	+ Task(container containerd.Container, ctx context.Context) (containerd.Task, error)
+    	+ Start(task containerd.Task, ctx context.Context) error
+    	+ Interrupt(task containerd.Task, ctx context.Context) error
+    	+ Delete(task containerd.Task, container containerd.Container, ctx context.Context) error
+    }
+    interface Run #back:darkmagenta
+    note bottom of Run {
+        容器服务的运行的接口 interface for Containerd.
+    }
+
+    '核心类的设定档关连
+    ContainerdClient --> ClientContainerd: dependsOn 依赖关系
+    ContainerdClient --> ClientSchema: dependsOn 依赖关系
+
+    '核心类的执行物件的关连
+    ContainerdClient --> ClientRunning: dependsOn 依赖关系
+
+    '核心类的执行接口的关连
+    ContainerdClient --> Run: dependsOn 依赖关系
+
+    '核心类的执行创建函数的关连
+    ContainerdClient::Build -[bold,#Red]-> Run::Pull: dependsOn Pull
+    ContainerdClient::Build -[bold,#Red]-> Run::Create: dependsOn Create
+    ContainerdClient::Build -[bold,#Red]-> Run::Task: dependsOn Task
+    ContainerdClient::Build -[bold,#Red]-> Run::Start: dependsOn Start
+
+    '核心类的执行拆除函数的关连
+    ContainerdClient::TearDown -[bold,#Blue]-> Run::Interrupt: dependsOn Interrupt
+    ContainerdClient::TearDown -[bold,#Blue]-> Run::Delete: dependsOn Delete
+}
+
+@enduml

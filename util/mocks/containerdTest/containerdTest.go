@@ -11,7 +11,7 @@ func init() {
 	// err := setup()
 }
 
-// Run is an interface for containerd client to implement. 容器對象，在這裡要可以直接操作容器
+// Run 接口会容器對象，在這裡要可以直接操作容器 Run is an interface for containerd client to implement.
 type Run interface {
 	Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error)
 	Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
