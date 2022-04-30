@@ -193,9 +193,8 @@ func TestDirectConnWithoutDB(t *testing.T) {
 	})
 }
 
-// 以下还要再进行修正
-
 func TestDirectConnWithDB(t *testing.T) {
+	// 建立设定对象 create a config object
 	cfg := containerdTest.ContainerD{
 		Sock:      "",
 		Type:      "mariadb",
@@ -210,14 +209,111 @@ func TestDirectConnWithDB(t *testing.T) {
 		User:      "xiaomi",
 		Password:  "12345",
 	}
-	client, _ := containerdTest.NewContainerdClient(cfg)
-	err := client.Build()
-	fmt.Println(err)
+
+	// 建立容器客户端 create a container client
+	client, err := containerdTest.NewBuilder(cfg)
+	require.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> 建立环境 create a test environment
+
+	// 拆除容器环境 create a container environment
+	err = client.Build()
+	assert.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> 进行测试 testing
+
+	// 产生直连对象 Create dc connection.
+	var dc = DirectConnection{
+		// login to the mariadb. 登入数据库
+		user:      "xiaomi",           // user 帐户名称
+		password:  "12345",            // password 密码
+		charset:   "utf8mb4",          // charset 数据库编码
+		collation: 46,                 // collation 文本排序
+		addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
+
+	}
+
+LOOP:
+	// 建立新的数据库连线 create a new connection to the mariadb.
+	for i := 0; i < 10; i++ {
+		fmt.Println("try to connect to the mariadb:", i)
+		err = dc.connect() // 连接数据库 connect to the mariadb.
+		if err == nil {
+			break LOOP // 如果连接成功，则跳出循环 break the loop if the connection is successful.
+		}
+		time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
+	}
+
+	// >>>>> >>>>> >>>>> 拆除环境 tear down a test environment
+
+	// 建立容器连接 tear down a container connection
+	err = client.TearDown()
+	require.Equal(t, err, nil)
 }
 
+// 之后删除
+func TestDirectConnWithDB2(t *testing.T) {
+	// 建立设定对象 create a config object
+	cfg := containerdTest.ContainerD{
+		Sock:      "",
+		Type:      "mariadb",
+		Name:      "mariadb-server",
+		NameSpace: "mariadb",
+		Image:     "docker.io/panhongrainbow/mariadb:testing",
+		Task:      "mariadb-server",
+		NetworkNs: "/var/run/netns/gaea-mariadb",
+		IP:        "10.10.10.10:3306",
+		SnapShot:  "mariadb-server-snapshot",
+		Schema:    "",
+		User:      "xiaomi",
+		Password:  "12345",
+	}
+
+	// >>>>> >>>>> >>>>> 建立环境 create a test environment
+
+	// 建立容器客户端 create a container client
+	client, _ := containerdTest.NewContainerdClient(cfg)
+
+	// 拆除容器环境 create a container environment
+	err := client.Build()
+	assert.Equal(t, err, nil)
+
+	// >>>>> >>>>> >>>>> 进行测试 testing
+
+	// 产生直连对象 Create dc connection.
+	var dc = DirectConnection{
+		// login to the mariadb. 登入数据库
+		user:      "xiaomi",           // user 帐户名称
+		password:  "12345",            // password 密码
+		charset:   "utf8mb4",          // charset 数据库编码
+		collation: 46,                 // collation 文本排序
+		addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
+
+	}
+
+LOOP:
+	// 建立新的数据库连线 create a new connection to the mariadb.
+	for i := 0; i < 10; i++ {
+		fmt.Println("try to connect to the mariadb:", i)
+		err = dc.connect() // 连接数据库 connect to the mariadb.
+		if err == nil {
+			break LOOP // 如果连接成功，则跳出循环 break the loop if the connection is successful.
+		}
+		time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
+	}
+
+	// >>>>> >>>>> >>>>> 拆除环境 tear down a test environment
+
+	// 建立容器连接 tear down a container connection
+	err = client.TearDown()
+	require.Equal(t, err, nil)
+
+}
+
+// 之后删除
 // TestDirectConnWithoutDB is to test the initial handshake packet. The test uses MariaDB.
 // TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试将会使用 MariaDB 的服务器
-func TestDirectConnWithDB2(t *testing.T) {
+func TestDirectConnWithDB3(t *testing.T) {
 	// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
 	client, err := containerd.New("/run/containerd/containerd.sock")
 	require.Nil(t, err)

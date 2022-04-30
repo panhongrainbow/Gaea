@@ -6,11 +6,21 @@ skinparam NoteBackgroundColor white
 '整个 Containerd 运作的类图
 
 package containerdTest包 {
+    '客户端介面
+    interface Builder {
+        + Build() error
+        + TearDown() error
+    }
+    interface Builder #back:steelblue
+    note top of Builder {
+        Builder 是操作一个新的测试环境的接口 interface for making a new test environment.
+    }
+
     '核心类
     class ContainerdClient {
-        Distinguish() error
-        Build() error
-        TearDown() error
+        + Distinguish() error
+        + Build() error
+        + TearDown() error
     }
     class ContainerdClient #back:red
     note top of ContainerdClient {
@@ -58,6 +68,28 @@ package containerdTest包 {
         容器服务的运行的接口 interface for Containerd.
     }
 
+    '实现执行接口的类
+    class defaults {
+    }
+    class defaults #back:indianred
+    note left of defaults {
+        预设容器 default container.
+    }
+
+    class mariadb {
+    }
+    class mariadb #back:indianred
+    note left of defaults {
+        数据库容器 mariadb container.
+    }
+
+    class etcd {
+    }
+    class etcd #back:indianred
+    note left of etcd {
+        etcd库容器 etcd container.
+    }
+
     '核心类的设定档关连
     ContainerdClient --> ClientContainerd: dependsOn 依赖关系
     ContainerdClient --> ClientSchema: dependsOn 依赖关系
@@ -68,15 +100,23 @@ package containerdTest包 {
     '核心类的执行接口的关连
     ContainerdClient --> Run: dependsOn 依赖关系
 
+    '实现执行接口的类的关连
+    defaults .[#Purple].|> Run: 實現
+    mariadb .[#Purple].|> Run: 實現
+    etcd .[#Purple].|> Run: 實現
+
     '核心类的执行创建函数的关连
-    ContainerdClient::Build -[bold,#Red]-> Run::Pull: dependsOn Pull
-    ContainerdClient::Build -[bold,#Red]-> Run::Create: dependsOn Create
-    ContainerdClient::Build -[bold,#Red]-> Run::Task: dependsOn Task
-    ContainerdClient::Build -[bold,#Red]-> Run::Start: dependsOn Start
+    ContainerdClient::Build -[#Red]-> Run::Pull: dependsOn Pull
+    ContainerdClient::Build -[#Red]-> Run::Create: dependsOn Create
+    ContainerdClient::Build -[#Red]-> Run::Task: dependsOn Task
+    ContainerdClient::Build -[#Red]-> Run::Start: dependsOn Start
 
     '核心类的执行拆除函数的关连
-    ContainerdClient::TearDown -[bold,#Blue]-> Run::Interrupt: dependsOn Interrupt
-    ContainerdClient::TearDown -[bold,#Blue]-> Run::Delete: dependsOn Delete
+    ContainerdClient::TearDown -[#Blue]-> Run::Interrupt: dependsOn Interrupt
+    ContainerdClient::TearDown -[#Blue]-> Run::Delete: dependsOn Delete
+
+    '客户端介面的关连
+    ContainerdClient .[#Purple].|> Builder: 實現
 }
 
 @enduml
