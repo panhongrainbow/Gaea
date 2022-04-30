@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
+	"time"
 )
 
 // init 初始化 Conainerd 容器服务
@@ -47,10 +48,11 @@ type ClientSchema struct {
 
 // ClientRunning 客戶端的运行时的对象 ClientRunning is the running object of the containerd client.
 type ClientRunning struct {
-	ctx context.Context      // 容器服务的上下文 context.
-	img containerd.Image     // 容器服务的镜像 image.
-	c   containerd.Container // 容器服务的容器 container.
-	tsk containerd.Task      // 容器服务的任务 task.
+	ctx    context.Context      // 容器服务的上下文 context.
+	img    containerd.Image     // 容器服务的镜像 image.
+	c      containerd.Container // 容器服务的容器 container.
+	tsk    containerd.Task      // 容器服务的任务 task.
+	cancel context.CancelFunc   // 容器服务的取消函数 cancel function.
 }
 
 // NewContainerdClient 为新建容器服务的客户端 NewContainerdClient is a function to create a new containerd client.
@@ -130,15 +132,21 @@ func (cc *ContainerdClient) Distinguish() error {
 }
 
 // Build 建立容器测试环境 Build create a new container environment for test.
-func (cc *ContainerdClient) Build() error {
+func (cc *ContainerdClient) Build(t time.Duration) error {
 	// create Running object. 创建 Running 对象
 	cc.Running = new(ClientRunning)
 
 	// 错误信息 error message.
 	var err error
 
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
+
 	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
-	cc.Running.ctx = namespaces.WithNamespace(context.Background(), cc.Container.NameSpace)
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
 
 	// 拉取预设的测试印象档 pull the default test image from DockerHub
 	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
@@ -170,7 +178,17 @@ func (cc *ContainerdClient) Build() error {
 }
 
 // TearDown 拆除容器测试环境 TearDown is a function to tear down the container environment.
-func (cc *ContainerdClient) TearDown() error {
+func (cc *ContainerdClient) TearDown(t time.Duration) error {
+
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
+
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
+
 	// 強制中斷容器工作 interrupt the task.
 	err := cc.Run.Interrupt(cc.Running.tsk, cc.Running.ctx)
 	if err != nil {
@@ -182,6 +200,9 @@ func (cc *ContainerdClient) TearDown() error {
 	if err != nil {
 		return err
 	}
+
+	defer cc.Running.cancel() // 取消上下文 cancel the context.
+	cc.Running = nil          // 清空 Running 对象 clear the Running object.
 
 	// 删除容器環境成功 delete the container environment successfully.
 	return nil
