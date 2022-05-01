@@ -1,9 +1,14 @@
 package containerdTest
 
 import (
+	"errors"
 	"flag"
+	"github.com/XiaoMi/Gaea/log"
 	"github.com/containerd/containerd"
 	"io/ioutil"
+	"os"
+	"strings"
+	"sync"
 )
 
 var (
@@ -39,15 +44,33 @@ type ContainerD struct {
 	Password  string `json:"password"`  // 容器服务密码
 }
 
+/*
+cfg := containerdTest.ContainerD{
+		Sock:      "",
+		Type:      "mariadb",
+		Name:      "mariadb-server",
+		NameSpace: "mariadb",
+		Image:     "docker.io/panhongrainbow/mariadb:testing",
+		Task:      "mariadb-server",
+		NetworkNs: "/var/run/netns/gaea-mariadb",
+		IP:        "10.10.10.10:3306",
+		SnapShot:  "mariadb-server-snapshot",
+		Schema:    "",
+		User:      "xiaomi",
+		Password:  "12345",
+	}
+*/
+
 func (c *ContainerD) NewClient() *containerd.Client {
 	return nil
 }
 
-// ContainderdManager 容器服务管理員
-type ContainderdManager struct {
-	run        *Load
-	task       chan *ContainerdTask
-	configPath string
+// ContainderManager 容器服务管理員
+type ContainderManager struct {
+	networkLock map[string]sync.Mutex
+	cfg         map[string]ContainerD
+	Builder     map[string]Builder
+	configPath  string
 }
 
 // ParseCMconfig 載入容器服务管理员設定
@@ -55,15 +78,44 @@ func ParseCMconfig(configPath string) ([]byte, error) {
 	return ioutil.ReadFile(configPath)
 }
 
-// NewContainderdManager 新建容器服务管理員
-func NewContainderdManager(path string) (*ContainderdManager, error) {
-	/*if strings.TrimSpace(path) == "" {
+// NewContainderManager 新建容器服务管理員
+func NewContainderManager(path string) (*ContainderManager, error) {
+	if strings.TrimSpace(path) == "" {
 		path = defaultConfigPath
 	}
 	if err := checkDir(path); err != nil {
 		log.Warn("check file config directory failed, %v", err)
 		return nil, err
 	}
-	return &ContainderdManager{configPath: path}, nil*/
-	return nil, nil
+	r := Load{prefix: "./example/", client: nil}
+	configs, err := r.loadAllContainerD()
+	if err != nil {
+		log.Warn("load containerd config failed, %v", err)
+		return nil, err
+	}
+	builder := make(map[string]Builder)
+	for container, config := range configs {
+		if builder[container], err = NewBuilder(config); err != nil {
+			log.Warn("make containerd client failed, %v", err)
+			return nil, err
+		}
+	}
+
+	return &ContainderManager{configPath: path, cfg: configs, Builder: builder}, nil
+}
+
+func checkDir(path string) error {
+	if strings.TrimSpace(path) == "" {
+		return errors.New("invalid path")
+	}
+	stat, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if !stat.IsDir() {
+		return errors.New("invalid path, should be a directory")
+	}
+
+	return nil
 }
