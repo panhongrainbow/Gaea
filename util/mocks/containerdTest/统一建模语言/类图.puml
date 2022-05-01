@@ -19,6 +19,16 @@ package containerdTest包 {
         容器管理员
     }
 
+    class ContainderList {
+    	- sync.Locker networkLock
+    	- ContainerD cfg
+    	- Builder builder
+    }
+    class ContainderList #back:tomato
+    note bottom of ContainderList {
+        ContainderList
+    }
+
     '客户端介面
     interface Builder {
         + Build() error
@@ -107,7 +117,9 @@ package containerdTest包 {
     }
 
     '容器管理员的关联
-    containerdManager *-- Builder: 組成
+    containerdManager *-- ContainderList: 組成
+    ContainderList *-- Builder: 組成
+    ContainderList *-- sync.Locker: 組成
 
     '核心类的设定档关连
     ContainerdClient --> ClientContainerd: dependsOn 依赖关系

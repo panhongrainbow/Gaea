@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -194,36 +195,49 @@ func TestDirectConnWithoutDB(t *testing.T) {
 // TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试将会使用 MariaDB 的服务器
 func TestDirectConnWithDB(t *testing.T) {
 	mgr, _ := containerdTest.NewContainderManager("./example/")
-	err := mgr.Builder["mariadb-server"].Build(60 * time.Second)
-	fmt.Println(err)
+	wg := sync.WaitGroup{}
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func() {
+			builder, _ := mgr.GetBuilder("mariadb-server")
+			err := builder.Build(60 * time.Second)
+			assert.Nil(t, err)
 
-	// >>>>> >>>>> >>>>> 进行测试 testing
+			// >>>>> >>>>> >>>>> 进行测试 testing
 
-	if err == nil {
-		// 产生直连对象 Create dc connection.
-		var dc = DirectConnection{
-			// login to the mariadb. 登入数据库
-			user:      "xiaomi",           // user 帐户名称
-			password:  "12345",            // password 密码
-			charset:   "utf8mb4",          // charset 数据库编码
-			collation: 46,                 // collation 文本排序
-			addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
-
-		}
-
-	LOOP:
-		// 建立新的数据库连线 create a new connection to the mariadb.
-		for i := 0; i < 10; i++ {
-			fmt.Println("try to connect to the mariadb:", i)
-			err = dc.connect() // 连接数据库 connect to the mariadb.
 			if err == nil {
-				break LOOP // 如果连接成功，则跳出循环 break the loop if the connection is successful.
-			}
-			time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
-		}
-	}
+				// 产生直连对象 Create dc connection.
+				var dc = DirectConnection{
+					// login to the mariadb. 登入数据库
+					user:      "xiaomi",           // user 帐户名称
+					password:  "12345",            // password 密码
+					charset:   "utf8mb4",          // charset 数据库编码
+					collation: 46,                 // collation 文本排序
+					addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
 
-	_ = mgr.Builder["mariadb-server"].TearDown(60 * time.Second)
+				}
+
+			LOOP:
+				// 建立新的数据库连线 create a new connection to the mariadb.
+				for i := 0; i < 10; i++ {
+					fmt.Println("try to connect to the mariadb:", i)
+					err = dc.connect() // 连接数据库 connect to the mariadb.
+					if err == nil {
+						break LOOP // 如果连接成功，则跳出循环 break the loop if the connection is successful.
+					}
+					time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
+				}
+			}
+
+			err = builder.TearDown(60 * time.Second)
+			assert.Nil(t, err)
+
+			err = mgr.ReturnBuilder("mariadb-server")
+			require.Nil(t, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
 
 // TestDirectConnWithoutDB is to test the initial handshake packet. The test uses MariaDB.

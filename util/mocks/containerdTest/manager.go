@@ -5,7 +5,6 @@ import (
 	"flag"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/containerd/containerd"
-	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -67,15 +66,30 @@ func (c *ContainerD) NewClient() *containerd.Client {
 
 // ContainderManager 容器服务管理員
 type ContainderManager struct {
-	networkLock map[string]sync.Mutex
-	cfg         map[string]ContainerD
-	Builder     map[string]Builder
-	configPath  string
+	configPath     string
+	containderList map[string]ContainderList
 }
 
-// ParseCMconfig 載入容器服务管理员設定
-func ParseCMconfig(configPath string) ([]byte, error) {
-	return ioutil.ReadFile(configPath)
+type ContainderList struct {
+	networkLock sync.Locker
+	cfg         ContainerD
+	builder     Builder
+}
+
+// GetBuilder 获取容器服务构建器
+func (cm *ContainderManager) GetBuilder(name string) (Builder, error) {
+	// 如果没有配置，则返回错误
+	if _, ok := cm.containderList[name]; !ok {
+		return nil, errors.New("invalid config name")
+	}
+	cm.containderList[name].networkLock.Lock()
+	return cm.containderList[name].builder, nil
+}
+
+// ReturnBuilder 归还容器服务构建器
+func (cm *ContainderManager) ReturnBuilder(name string) error {
+	cm.containderList[name].networkLock.Unlock()
+	return nil
 }
 
 // NewContainderManager 新建容器服务管理員
@@ -93,15 +107,21 @@ func NewContainderManager(path string) (*ContainderManager, error) {
 		log.Warn("load containerd config failed, %v", err)
 		return nil, err
 	}
-	builder := make(map[string]Builder)
+	containerList := make(map[string]ContainderList)
 	for container, config := range configs {
-		if builder[container], err = NewBuilder(config); err != nil {
+		builder, err := NewBuilder(config)
+		if err != nil {
 			log.Warn("make containerd client failed, %v", err)
 			return nil, err
 		}
+		containerList[container] = ContainderList{
+			cfg:         config,
+			builder:     builder,
+			networkLock: &sync.Mutex{},
+		}
 	}
 
-	return &ContainderManager{configPath: path, cfg: configs, Builder: builder}, nil
+	return &ContainderManager{configPath: path, containderList: containerList}, nil
 }
 
 func checkDir(path string) error {
