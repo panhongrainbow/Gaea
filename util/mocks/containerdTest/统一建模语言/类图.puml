@@ -1,7 +1,7 @@
 @startuml
 
 left to right direction
-scale 2000 width
+scale 5000 width
 scale 2000 height
 
 '预设背景的颜色

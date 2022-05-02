@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-// init 初始化 Conainerd 容器服务
-func init() {
-	// 先开始辨判连接方式
-	// err := setup()
-}
-
 // ContainerdClient is core component of Containerd client. 容器服务的核心客户端
 type ContainerdClient struct {
 	// 在 NewContainerdClient 中创建 create in NewContainerdClient.

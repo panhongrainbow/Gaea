@@ -2,28 +2,12 @@ package containerdTest
 
 import (
 	"errors"
-	"flag"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/containerd/containerd"
 	"os"
 	"strings"
 	"sync"
 )
-
-var (
-	cmConfigFile = flag.String("cm", "./etc/containerd.ini", "containerd manager 配置")
-	// 預設的容器設定路徑
-	defaultConfigPath = "./etc/containerd/"
-)
-
-// init 初始化 containerd 容器管理员服务
-func init() {
-	/*flag.Parse()
-	if err := NewContainderdManager(*cmConfigFile); err != nil {
-		log.Error("init containerd manager failed, %v", err)
-		panic(err)
-	}*/
-}
 
 // 先進行 Parse 操作
 
@@ -42,23 +26,6 @@ type ContainerD struct {
 	User      string `json:"user"`      // 容器服务用户名
 	Password  string `json:"password"`  // 容器服务密码
 }
-
-/*
-cfg := containerdTest.ContainerD{
-		Sock:      "",
-		Type:      "mariadb",
-		Name:      "mariadb-server",
-		NameSpace: "mariadb",
-		Image:     "docker.io/panhongrainbow/mariadb:testing",
-		Task:      "mariadb-server",
-		NetworkNs: "/var/run/netns/gaea-mariadb",
-		IP:        "10.10.10.10:3306",
-		SnapShot:  "mariadb-server-snapshot",
-		Schema:    "",
-		User:      "xiaomi",
-		Password:  "12345",
-	}
-*/
 
 func (c *ContainerD) NewClient() *containerd.Client {
 	return nil
