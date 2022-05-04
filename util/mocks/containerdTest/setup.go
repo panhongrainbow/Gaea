@@ -8,7 +8,7 @@ var (
 	defaultConfigPath = "./etc/containerd/"
 )
 
-var Manager *ContainderManager
+var Manager *ContainerManager
 
 // init 初始化 containerd 容器管理员服务 init is init function of containerd manager
 func init() {

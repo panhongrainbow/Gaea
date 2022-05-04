@@ -2,10 +2,13 @@ package containerdTest
 
 import (
 	"context"
+	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/oci"
 	"github.com/opencontainers/runtime-spec/specs-go"
+	"net"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -122,9 +125,42 @@ LOOP:
 	return nil
 }
 
+// CheckService 为检查容器服务是否上线 CheckService is to check container service.
+func (d *defaults) CheckService(task containerd.Task, ctx context.Context) error {
+	for i := 0; i < 20; i++ {
+		typ := "tcp"
+		if strings.Contains("10.10.10.10:3306", "/") {
+			typ = "unix"
+		}
+
+		netConn, err := net.Dial(typ, "10.10.10.10:3306")
+		if err == nil {
+
+			// 先随意测试
+			test := make([]byte, 20)
+			netConn.Read(test)
+			fmt.Println(test)
+
+			_ = netConn.Close()
+			return nil
+		}
+		fmt.Println("1", err)
+
+		// _ = netConn.Close()
+
+		time.Sleep(time.Second)
+	}
+
+	return nil
+}
+
+// CheckData 为检查容器资料是否存在 CheckService is to check container data exists.
+func (d *defaults) CheckData(task containerd.Task, ctx context.Context) error {
+	return nil
+}
+
 // Interrupt is to stop task immediately. 为立刻停止容器任务
 func (d *defaults) Interrupt(task containerd.Task, ctx context.Context) error {
-
 	// stop task immediately. 停止任务
 LOOP:
 	for {

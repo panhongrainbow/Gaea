@@ -2,8 +2,11 @@ package containerdTest
 
 import (
 	"context"
+	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
+	"net"
+	"strings"
 	"time"
 )
 
@@ -51,7 +54,6 @@ type ClientRunning struct {
 
 // NewContainerdClient 为新建容器服务的客户端 NewContainerdClient is a function to create a new containerd client.
 func NewContainerdClient(cfg ContainerD) (*ContainerdClient, error) {
-
 	// >>>>> >>>>> >>>>> 决定容器服务的连接 sock 对象 decide the sock.
 
 	// 创建容器服务的客户端 Socket 对象 create a new sock for the containerd client.
@@ -127,11 +129,16 @@ func (cc *ContainerdClient) Distinguish() error {
 
 // Build 建立容器测试环境 Build create a new container environment for test.
 func (cc *ContainerdClient) Build(t time.Duration) error {
-	// create Running object. 创建 Running 对象
-	cc.Running = new(ClientRunning)
-
 	// 错误信息 error message.
 	var err error
+
+	// 设置容器管理器为创建状态 container manager's status is building.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuilding); err != nil {
+		return err
+	}
+
+	// create Running object. 创建 Running 对象
+	cc.Running = new(ClientRunning)
 
 	// 决定之后的决行时间 decide the time duration.
 	ctx := context.Background() // 创建一个上下文对象 create a context object.
@@ -142,10 +149,20 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
 	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
 
+	// 设置容器管理器为下载镜像状态 container manager's status is pulling image.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildPullingImage); err != nil {
+		return err
+	}
+
 	// 拉取预设的测试印象档 pull the default test image from DockerHub
 	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
 	cc.Running.img, err = cc.Run.Pull(cc.Conn, cc.Running.ctx, cc.Container.Image)
 	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为创建容器状态 container manager's status is creating container.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildCreateContainer); err != nil {
 		return err
 	}
 
@@ -155,9 +172,19 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 		return err
 	}
 
+	// 设置容器管理器为创建容器任务状态 container manager's status is creating container task.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildCreateTask); err != nil {
+		return err
+	}
+
 	// 建立新的容器工作 create a task from the container
 	cc.Running.tsk, err = cc.Run.Task(cc.Running.c, cc.Running.ctx)
 	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为启动容器任务状态 container manager's status is starting container task.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildStartTask); err != nil {
 		return err
 	}
 
@@ -167,13 +194,46 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 		return err
 	}
 
+	// 设置容器管理器为容器任务执行状态 container manager's status is running container task.
+	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildRunning); err != nil {
+		return err
+	}
+
 	// 建立容器環境成功 Build the container environment successfully.
+	return nil
+}
+
+// OnService 确认容器是否处放服务状态 OnService is making sure the container is on service.
+func (cc *ContainerdClient) OnService(t time.Duration) error {
+	for i := 0; i < 20; i++ {
+		typ := "tcp"
+		if strings.Contains("10.10.10.10:3306", "/") {
+			typ = "unix"
+		}
+
+		netConn, err := net.Dial(typ, "10.10.10.10:3306")
+		if err == nil {
+
+			// 先随意测试
+			test := make([]byte, 20)
+			netConn.Read(test)
+			fmt.Println(test)
+
+			_ = netConn.Close()
+			return nil
+		}
+		fmt.Println("1", err)
+
+		// _ = netConn.Close()
+
+		time.Sleep(time.Second)
+	}
+
 	return nil
 }
 
 // TearDown 拆除容器测试环境 TearDown is a function to tear down the container environment.
 func (cc *ContainerdClient) TearDown(t time.Duration) error {
-
 	// 决定之后的决行时间 decide the time duration.
 	ctx := context.Background() // 创建一个上下文对象 create a context object.
 	if t > 0 {

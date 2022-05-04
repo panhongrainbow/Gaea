@@ -191,6 +191,10 @@ func TestDirectConnWithoutDB(t *testing.T) {
 	})
 }
 
+func test() string {
+	return "test"
+}
+
 // TestDirectConnWithoutDB is to test the initial handshake packet. The test uses MariaDB.
 // TestDirectConnWithoutDB 为测试数据库的后端连线流程，以下测试将会使用 MariaDB 的服务器
 func TestDirectConnWithDB(t *testing.T) {
@@ -200,9 +204,12 @@ func TestDirectConnWithDB(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(j int) {
 			fmt.Println("start", j)
-			builder, err := containerdTest.Manager.GetBuilder("mariadb-server")
+			builder, err := containerdTest.Manager.GetBuilder("mariadb-server", test)
 			assert.Nil(t, err)
 			err = builder.Build(60 * time.Second)
+			assert.Nil(t, err)
+
+			err = builder.OnService(60 * time.Second)
 			assert.Nil(t, err)
 
 			// >>>>> >>>>> >>>>> 进行测试 testing
@@ -220,7 +227,7 @@ func TestDirectConnWithDB(t *testing.T) {
 			LOOP:
 				// 建立新的数据库连线 create a new connection to the mariadb.
 				for i := 0; i < 10; i++ {
-					fmt.Println("try to connect to the mariadb:", i)
+					fmt.Println("try to connect to the mariadb:", j)
 					err = dc.connect() // 连接数据库 connect to the mariadb.
 					if err == nil {
 						fmt.Println("connect to the mariadb success", j)

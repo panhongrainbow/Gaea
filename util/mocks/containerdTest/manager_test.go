@@ -1,30 +1,52 @@
 package containerdTest
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
 )
 
+// TestManager 為容器服务管理員的测试
+// TestManager is a testing for ContainerManager
 func TestManager(t *testing.T) {
-	//
-	mgr, _ := NewContainderManager("./example/")
-	builder, _ := mgr.GetBuilder("mariadb-server")
+	// 取得容器服务管理員
+	// get the container manager
+	mgr, err := NewContainderManager("./example/")
+	require.Nil(t, err)
 
-	err := builder.Build(60 * time.Second)
-	fmt.Println(err)
+	// 取得容器服务管理員的容器服务创建管理器
+	// get the container manager builder
+	builder, err := mgr.GetBuilder("mariadb-server", CurrentFunction)
+	require.Nil(t, err)
 
-	time.Sleep(time.Second * 30)
+	// 获得创建容器服务
+	// get the container builder
+	err = builder.Build(60 * time.Second)
+	require.Nil(t, err)
 
-	_ = builder.TearDown(60 * time.Second)
+	// 归还容器服务管理員的容器服务创建管理器
+	// return the container manager builder
+	err = builder.TearDown(60 * time.Second)
+	require.Nil(t, err)
 }
 
-// BenchmarkContainerdManager_Lock 为容器服务管理員加锁的性能测试 BenchmarkContainerdManager_Lock is a benchmark for ContainerManager lock
+// CurrentFunction 返回当前函数名
+// CurrentFunction returns the current function name
+func CurrentFunction() string {
+	counter, _, _, success := runtime.Caller(2)
+	if !success {
+		return "unknown"
+	}
+	return runtime.FuncForPC(counter).Name()
+}
+
+// BenchmarkContainerdManager_Lock 为容器服务管理員加锁的性能测试
+// BenchmarkContainerdManager_Lock is a benchmark for ContainerManager lock
 func BenchmarkContainerdManager_Lock(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := Manager.GetBuilder("mariadb-server")
+		_, err := Manager.GetBuilder("mariadb-server", CurrentFunction)
 		if err != nil {
 			panic(err)
 		}
@@ -37,7 +59,8 @@ func BenchmarkContainerdManager_Lock(b *testing.B) {
 	}
 }
 
-// TestContainerdManager_Lock 测试容器服务管理器加锁的正确性测试 TestContainerdManager_Lock is a testing for ContainerManager lock
+// TestContainerdManager_Lock 测试容器服务管理器加锁的正确性测试
+// TestContainerdManager_Lock is a testing for ContainerManager lock
 func TestContainerdManager_Lock(t *testing.T) {
 	// it is the design of the container manager lock by using map and sync.mux
 	// map and inner lock design 为使用 map 和 sync.mux 的性能测试

@@ -31,36 +31,22 @@ func (c *ContainerD) NewClient() *containerd.Client {
 	return nil
 }
 
-// ContainderManager 容器服务管理員
-type ContainderManager struct {
-	configPath     string
-	containderList map[string]ContainderList
+// ContainerManager 容器服务管理員
+type ContainerManager struct {
+	configPath    string
+	containerList map[string]*ContainerList
 }
 
-type ContainderList struct {
+type ContainerList struct {
 	networkLock sync.Locker
 	cfg         ContainerD
 	builder     Builder
-}
-
-// GetBuilder 获取容器服务构建器
-func (cm *ContainderManager) GetBuilder(name string) (Builder, error) {
-	// 如果没有配置，则返回错误
-	if _, ok := cm.containderList[name]; !ok {
-		return nil, errors.New("invalid config name")
-	}
-	cm.containderList[name].networkLock.Lock()
-	return cm.containderList[name].builder, nil
-}
-
-// ReturnBuilder 归还容器服务构建器
-func (cm *ContainderManager) ReturnBuilder(name string) error {
-	cm.containderList[name].networkLock.Unlock()
-	return nil
+	user        string
+	status      int
 }
 
 // NewContainderManager 新建容器服务管理員
-func NewContainderManager(path string) (*ContainderManager, error) {
+func NewContainderManager(path string) (*ContainerManager, error) {
 	if strings.TrimSpace(path) == "" {
 		path = defaultConfigPath
 	}
@@ -74,23 +60,80 @@ func NewContainderManager(path string) (*ContainderManager, error) {
 		log.Warn("load containerd config failed, %v", err)
 		return nil, err
 	}
-	containerList := make(map[string]ContainderList)
+	containerList := make(map[string]*ContainerList)
 	for container, config := range configs {
 		builder, err := NewBuilder(config)
 		if err != nil {
 			log.Warn("make containerd client failed, %v", err)
 			return nil, err
 		}
-		containerList[container] = ContainderList{
-			cfg:         config,
-			builder:     builder,
-			networkLock: &sync.Mutex{},
+		containerList[container] = &ContainerList{
+			user:        "",                   // 获取函数名称 register's function
+			status:      containerdStatusInit, // 容器服务状态为占用 containerd is occupied
+			cfg:         config,               // 容器服务配置 containerd config
+			builder:     builder,              // 容器服务构建器 containerd builder
+			networkLock: &sync.Mutex{},        // 容器服务网络锁 containerd network lock
 		}
 	}
 
-	return &ContainderManager{configPath: path, containderList: containerList}, nil
+	return &ContainerManager{configPath: path, containerList: containerList}, nil
 }
 
+// RegisterFunc 注册函式名称 register's function
+// Register containerd service
+type RegisterFunc func() string
+
+// GetBuilder 获取容器服务构建器 GetBuilder is used to get containerd builder
+func (cm *ContainerManager) GetBuilder(containerName string, regfunc RegisterFunc) (Builder, error) {
+	// 如果没有配置，则返回错误
+	if _, ok := cm.containerList[containerName]; !ok {
+		return nil, errors.New("invalid config container name")
+	}
+
+	// 如果可以进行占用，则续续以下操作
+	// if we can occupy, then continue to do the following operation.
+	cm.containerList[containerName].networkLock.Lock()                // 加锁 lock
+	cm.containerList[containerName].user = regfunc()                  // 获取函数名称 register's function
+	cm.containerList[containerName].status = containerdStatusOccupied // 容器服务状态为占用 containerd is occupied
+
+	// 正常返回容器服务构建器 return containerd builder
+	return cm.containerList[containerName].builder, nil
+}
+
+// ReturnBuilder 适放容器服务构建器 ReturnBuilder is used to release containerd builder.
+func (cm *ContainerManager) ReturnBuilder(containerName string) error {
+	// 如果没有配置，则返回错误
+	if _, ok := cm.containerList[containerName]; !ok {
+		return errors.New("invalid config container name")
+	}
+
+	// 如果可以进行占用，则续续以下操作
+	// if we can occupy, then continue to do the following operation.
+	cm.containerList[containerName].networkLock.Unlock()              // 解锁 unlock
+	cm.containerList[containerName].user = ""                         // 获取函数名称 register's function
+	cm.containerList[containerName].status = containerdStatusReturned // 容器服务状态为被适放 containerd is released
+
+	// 正常适放容器服务构建器 release containerd builder
+	return nil
+}
+
+// SetContainerManagerStatus 设置容器服务状态 SetStatus is used to set containerd status.
+func SetContainerManagerStatus(containerName string, status int) error {
+	// 如果没有配置，则返回错误
+	// if we can occupy, then continue to do the following operation.
+	if _, ok := Manager.containerList[containerName]; !ok {
+		return errors.New("invalid config container name")
+	}
+
+	// 如果可以进行设定状态，则续续以下操作
+	// if we can set status, then continue to do the following operation.
+	Manager.containerList[containerName].status = status // 设置容器服务状态 set containerd status
+
+	// 正常返回 return
+	return nil
+}
+
+// checkDir 检查目录是否存在 checkDir is used to check directory is existed.
 func checkDir(path string) error {
 	if strings.TrimSpace(path) == "" {
 		return errors.New("invalid path")
