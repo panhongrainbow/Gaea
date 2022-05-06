@@ -1,6 +1,8 @@
-package containerdTest
+package mgr
 
-import "flag"
+import (
+	"flag"
+)
 
 var (
 	cmConfigFile = flag.String("cm", "./etc/containerd.ini", "containerd manager 配置")

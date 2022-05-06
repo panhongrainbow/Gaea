@@ -1,4 +1,4 @@
-package containerdTest
+package defaults
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-// defined data 数据定义
-type defaults struct {
+// Defined data 数据定义
+type Defaults struct {
 	debianVersion string // debain version. debian 版本
 }
 
@@ -21,7 +21,7 @@ type defaults struct {
 // >>>>> >>>>> >>>>> 创建部分
 
 // Pull is to pull image from registry. 为容器拉取镜像
-func (d *defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
+func (d *Defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
 
 	// pull image from registry. 从注册中心拉取镜像
 	download := func(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
@@ -69,7 +69,7 @@ RETRY:
 }
 
 // Create is to create container. 为容器创建
-func (d *defaults) Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error) {
+func (d *Defaults) Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error) {
 	// gaea-default connection to the default network environment. 连接到网路环境
 	defaultNS := specs.LinuxNamespace{Type: specs.NetworkNamespace, Path: networkNS}
 
@@ -84,13 +84,13 @@ func (d *defaults) Create(client *containerd.Client, ctx context.Context, contai
 }
 
 // Task 为容器任务创建 Task is to create task.
-func (d *defaults) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
+func (d *Defaults) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
 	// 建立新的容器工作 create a task from the container.
 	return container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 }
 
 // Start 为容器任务启动 Start is to start task.
-func (d *defaults) Start(task containerd.Task, ctx context.Context) error {
+func (d *Defaults) Start(task containerd.Task, ctx context.Context) error {
 	// 开始执行容器工作 call start on the task to execute the server.
 	if err := task.Start(ctx); err != nil {
 		return err
@@ -127,7 +127,7 @@ LOOP:
 // >>>>> >>>>> >>>>> 检查部分
 
 // CheckService 为检查容器服务是否上线 CheckService is to check container service.
-func (d *defaults) CheckService(ctx context.Context, ipAddrPort string) error {
+func (d *Defaults) CheckService(ctx context.Context, ipAddrPort string) error {
 	// 預設容器沒有服務，所以不需要檢查.
 	// Default container has no service, so no need to check.
 
@@ -139,7 +139,7 @@ func (d *defaults) CheckService(ctx context.Context, ipAddrPort string) error {
 }
 
 // CheckSchema 为检查容器资料是否存在 CheckService is to check container data exists.
-func (d *defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
+func (d *Defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
 	// 預設容器沒有服務，所以不需要檢查.
 	// Default container has no service, so no need to check.
 
@@ -153,7 +153,7 @@ func (d *defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
 // >>>>> >>>>> >>>>> 删除部分
 
 // Interrupt is to stop task immediately. 为立刻停止容器任务
-func (d *defaults) Interrupt(task containerd.Task, ctx context.Context) error {
+func (d *Defaults) Interrupt(task containerd.Task, ctx context.Context) error {
 	// stop task immediately. 停止任务
 LOOP:
 	for {
@@ -179,7 +179,7 @@ LOOP:
 }
 
 // Delete is to delete task. 为容器任务停止
-func (d *defaults) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
+func (d *Defaults) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
 
 	// delete the task. 刪除容器工作
 	if task != nil { // check task exist. 确认容器工作存在
@@ -202,11 +202,11 @@ func (d *defaults) Delete(task containerd.Task, container containerd.Container, 
 // non-defined interface 非约定的函数
 
 // Set is to set current version. 获取当前版本
-func (d *defaults) Set(version string) {
+func (d *Defaults) Set(version string) {
 	d.debianVersion = version
 }
 
 // Version is to get current version. 获取当前版本
-func (d *defaults) Version() string {
+func (d *Defaults) Version() string {
 	return d.debianVersion
 }

@@ -1,7 +1,8 @@
-package containerdTest
+package mariadb
 
 import (
 	"context"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/builder/containerd/run"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ func TestMariaDBContainerd(t *testing.T) {
 	// 测试约定的接口 test the default interface
 	t.Run("test mariadb interface", func(t *testing.T) {
 		// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
-		client, err := containerd.New(defaultSock)
+		client, err := containerd.New(run.DefaultSock)
 		require.Nil(t, err)
 		defer func() {
 			_ = client.Close()
@@ -24,7 +25,7 @@ func TestMariaDBContainerd(t *testing.T) {
 		ctx := namespaces.WithNamespace(context.Background(), "mariadb")
 
 		// 建立测试对象 create a test object
-		m := mariaDB{}
+		m := MariaDB{}
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
 		img, err := m.Pull(client, ctx, "docker.io/panhongrainbow/mariadb:testing")

@@ -1,7 +1,11 @@
-package containerdTest
+package mgr
 
 import (
 	"context"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/defaults"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/etcd"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/mariadb"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
 	"time"
@@ -19,7 +23,7 @@ type ContainerdClient struct {
 	Running   *ClientRunning     // 容器服务是否运行中
 
 	// 在容器区分时候创建 create in Distinguish.
-	Run Run // 容器服务的运行的接口 interface for Containerd.
+	Run run.Run // 容器服务的运行的接口 interface for Containerd.
 }
 
 // ClientContainerd 为客戶端的容器服务設定 containerd is configured for Containerd.
@@ -62,7 +66,7 @@ func NewContainerdClient(cfg ContainerD) (*ContainerdClient, error) {
 	if cfg.Sock != "" { // 使用指定的路径 use the specified path.
 		usedSock = cfg.Sock
 	} else { // 使用默认的路径 use default path.
-		usedSock = defaultSock
+		usedSock = run.DefaultSock
 	}
 
 	// 建立容器服务的客户端连接 create a new containerd connection.
@@ -78,10 +82,10 @@ func NewContainerdClient(cfg ContainerD) (*ContainerdClient, error) {
 		// 在 NewContainerdClient 中创建 create in NewContainerdClient.
 
 		// 客户端的配置 client's config.
-		Status: containerdStatusInit, // 现在为初始化状态 It's init status.
-		Conn:   currentSock,          // 容器服务的连接 It's a connection to containerd.
-		Type:   cfg.Type,             // 容器服务的类型 It's a containerd type.
-		IP:     cfg.IP,               // 容器服务的网路位置 It's a containerd IP.
+		Status: run.ContainerdStatusInit, // 现在为初始化状态 It's init status.
+		Conn:   currentSock,              // 容器服务的连接 It's a connection to containerd.
+		Type:   cfg.Type,                 // 容器服务的类型 It's a containerd type.
+		IP:     cfg.IP,                   // 容器服务的网路位置 It's a containerd IP.
 		// 容器的配置 container's config.
 		Container: ClientContainerd{
 			Name:      cfg.Name,      // 容器的名称 It's a container's name.
@@ -113,14 +117,14 @@ func (cc *ContainerdClient) Distinguish() error {
 	// distinguish the containerd client. 对容器服务进行区分
 	switch cc.Type {
 	case "etcd":
-		cc.Run = new(etcd) // use etcd. 容器服务为 etcd
-		return nil         // return nil. 返回 nil
+		cc.Run = new(etcd.Etcd) // use etcd. 容器服务为 etcd
+		return nil              // return nil. 返回 nil
 	case "mariadb": // use mariaDB. 容器服务为 mariaDB
-		cc.Run = new(mariaDB) // return mariaDB. 返回 mariaDB
-		return nil            // return nil. 返回 nil
+		cc.Run = new(mariadb.MariaDB) // return mariaDB. 返回 mariaDB
+		return nil                    // return nil. 返回 nil
 	default:
-		cc.Run = new(defaults) // use defaults. 容器服务为 defaults
-		return nil             // return nil. 返回 nil
+		cc.Run = new(defaults.Defaults) // use defaults. 容器服务为 defaults
+		return nil                      // return nil. 返回 nil
 	}
 }
 
@@ -130,7 +134,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	var err error
 
 	// 设置容器管理器为创建状态 container manager's status is building.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuilding); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuilding); err != nil {
 		return err
 	}
 
@@ -147,7 +151,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
 
 	// 设置容器管理器为下载镜像状态 container manager's status is pulling image.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildPullingImage); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildPullingImage); err != nil {
 		return err
 	}
 
@@ -159,7 +163,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	}
 
 	// 设置容器管理器为创建容器状态 container manager's status is creating container.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildCreateContainer); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildCreateContainer); err != nil {
 		return err
 	}
 
@@ -170,7 +174,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	}
 
 	// 设置容器管理器为创建容器任务状态 container manager's status is creating container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildCreateTask); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildCreateTask); err != nil {
 		return err
 	}
 
@@ -181,7 +185,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	}
 
 	// 设置容器管理器为启动容器任务状态 container manager's status is starting container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildStartTask); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildStartTask); err != nil {
 		return err
 	}
 
@@ -192,7 +196,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	}
 
 	// 设置容器管理器为容器任务执行状态 container manager's status is running container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, containerdStatusBuildRunning); err != nil {
+	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildRunning); err != nil {
 		return err
 	}
 
@@ -212,7 +216,7 @@ func (cc *ContainerdClient) OnService(t time.Duration) error {
 	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
 
 	// 设置容器管理器为检查连线状态 container manager's status is checking on service.
-	if err := SetContainerManagerStatus(cc.Container.Name, containerdStatusCheckingOnService); err != nil {
+	if err := SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusCheckingOnService); err != nil {
 		return err
 	}
 

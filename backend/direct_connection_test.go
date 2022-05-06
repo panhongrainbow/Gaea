@@ -19,7 +19,7 @@ import (
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/XiaoMi/Gaea/log/xlog"
 	"github.com/XiaoMi/Gaea/mysql"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr"
 	"github.com/XiaoMi/Gaea/util/mocks/pipeTest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -204,11 +204,11 @@ func TestDefaultContainer(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(j int) {
 			regFunc := func() string {
-				return containerdTest.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
+				return mgr.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
 			}
 
 			// 取得 builder 对象 get builder object.
-			builder, err := containerdTest.Manager.GetBuilder("default-server", regFunc)
+			builder, err := mgr.Manager.GetBuilder("default-server", regFunc)
 			assert.Nil(t, err)
 
 			// 创建部份 create part
@@ -224,7 +224,7 @@ func TestDefaultContainer(t *testing.T) {
 			assert.Nil(t, err)
 
 			// 归还 builder 部份 return builder part
-			err = containerdTest.Manager.ReturnBuilder("default-server", regFunc)
+			err = mgr.Manager.ReturnBuilder("default-server", regFunc)
 			require.Nil(t, err)
 
 			// 协程完成 goroutine complete.
@@ -245,13 +245,13 @@ func TestDirectConnWithDB(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		go func(j int) {
 			regFunc := func() string {
-				return containerdTest.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
+				return mgr.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
 			}
 
 			// 取得 builder 对象 get builder object.
-			builder, err := containerdTest.Manager.GetBuilder("mariadb-server",
+			builder, err := mgr.Manager.GetBuilder("mariadb-server",
 				func() string {
-					return containerdTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
+					return mgr.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
 				},
 			)
 			assert.Nil(t, err)
@@ -292,7 +292,7 @@ func TestDirectConnWithDB(t *testing.T) {
 			assert.Nil(t, err)
 
 			// 归还 builder 部份 return builder part
-			err = containerdTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+			err = mgr.Manager.ReturnBuilder("mariadb-server", regFunc)
 			require.Nil(t, err)
 
 			// 协程完成 goroutine complete.
@@ -336,11 +336,11 @@ func TestContainersInterference(t *testing.T) {
 		for i := 0; i < 15; i++ {
 			go func(j int) {
 				regFunc := func() string {
-					return containerdTest.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
+					return mgr.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
 				}
 
 				// 取得 builder 对象 get builder object.
-				builder, err := containerdTest.Manager.GetBuilder("default-server", regFunc)
+				builder, err := mgr.Manager.GetBuilder("default-server", regFunc)
 				assert.Nil(t, err)
 
 				// 创建部份 create part
@@ -356,7 +356,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 归还 builder 部份 return builder part
-				err = containerdTest.Manager.ReturnBuilder("default-server", regFunc)
+				err = mgr.Manager.ReturnBuilder("default-server", regFunc)
 				require.Nil(t, err)
 
 				// 协程完成 goroutine complete.
@@ -374,11 +374,11 @@ func TestContainersInterference(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			go func(j int) {
 				regFunc := func() string {
-					return containerdTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
+					return mgr.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
 				}
 
 				// 取得 builder 对象 get builder object.
-				builder, err := containerdTest.Manager.GetBuilder("mariadb-server", regFunc)
+				builder, err := mgr.Manager.GetBuilder("mariadb-server", regFunc)
 				assert.Nil(t, err)
 
 				// 创建部份 create part
@@ -417,7 +417,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 归还 builder 部份 return builder part
-				err = containerdTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+				err = mgr.Manager.ReturnBuilder("mariadb-server", regFunc)
 				require.Nil(t, err)
 
 				// 协程完成 goroutine complete.

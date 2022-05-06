@@ -1,7 +1,8 @@
-package containerdTest
+package mgr
 
 import (
 	"encoding/json"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -10,7 +11,7 @@ import (
 
 // Load 为用来执行容器服务
 type Load struct {
-	client map[string]Run
+	client map[string]run.Run
 	prefix string
 }
 

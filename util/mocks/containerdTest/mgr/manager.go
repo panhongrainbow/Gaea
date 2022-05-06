@@ -1,9 +1,11 @@
-package containerdTest
+package mgr
 
 import (
 	"errors"
 	"fmt"
 	"github.com/XiaoMi/Gaea/log"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run"
 	"github.com/containerd/containerd"
 	"os"
 	"runtime"
@@ -29,6 +31,11 @@ type ContainerD struct {
 	Password  string `json:"password"`  // 容器服务密码
 }
 
+// NewBuilder 为建立一个新的 Builder 接口 NewBuilder is a function to create a new Builder interface.
+func NewBuilder(cfg ContainerD) (builder.Builder, error) {
+	return NewContainerdClient(cfg)
+}
+
 func (c *ContainerD) NewClient() *containerd.Client {
 	return nil
 }
@@ -42,7 +49,7 @@ type ContainerManager struct {
 type ContainerList struct {
 	networkLock sync.Locker
 	cfg         ContainerD
-	builder     Builder
+	builder     builder.Builder
 	user        string
 	status      int
 }
@@ -70,11 +77,11 @@ func NewContainderManager(path string) (*ContainerManager, error) {
 			return nil, err
 		}
 		containerList[container] = &ContainerList{
-			user:        "",                   // 获取函数名称 register's function
-			status:      containerdStatusInit, // 容器服务状态为占用 containerd is occupied
-			cfg:         config,               // 容器服务配置 containerd config
-			builder:     builder,              // 容器服务构建器 containerd builder
-			networkLock: &sync.Mutex{},        // 容器服务网络锁 containerd network lock
+			user:        "",                       // 获取函数名称 register's function
+			status:      run.ContainerdStatusInit, // 容器服务状态为占用 containerd is occupied
+			cfg:         config,                   // 容器服务配置 containerd config
+			builder:     builder,                  // 容器服务构建器 containerd builder
+			networkLock: &sync.Mutex{},            // 容器服务网络锁 containerd network lock
 		}
 	}
 
@@ -106,7 +113,7 @@ func AppendCurrentFunction(layerNumber int, appendStr string) string {
 }
 
 // GetBuilder 获取容器服务构建器 GetBuilder is used to get containerd builder
-func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFunc) (Builder, error) {
+func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
 	if regFunc == nil {
 		regFunc = defaultFunction
 	}
@@ -123,7 +130,7 @@ func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFun
 	fmt.Println("user get >>> ", cm.containerList[containerName].user)
 	// log.SetGlobalLogger()
 	log.Notice("user get >>> ", cm.containerList[containerName].user)
-	cm.containerList[containerName].status = containerdStatusOccupied // 容器服务状态为占用 containerd is occupied
+	cm.containerList[containerName].status = run.ContainerdStatusOccupied // 容器服务状态为占用 containerd is occupied
 
 	// 正常返回容器服务构建器
 	// return containerd builder
@@ -145,9 +152,9 @@ func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc register
 
 	// 如果可以进行占用，则续续以下操作
 	// if we can occupy, then continue to do the following operation.
-	cm.containerList[containerName].networkLock.Unlock()              // 解锁 unlock
-	cm.containerList[containerName].user = ""                         // 获取函数名称 register's function
-	cm.containerList[containerName].status = containerdStatusReturned // 容器服务状态为被适放 containerd is released
+	cm.containerList[containerName].networkLock.Unlock()                  // 解锁 unlock
+	cm.containerList[containerName].user = ""                             // 获取函数名称 register's function
+	cm.containerList[containerName].status = run.ContainerdStatusReturned // 容器服务状态为被适放 containerd is released
 
 	// 正常适放容器服务构建器 release containerd builder
 	return nil

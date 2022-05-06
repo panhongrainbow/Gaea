@@ -1,17 +1,18 @@
-package containerdTest
+package mariadb
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/defaults"
 	"net"
 	"strings"
 	"time"
 )
 
 // MariaDB 为数据定义 MariaDB defined data.
-type mariaDB struct {
-	defaults
+type MariaDB struct {
+	defaults.Defaults
 }
 
 // 约定的接口 defined interface.
@@ -19,12 +20,12 @@ type mariaDB struct {
 // >>>>> >>>>> >>>>> 创建部分
 
 // Pull 为容器拉取镜像 Pull is to pull image from registry.
-/*func (m *mariaDB) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
+/*func (m *MariaDB) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
 	return nil, nil
 }*/
 
 // Create 为容器创建 Create is to create container.
-/*func (m *mariaDB) Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error) {
+/*func (m *MariaDB) Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error) {
 	// gaea-default connection to the default network environment. 连接到网路环境
 	mariadbNS := specs.LinuxNamespace{Type: specs.NetworkNamespace, Path: networkNS}
 
@@ -44,19 +45,19 @@ type mariaDB struct {
 }*/
 
 // Task 为容器任务创建 Task is to create task.
-/*func (m *mariaDB) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
+/*func (m *MariaDB) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
 	return nil, nil
 }*/
 
 // Start 为容器任务启动 Start is to start task.
-/*func (m *mariaDB) Start(task containerd.Task, ctx context.Context) error {
+/*func (m *MariaDB) Start(task containerd.Task, ctx context.Context) error {
 	return nil
 }*/
 
 // >>>>> >>>>> >>>>> 检查部分
 
 // CheckService 为检查容器服务是否上线 CheckService is to check container service.
-func (m *mariaDB) CheckService(ctx context.Context, ipAddrPort string) error {
+func (m *MariaDB) CheckService(ctx context.Context, ipAddrPort string) error {
 	// 检查容器连线设定值 check the container network settings.
 	typ := "tcp"
 	if strings.Contains(ipAddrPort, "/") {
@@ -89,7 +90,7 @@ func (m *mariaDB) CheckService(ctx context.Context, ipAddrPort string) error {
 }
 
 // CheckSchema 为检查容器资料是否存在 CheckService is to check container data exists.
-func (m *mariaDB) CheckSchema(ctx context.Context, ipAddrPort string) error {
+func (m *MariaDB) CheckSchema(ctx context.Context, ipAddrPort string) error {
 	db, err := sql.Open("mysql", "xiaomi:12345@tcp(10.10.10.10:3306)/mysql")
 	if err != nil {
 		fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ok2")
@@ -108,12 +109,12 @@ func (m *mariaDB) CheckSchema(ctx context.Context, ipAddrPort string) error {
 // >>>>> >>>>> >>>>> 删除部分
 
 // Interrupt 为立刻停止容器任务 Interrupt is to stop task immediately.
-/*func (m *mariaDB) Interrupt(task containerd.Task, ctx context.Context) error {
+/*func (m *MariaDB) Interrupt(task containerd.Task, ctx context.Context) error {
 	// kill the process work. 删除容器工作
 	return task.Kill(ctx, syscall.SIGKILL)
 }*/
 
 // Delete 为容器任务停止 Delete is to delete task.
-/*func (m *mariaDB) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
+/*func (m *MariaDB) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
 	return container.Delete(ctx, containerd.WithSnapshotCleanup)
 }*/
