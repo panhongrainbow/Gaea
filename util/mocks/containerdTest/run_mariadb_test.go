@@ -24,7 +24,7 @@ func TestMariaDBContainerd(t *testing.T) {
 		ctx := namespaces.WithNamespace(context.Background(), "mariadb")
 
 		// 建立测试对象 create a test object
-		m := MariaDB{}
+		m := mariaDB{}
 
 		// 拉取预设的测试印象档 pull the default test image from DockerHub
 		img, err := m.Pull(client, ctx, "docker.io/panhongrainbow/mariadb:testing")

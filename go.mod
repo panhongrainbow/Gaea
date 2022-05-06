@@ -11,6 +11,7 @@ require (
 	github.com/gin-contrib/gzip v0.0.1
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-ini/ini v1.42.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.4.1
 	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417
 	github.com/pingcap/check v0.0.0-20190102082844-67f458068fc8

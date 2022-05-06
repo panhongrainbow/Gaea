@@ -2,13 +2,11 @@ package containerdTest
 
 import (
 	"context"
-	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/oci"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/opencontainers/runtime-spec/specs-go"
-	"net"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -19,6 +17,8 @@ type defaults struct {
 }
 
 // defined interface 约定的接口
+
+// >>>>> >>>>> >>>>> 创建部分
 
 // Pull is to pull image from registry. 为容器拉取镜像
 func (d *defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error) {
@@ -83,81 +83,74 @@ func (d *defaults) Create(client *containerd.Client, ctx context.Context, contai
 	)
 }
 
-// Task is to create task. 为容器任务创建
+// Task 为容器任务创建 Task is to create task.
 func (d *defaults) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
-
-	// create a task from the container. 建立新的容器工作
+	// 建立新的容器工作 create a task from the container.
 	return container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 }
 
-// Start is to start task. 为容器任务启动
+// Start 为容器任务启动 Start is to start task.
 func (d *defaults) Start(task containerd.Task, ctx context.Context) error {
-
-	// call start on the task to execute the server. 开始执行容器工作
+	// 开始执行容器工作 call start on the task to execute the server.
 	if err := task.Start(ctx); err != nil {
 		return err
 	}
 
-	// check the status of the task. 检查容器任务状态
+	// 检查容器任务状态 check the status of the task.
 LOOP:
 	for {
 		select {
 		case <-ctx.Done():
-			// stop the task because the context is canceled. 逾时停止容器工作
+			// 逾时停止容器工作 stop the task because the context is canceled.
 			return ctx.Err()
 		default:
-			// start listening for the container work 開始監聽容器工作
+			// 開始監聽容器工作 start listening for the container work.
 			status, err := task.Status(ctx)
 			if err != nil {
-				// container monitor failed. 容器工作监听失败
+				// 容器工作监听失败 container monitor failed.
 				return err
 			}
 			if status.Status == containerd.Running {
-				// container work is running. 容器工作正在运行
+				// 容器工作正在运行 container work is running.
 				break LOOP
 			}
-			// wait for a while. 等待一段时间
+
+			// 等待一秒 wait for one second.
 			time.Sleep(1 * time.Second)
 		}
 	}
 
-	// container work executed successfully. 容器工作执行成功
+	// 容器工作执行成功 container work executed successfully.
 	return nil
 }
+
+// >>>>> >>>>> >>>>> 检查部分
 
 // CheckService 为检查容器服务是否上线 CheckService is to check container service.
-func (d *defaults) CheckService(task containerd.Task, ctx context.Context) error {
-	for i := 0; i < 20; i++ {
-		typ := "tcp"
-		if strings.Contains("10.10.10.10:3306", "/") {
-			typ = "unix"
-		}
+func (d *defaults) CheckService(ctx context.Context, ipAddrPort string) error {
+	// 預設容器沒有服務，所以不需要檢查.
+	// Default container has no service, so no need to check.
 
-		netConn, err := net.Dial(typ, "10.10.10.10:3306")
-		if err == nil {
+	// wait for one second. 等待一秒
+	time.Sleep(1 * time.Second)
 
-			// 先随意测试
-			test := make([]byte, 20)
-			netConn.Read(test)
-			fmt.Println(test)
-
-			_ = netConn.Close()
-			return nil
-		}
-		fmt.Println("1", err)
-
-		// _ = netConn.Close()
-
-		time.Sleep(time.Second)
-	}
-
+	// 正常返回. return successfully.
 	return nil
 }
 
-// CheckData 为检查容器资料是否存在 CheckService is to check container data exists.
-func (d *defaults) CheckData(task containerd.Task, ctx context.Context) error {
+// CheckSchema 为检查容器资料是否存在 CheckService is to check container data exists.
+func (d *defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
+	// 預設容器沒有服務，所以不需要檢查.
+	// Default container has no service, so no need to check.
+
+	// wait for one second. 等待一秒
+	time.Sleep(1 * time.Second)
+
+	// 正常返回. return successfully.
 	return nil
 }
+
+// >>>>> >>>>> >>>>> 删除部分
 
 // Interrupt is to stop task immediately. 为立刻停止容器任务
 func (d *defaults) Interrupt(task containerd.Task, ctx context.Context) error {

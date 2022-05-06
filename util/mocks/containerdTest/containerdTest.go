@@ -2,11 +2,8 @@ package containerdTest
 
 import (
 	"context"
-	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
-	"net"
-	"strings"
 	"time"
 )
 
@@ -119,7 +116,7 @@ func (cc *ContainerdClient) Distinguish() error {
 		cc.Run = new(etcd) // use etcd. 容器服务为 etcd
 		return nil         // return nil. 返回 nil
 	case "mariadb": // use mariaDB. 容器服务为 mariaDB
-		cc.Run = new(MariaDB) // return mariaDB. 返回 mariaDB
+		cc.Run = new(mariaDB) // return mariaDB. 返回 mariaDB
 		return nil            // return nil. 返回 nil
 	default:
 		cc.Run = new(defaults) // use defaults. 容器服务为 defaults
@@ -205,28 +202,30 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 
 // OnService 确认容器是否处放服务状态 OnService is making sure the container is on service.
 func (cc *ContainerdClient) OnService(t time.Duration) error {
-	for i := 0; i < 20; i++ {
-		typ := "tcp"
-		if strings.Contains("10.10.10.10:3306", "/") {
-			typ = "unix"
-		}
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
 
-		netConn, err := net.Dial(typ, "10.10.10.10:3306")
-		if err == nil {
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
 
-			// 先随意测试
-			test := make([]byte, 20)
-			netConn.Read(test)
-			fmt.Println(test)
+	// 设置容器管理器为检查连线状态 container manager's status is checking on service.
+	if err := SetContainerManagerStatus(cc.Container.Name, containerdStatusCheckingOnService); err != nil {
+		return err
+	}
 
-			_ = netConn.Close()
-			return nil
-		}
-		fmt.Println("1", err)
+	// 拉取预设的测试印象档 pull the default test image from DockerHub
+	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
+	err := cc.Run.CheckService(cc.Running.ctx, cc.IP)
+	if err != nil {
+		return err
+	}
 
-		// _ = netConn.Close()
-
-		time.Sleep(time.Second)
+	err = cc.Run.CheckSchema(cc.Running.ctx, cc.IP)
+	if err != nil {
+		return err
 	}
 
 	return nil

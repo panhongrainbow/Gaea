@@ -2,7 +2,6 @@ package containerdTest
 
 import (
 	"github.com/stretchr/testify/require"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -18,7 +17,7 @@ func TestManager(t *testing.T) {
 
 	// 取得容器服务管理員的容器服务创建管理器
 	// get the container manager builder
-	builder, err := mgr.GetBuilder("mariadb-server", CurrentFunction)
+	builder, err := mgr.GetBuilder("mariadb-server", nil)
 	require.Nil(t, err)
 
 	// 获得创建容器服务
@@ -32,26 +31,16 @@ func TestManager(t *testing.T) {
 	require.Nil(t, err)
 }
 
-// CurrentFunction 返回当前函数名
-// CurrentFunction returns the current function name
-func CurrentFunction() string {
-	counter, _, _, success := runtime.Caller(2)
-	if !success {
-		return "unknown"
-	}
-	return runtime.FuncForPC(counter).Name()
-}
-
 // BenchmarkContainerdManager_Lock 为容器服务管理員加锁的性能测试
 // BenchmarkContainerdManager_Lock is a benchmark for ContainerManager lock
 func BenchmarkContainerdManager_Lock(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := Manager.GetBuilder("mariadb-server", CurrentFunction)
+		_, err := Manager.GetBuilder("mariadb-server", nil)
 		if err != nil {
 			panic(err)
 		}
 		if err == nil {
-			err = Manager.ReturnBuilder("mariadb-server")
+			err = Manager.ReturnBuilder("mariadb-server", nil)
 			if err != nil {
 				panic(err)
 			}

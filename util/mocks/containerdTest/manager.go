@@ -2,9 +2,11 @@ package containerdTest
 
 import (
 	"errors"
+	"fmt"
 	"github.com/XiaoMi/Gaea/log"
 	"github.com/containerd/containerd"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -79,12 +81,36 @@ func NewContainderManager(path string) (*ContainerManager, error) {
 	return &ContainerManager{configPath: path, containerList: containerList}, nil
 }
 
-// RegisterFunc 注册函式名称 register's function
+// registerFunc 注册函式名称 register's function
 // Register containerd service
-type RegisterFunc func() string
+type registerFunc func() string
+
+func defaultFunction() string {
+	counter, _, _, success := runtime.Caller(2)
+	if !success {
+		return "unknown"
+	}
+	return runtime.FuncForPC(counter).Name()
+}
+
+// AppendCurrentFunction 返回当前函数名
+// AppendCurrentFunction returns the current function name
+// appendStr 是用来判别各个协程
+// appendStr is to identify each goroutine's function name
+func AppendCurrentFunction(layerNumber int, appendStr string) string {
+	counter, _, _, success := runtime.Caller(layerNumber)
+	if !success {
+		return "unknown"
+	}
+	return runtime.FuncForPC(counter).Name() + appendStr
+}
 
 // GetBuilder 获取容器服务构建器 GetBuilder is used to get containerd builder
-func (cm *ContainerManager) GetBuilder(containerName string, regfunc RegisterFunc) (Builder, error) {
+func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFunc) (Builder, error) {
+	if regFunc == nil {
+		regFunc = defaultFunction
+	}
+
 	// 如果没有配置，则返回错误
 	if _, ok := cm.containerList[containerName]; !ok {
 		return nil, errors.New("invalid config container name")
@@ -92,16 +118,26 @@ func (cm *ContainerManager) GetBuilder(containerName string, regfunc RegisterFun
 
 	// 如果可以进行占用，则续续以下操作
 	// if we can occupy, then continue to do the following operation.
-	cm.containerList[containerName].networkLock.Lock()                // 加锁 lock
-	cm.containerList[containerName].user = regfunc()                  // 获取函数名称 register's function
+	cm.containerList[containerName].networkLock.Lock() // 加锁 lock
+	cm.containerList[containerName].user = regFunc()   // 获取函数名称 register's function
+	fmt.Println("user get >>> ", cm.containerList[containerName].user)
+	// log.SetGlobalLogger()
+	log.Notice("user get >>> ", cm.containerList[containerName].user)
 	cm.containerList[containerName].status = containerdStatusOccupied // 容器服务状态为占用 containerd is occupied
 
-	// 正常返回容器服务构建器 return containerd builder
+	// 正常返回容器服务构建器
+	// return containerd builder
 	return cm.containerList[containerName].builder, nil
 }
 
 // ReturnBuilder 适放容器服务构建器 ReturnBuilder is used to release containerd builder.
-func (cm *ContainerManager) ReturnBuilder(containerName string) error {
+func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc registerFunc) error {
+	if regFunc == nil {
+		regFunc = defaultFunction
+	}
+	fmt.Println("user return >>> ", regFunc())
+	log.Notice("user return >>> ", cm.containerList[containerName].user)
+
 	// 如果没有配置，则返回错误
 	if _, ok := cm.containerList[containerName]; !ok {
 		return errors.New("invalid config container name")

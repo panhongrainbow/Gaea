@@ -19,6 +19,7 @@ const (
 	containerdStatusBuildCreateTask             // 创建任务 create task
 	containerdStatusBuildStartTask              // 启动任务 start task
 	containerdStatusBuildRunning                // 容器运行中 running
+	containerdStatusCheckingOnService           // 检查服务状态中 checking service status
 	containerdStatusTearDown                    // 容器在拆除的状态 tear down status
 	containerdStatusTearDownInterrupted         // 被中断的状态 interrupted status
 	containerdStatusTearDownKilled              // 容器被杀死 killed
@@ -33,9 +34,11 @@ type Run interface {
 	Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
 	Task(container containerd.Container, ctx context.Context) (containerd.Task, error)
 	Start(task containerd.Task, ctx context.Context) error
-	// CheckService to CheckData 检查部份 check part
-	CheckService(task containerd.Task, ctx context.Context) error
-	CheckData(task containerd.Task, ctx context.Context) error
+
+	// CheckService to CheckSchema 检查部份 check part
+	CheckService(ctx context.Context, ipAddrPort string) error
+	CheckSchema(ctx context.Context, ipAddrPort string) error
+
 	// Interrupt to Delete 销毁部份 destroy part
 	Interrupt(task containerd.Task, ctx context.Context) error
 	Delete(task containerd.Task, container containerd.Container, ctx context.Context) error
