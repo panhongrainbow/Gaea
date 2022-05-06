@@ -19,8 +19,11 @@ const (
 	ContainerdStatusBuildCreateTask             // 创建任务 create task
 	ContainerdStatusBuildStartTask              // 启动任务 start task
 	ContainerdStatusBuildRunning                // 容器运行中 running
-	ContainerdStatusCheckingOnService           // 检查服务状态中 checking service status
-	ContainerdStatusTearDown                    // 容器在拆除的状态 tear down status
+	ContainerdStatusChecking                    // 检查服务状态中 checking containerd status
+	ContainerdStatusCheckOnService              // 检查服务状态中 check containerd status is on service
+	ContainerdStatusCheckSchema                 // 检查数据库服务 check containerd schema.
+	ContainerdStatusReady                       // 数据库服务可以开始服务 containerd container is ready.
+	ContainerdStatusTearingDown                 // 容器在拆除的状态 tear down status
 	ContainerdStatusTearDownInterrupted         // 被中断的状态 interrupted status
 	ContainerdStatusTearDownKilled              // 容器被杀死 killed
 	ContainerdStatusError                       // 容器服务错误 containerd error

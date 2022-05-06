@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/defaults"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/defaults"
 	"net"
 	"strings"
 	"time"

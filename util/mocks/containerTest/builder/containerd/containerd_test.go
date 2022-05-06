@@ -1,8 +1,7 @@
-package mgr
+package containerd
 
 import (
 	"github.com/stretchr/testify/require"
-	"os"
 	"testing"
 )
 
@@ -12,13 +11,13 @@ var (
 
 func TestMain(m *testing.M) {
 	// 想辨法精简这里
-	setup()
+	// mgr.Setup()
 	/*Version = "10"
 	fmt.Println(Version)*/
 
 	// 退出
-	exitCode := m.Run()
-	os.Exit(exitCode)
+	// exitCode := m.Run()
+	// os.Exit(exitCode)
 }
 
 func TestSoarTest(t *testing.T) {

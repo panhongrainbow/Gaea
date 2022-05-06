@@ -1,8 +1,9 @@
-package mgr
+package containerTest
 
 import (
 	"encoding/json"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -39,28 +40,28 @@ func (r *Load) listContainerD() ([]string, error) {
 }
 
 // loadContainerD 载入指定的設定檔轉成 ContainerD 設定值
-func (r *Load) loadContainerD(file string) (ContainerD, error) {
+func (r *Load) loadContainerD(file string) (containerd.ContainerD, error) {
 	path := r.ContainerdPath()
 	config := filepath.Join(path, file)
 	b, err := ioutil.ReadFile(config)
 	if err != nil {
-		return ContainerD{}, err
+		return containerd.ContainerD{}, err
 	}
-	c := ContainerD{}
+	c := containerd.ContainerD{}
 	err = json.Unmarshal(b, &c)
 	if err != nil {
-		return ContainerD{}, err
+		return containerd.ContainerD{}, err
 	}
 	return c, nil
 }
 
 // loadAllContainerD 把所有的設定檔轉成 ContainerD 設定值
-func (r *Load) loadAllContainerD() (map[string]ContainerD, error) {
+func (r *Load) loadAllContainerD() (map[string]containerd.ContainerD, error) {
 	files, err := r.listContainerD()
 	if err != nil {
 		return nil, err
 	}
-	configs := make(map[string]ContainerD, len(files))
+	configs := make(map[string]containerd.ContainerD, len(files))
 	for _, f := range files {
 		config, err := r.loadContainerD(f)
 		if err != nil {

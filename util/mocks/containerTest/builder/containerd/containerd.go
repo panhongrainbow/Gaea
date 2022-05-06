@@ -1,11 +1,12 @@
-package mgr
+package containerd
 
 import (
 	"context"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/defaults"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/etcd"
-	"github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/mariadb"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/defaults"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/etcd"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/mariadb"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/namespaces"
 	"time"
@@ -51,6 +52,194 @@ type ClientRunning struct {
 	c      containerd.Container // 容器服务的容器 container.
 	tsk    containerd.Task      // 容器服务的任务 task.
 	cancel context.CancelFunc   // 容器服务的取消函数 cancel function.
+}
+
+// Distinguish 对容器服务进行区分，判断容器服务的类型，给容器服务所需要的功能 Distinguish is a function to distinguish the containerd client.
+func (cc *ContainerdClient) Distinguish() error {
+	// distinguish the containerd client. 对容器服务进行区分
+	switch cc.Type {
+	case "etcd":
+		cc.Run = new(etcd.Etcd) // use etcd. 容器服务为 etcd
+		return nil              // return nil. 返回 nil
+	case "mariadb": // use mariaDB. 容器服务为 mariaDB
+		cc.Run = new(mariadb.MariaDB) // return mariaDB. 返回 mariaDB
+		return nil                    // return nil. 返回 nil
+	default:
+		cc.Run = new(defaults.Defaults) // use defaults. 容器服务为 defaults
+		return nil                      // return nil. 返回 nil
+	}
+}
+
+// Build 建立容器测试环境 Build create a new container environment for test.
+func (cc *ContainerdClient) Build(t time.Duration) error {
+	// 错误信息 error message.
+	var err error
+
+	// 设置容器管理器为创建状态 container manager's status is building.
+	cc.Status = run.ContainerdStatusBuilding
+
+	// create Running object. 创建 Running 对象
+	cc.Running = new(ClientRunning)
+
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
+
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
+
+	// 设置容器管理器为下载镜像状态 container manager's status is pulling image.
+	cc.Status = run.ContainerdStatusBuildPullingImage
+
+	// 拉取预设的测试印象档 pull the default test image from DockerHub
+	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
+	cc.Running.img, err = cc.Run.Pull(cc.Conn, cc.Running.ctx, cc.Container.Image)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为创建容器状态 container manager's status is creating container.
+	cc.Status = run.ContainerdStatusBuildCreateContainer
+
+	// 建立一个新的容器 create a new container
+	cc.Running.c, err = cc.Run.Create(cc.Conn, cc.Running.ctx, cc.Container.Name, cc.Container.NetworkNS, cc.Running.img, cc.Container.SnapShot)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为创建容器任务状态 container manager's status is creating container task.
+	cc.Status = run.ContainerdStatusBuildCreateTask
+
+	// 建立新的容器工作 create a task from the container
+	cc.Running.tsk, err = cc.Run.Task(cc.Running.c, cc.Running.ctx)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为启动容器任务状态 container manager's status is starting container task.
+	cc.Status = run.ContainerdStatusBuildStartTask
+
+	// 開始执行容器工作 start the task.
+	err = cc.Run.Start(cc.Running.tsk, cc.Running.ctx)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为容器任务执行状态 container manager's status is running container task.
+	cc.Status = run.ContainerdStatusBuildRunning
+
+	// 建立容器環境成功 Build the container environment successfully.
+	return nil
+}
+
+// OnService 确认容器是否处放服务状态 OnService is making sure the container is on service.
+func (cc *ContainerdClient) OnService(t time.Duration) error {
+	// 设置容器管理器为检查连线状态 container manager's status is checking on service.
+	cc.Status = run.ContainerdStatusChecking
+
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
+
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
+
+	// 设置容器管理器为检查连线服务 container manager's status is checking on service.
+	cc.Status = run.ContainerdStatusCheckOnService
+
+	// 检查服务是否正常 check if the container is on service.
+	err := cc.Run.CheckService(cc.Running.ctx, cc.IP)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为检查数据库资料完整中 container manager's status is checking database data.
+	cc.Status = run.ContainerdStatusCheckSchema
+
+	// 检查数据库资料是否完整 check if the database is complete.
+	err = cc.Run.CheckSchema(cc.Running.ctx, cc.IP)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为服务正常中 container manager's status is service ready.
+	cc.Status = run.ContainerdStatusReady
+
+	// 容器检查完成 Container check completed.
+	return nil
+}
+
+// TearDown 拆除容器测试环境 TearDown is a function to tear down the container environment.
+func (cc *ContainerdClient) TearDown(t time.Duration) error {
+	// 设置容器管理器为拆除容器状态 container manager's status is tearing down container.
+	cc.Status = run.ContainerdStatusTearingDown
+
+	// 决定之后的决行时间 decide the time duration.
+	ctx := context.Background() // 创建一个上下文对象 create a context object.
+	if t > 0 {
+		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
+	}
+
+	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
+	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
+
+	// 设置容器管理器为中断容器状态 container manager's status is interrupting container.
+	cc.Status = run.ContainerdStatusTearDownInterrupted
+
+	// 強制中斷容器工作 interrupt the task.
+	err := cc.Run.Interrupt(cc.Running.tsk, cc.Running.ctx)
+	if err != nil {
+		return err
+	}
+
+	// 设置容器管理器为删除容器 container manager's status is containerd killed.
+	cc.Status = run.ContainerdStatusTearDownKilled
+
+	// 删除容器和获得离开讯息 kill the process and get the exit status
+	err = cc.Run.Delete(cc.Running.tsk, cc.Running.c, cc.Running.ctx)
+	if err != nil {
+		return err
+	}
+
+	// 取消上下文 cancel the context.
+	defer cc.Running.cancel()
+
+	// 清空 Running 对象 clear the Running object.
+	cc.Running = nil
+
+	// 删除容器環境成功 delete the container environment successfully.
+	return nil
+}
+
+// 先進行 Parse 操作
+
+// ContainerD 为 Containerd 容器服务所要 Parse 对应的内容
+type ContainerD struct {
+	Sock      string `json:"sock"`      // 容器服务在 Linux 的连接位置
+	Type      string `json:"type"`      // 容器服务类型
+	Name      string `json:"name"`      // 容器服务名称
+	NameSpace string `json:"namespace"` // 容器服务命名空间
+	Image     string `json:"image"`     // 容器服务镜像
+	Task      string `json:"task"`      // 容器服务任务名称
+	NetworkNs string `json:"networkNs"` // 容器服务网络
+	IP        string `json:"ip"`        // 容器服务 IP
+	SnapShot  string `json:"snapshot"`  // 容器服务快照
+	Schema    string `json:"schema"`    // 容器服务 Schema，用於數據庫設定
+	User      string `json:"user"`      // 容器服务用户名
+	Password  string `json:"password"`  // 容器服务密码
+}
+
+// NewBuilder 为建立一个新的 Builder 接口 NewBuilder is a function to create a new Builder interface.
+func NewBuilder(cfg ContainerD) (builder.Builder, error) {
+	return NewContainerdClient(cfg)
+}
+
+func (c *ContainerD) NewClient() *containerd.Client {
+	return nil
 }
 
 // NewContainerdClient 为新建容器服务的客户端 NewContainerdClient is a function to create a new containerd client.
@@ -110,157 +299,4 @@ func NewContainerdClient(cfg ContainerD) (*ContainerdClient, error) {
 
 	// 返回新的容器服务的客户端 return the new containerd client.
 	return client, nil
-}
-
-// Distinguish 对容器服务进行区分，判断容器服务的类型，给容器服务所需要的功能 Distinguish is a function to distinguish the containerd client.
-func (cc *ContainerdClient) Distinguish() error {
-	// distinguish the containerd client. 对容器服务进行区分
-	switch cc.Type {
-	case "etcd":
-		cc.Run = new(etcd.Etcd) // use etcd. 容器服务为 etcd
-		return nil              // return nil. 返回 nil
-	case "mariadb": // use mariaDB. 容器服务为 mariaDB
-		cc.Run = new(mariadb.MariaDB) // return mariaDB. 返回 mariaDB
-		return nil                    // return nil. 返回 nil
-	default:
-		cc.Run = new(defaults.Defaults) // use defaults. 容器服务为 defaults
-		return nil                      // return nil. 返回 nil
-	}
-}
-
-// Build 建立容器测试环境 Build create a new container environment for test.
-func (cc *ContainerdClient) Build(t time.Duration) error {
-	// 错误信息 error message.
-	var err error
-
-	// 设置容器管理器为创建状态 container manager's status is building.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuilding); err != nil {
-		return err
-	}
-
-	// create Running object. 创建 Running 对象
-	cc.Running = new(ClientRunning)
-
-	// 决定之后的决行时间 decide the time duration.
-	ctx := context.Background() // 创建一个上下文对象 create a context object.
-	if t > 0 {
-		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
-	}
-
-	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
-	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
-
-	// 设置容器管理器为下载镜像状态 container manager's status is pulling image.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildPullingImage); err != nil {
-		return err
-	}
-
-	// 拉取预设的测试印象档 pull the default test image from DockerHub
-	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
-	cc.Running.img, err = cc.Run.Pull(cc.Conn, cc.Running.ctx, cc.Container.Image)
-	if err != nil {
-		return err
-	}
-
-	// 设置容器管理器为创建容器状态 container manager's status is creating container.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildCreateContainer); err != nil {
-		return err
-	}
-
-	// 建立一个新的容器 create a new container
-	cc.Running.c, err = cc.Run.Create(cc.Conn, cc.Running.ctx, cc.Container.Name, cc.Container.NetworkNS, cc.Running.img, cc.Container.SnapShot)
-	if err != nil {
-		return err
-	}
-
-	// 设置容器管理器为创建容器任务状态 container manager's status is creating container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildCreateTask); err != nil {
-		return err
-	}
-
-	// 建立新的容器工作 create a task from the container
-	cc.Running.tsk, err = cc.Run.Task(cc.Running.c, cc.Running.ctx)
-	if err != nil {
-		return err
-	}
-
-	// 设置容器管理器为启动容器任务状态 container manager's status is starting container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildStartTask); err != nil {
-		return err
-	}
-
-	// 開始执行容器工作 start the task.
-	err = cc.Run.Start(cc.Running.tsk, cc.Running.ctx)
-	if err != nil {
-		return err
-	}
-
-	// 设置容器管理器为容器任务执行状态 container manager's status is running container task.
-	if err = SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusBuildRunning); err != nil {
-		return err
-	}
-
-	// 建立容器環境成功 Build the container environment successfully.
-	return nil
-}
-
-// OnService 确认容器是否处放服务状态 OnService is making sure the container is on service.
-func (cc *ContainerdClient) OnService(t time.Duration) error {
-	// 决定之后的决行时间 decide the time duration.
-	ctx := context.Background() // 创建一个上下文对象 create a context object.
-	if t > 0 {
-		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
-	}
-
-	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
-	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
-
-	// 设置容器管理器为检查连线状态 container manager's status is checking on service.
-	if err := SetContainerManagerStatus(cc.Container.Name, run.ContainerdStatusCheckingOnService); err != nil {
-		return err
-	}
-
-	// 拉取预设的测试印象档 pull the default test image from DockerHub
-	// example: "docker.io/panhongrainbow/mariadb:testing" OR "localhost/mariadb:latest"
-	err := cc.Run.CheckService(cc.Running.ctx, cc.IP)
-	if err != nil {
-		return err
-	}
-
-	err = cc.Run.CheckSchema(cc.Running.ctx, cc.IP)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// TearDown 拆除容器测试环境 TearDown is a function to tear down the container environment.
-func (cc *ContainerdClient) TearDown(t time.Duration) error {
-	// 决定之后的决行时间 decide the time duration.
-	ctx := context.Background() // 创建一个上下文对象 create a context object.
-	if t > 0 {
-		ctx, cc.Running.cancel = context.WithTimeout(ctx, t)
-	}
-
-	// 测立一个新的命名空间 create a new context with a "mariadb" namespace
-	cc.Running.ctx = namespaces.WithNamespace(ctx, cc.Container.NameSpace)
-
-	// 強制中斷容器工作 interrupt the task.
-	err := cc.Run.Interrupt(cc.Running.tsk, cc.Running.ctx)
-	if err != nil {
-		return err
-	}
-
-	// 删除容器和获得离开讯息 kill the process and get the exit status
-	err = cc.Run.Delete(cc.Running.tsk, cc.Running.c, cc.Running.ctx)
-	if err != nil {
-		return err
-	}
-
-	defer cc.Running.cancel() // 取消上下文 cancel the context.
-	cc.Running = nil          // 清空 Running 对象 clear the Running object.
-
-	// 删除容器環境成功 delete the container environment successfully.
-	return nil
 }

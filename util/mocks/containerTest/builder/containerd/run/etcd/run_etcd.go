@@ -1,6 +1,6 @@
 package etcd
 
-import "github.com/XiaoMi/Gaea/util/mocks/containerdTest/mgr/builder/containerd/run/defaults"
+import "github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/defaults"
 
 // Etcd data 数据定义
 type Etcd struct {

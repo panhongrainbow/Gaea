@@ -1,4 +1,4 @@
-package mgr
+package containerTest
 
 import (
 	"github.com/stretchr/testify/require"
