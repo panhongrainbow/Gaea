@@ -15,6 +15,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"net"
 	"testing"
 )
@@ -86,4 +87,16 @@ func TestCreateIPInfoIPNetError2(t *testing.T) {
 	if _, err := ParseIPInfo(addr); err == nil {
 		t.FailNow()
 	}
+}
+
+// TestIncreaseIP 为测试下一个IP test next ip address
+func TestIncreaseIP(t *testing.T) {
+	// 初始化 IP initialize IP
+	ip := net.ParseIP("192.168.122.1")
+
+	// 增加至下一次 IP add to next ip
+	ip = IncrementIP(ip)
+
+	// 检查 IP 是否正确 check ip is correct
+	require.Equal(t, ip.String(), "192.168.122.2")
 }

@@ -211,6 +211,10 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
 EOF
 ```
 
+### 群组容器
+
+subnetcalc 10.255.255.248/29
+
 ### 执行网路设定
 
 请依照以下步骤进行网路设定
