@@ -91,7 +91,7 @@ func (m *MariaDB) CheckService(ctx context.Context, ipAddrPort string) error {
 
 // CheckSchema 为检查容器资料是否存在 CheckService is to check container data exists.
 func (m *MariaDB) CheckSchema(ctx context.Context, ipAddrPort string) error {
-	db, err := sql.Open("mysql", "xiaomi:12345@tcp(10.10.10.10:3306)/mysql")
+	db, err := sql.Open("mysql", "xiaomi:12345@tcp(10.0.0.10:3306)/mysql")
 	if err != nil {
 		fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ok2")
 		return err

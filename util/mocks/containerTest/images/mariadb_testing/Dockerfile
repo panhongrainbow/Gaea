@@ -4,6 +4,7 @@ FROM debian:latest
 RUN apt-get update && apt-get install -y mariadb-server && apt-get clean
 
 # 修改數据库连线設定
+# 修改數据库连线設定 (正规表示式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
 RUN sed -i "s/bind-address.*/bind-address=0.0.0.0/g" /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # 设定用户密码和修正

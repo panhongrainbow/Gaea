@@ -12,11 +12,10 @@ func init() {
 
 // Setup 连线测试的到取得资料库版本就为正确
 func setup() error {
-	/*var err error
+	var err error
 	// 连接到容器管理器 connect to the containerd manager.
 	Manager, err = NewContainderManager("./example/")
-	return err*/
-	return nil
+	return err
 }
 
 // check 检查配置文件和环境是否正确 check is a function to check the config file and test environment are ok

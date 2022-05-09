@@ -27,6 +27,7 @@ var Manager *ContainerManager
 
 // ContainerManager 容器服务管理員
 type ContainerManager struct {
+	Enable        bool
 	ConfigPath    string
 	ContainerList map[string]*ContainerList
 }

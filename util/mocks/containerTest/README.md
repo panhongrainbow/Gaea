@@ -4,10 +4,7 @@
 
 ### 会面临的问题如下
 
-- 有一个大问题，**数据库测试数据**要如何载入到容器内，目前偏向的作法如下
-  制作一个本地的印象档，里面会有一个脚本会在启动时，自动载入测试数据到容器内，
-  好处是可以减少依赖，不需要用 orm 去载入测试数据，能少用一个依赖就少用一个依赖，为了是要增加单元测试的稳定性
-- docker 未来的重用性将会下降，未来将会直接操作 **containerd** ，不经由 docker 去控制，这次测试准备把 containerd 整合到单元测试内，测试包命名为 **containerdTest**
+- docker 未来的重用性将会下降，未来将会直接操作 **containerd** ，不经由 docker 去控制，这次测试准备把 containerd 整合到单元测试内，测试包命名为 **containerTest**
 
 ## Containerd 容器的安装
 
@@ -103,30 +100,45 @@ $ mv ./cnitool /usr/local/bin
 
 ### 计算容器子网
 
-> 目的为保留两个容器可分配 IP，让 containerdTest 包可以快速在网路上找到容器并进行连线
+> - 目的为保留两个容器可分配 IP，让 containerdTest 包可以快速在网路上找到容器并进行连线
+> - 使用 class A 私有網路的網路位置 10.0.0.0 至 10.255.255.255
 
-规划子网为 10.10.10.8/30，只预留 2 个 bits (32 - 30) 可以变化，共有四种组合可变动的 IP，如下表
+快速计算子网
 
-| 可供使用的 IP    | 二进制                                    | 十进制      |
-| ---------------- | ----------------------------------------- | ----------- |
-| 预期会用于网域   | 00001010 . 00001010 . 00001010 . 00001000 | 10.10.10.8  |
-| 预期会用于桥接器 | 00001010 . 00001010 . 00001010 . 00001001 | 10.10.10.9  |
-| 预期会用于容器   | 00001010 . 00001010 . 00001010 . 00001010 | 10.10.10.10 |
-| 预期会用于广播   | 00001010 . 00001010 . 00001010 . 00001011 | 10.10.10.11 |
+| 子网区块 | 计算命令                | 子网细节                                                     |
+| -------- | ----------------------- | ------------------------------------------------------------ |
+| 第1区块  | subnetcalc 10.0.0.0/30  | 网域位置 10.0.0.0<br />路由位置 10.0.0.1<br />主机位置 10.0.0.2<br />广播位置 10.0.0.3 |
+| 第2区块  | subnetcalc 10.0.0.4/30  | 网域位置 10.0.0.4<br />路由位置 10.0.0.5<br />主机位置 10.0.0.6<br />广播位置 10.0.0.7 |
+| 第3区块  | subnetcalc 10.0.0.8/30  | 网域位置 10.0.0.8<br />路由位置 10.0.0.9<br />主机位置 10.0.0.10<br />广播位置 10.0.0.11 |
+| 第4区块  | subnetcalc 10.0.0.12/30 | 网域位置 10.0.0.12<br />路由位置 10.0.0.13<br />主机位置 10.0.0.14<br />广播位置 10.0.0.15 |
 
-也可以用命令进行验证，可以看出只有两个 bits 可以变动，能使用的 IP 为 10.10.10.9 和 10.10.10.10
+以下为使用命令去计算子网的过程
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220404211759502.png" alt="image-20220404211759502" style="zoom:75%;" /> 
+- 第一个区块可用的网路位置为 10.0.0.2
+  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509115346566.png" alt="image-20220509115346566" style="zoom:70%;" />
+- 第二个区块可用的网路位置为 10.0.0.6
+  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509132536251.png" alt="image-20220509132536251" style="zoom:70%;" />
+- 第三个区块可用的网路位置为 10.0.0.10
+  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
+- 第四个区块可用的网路位置为 10.0.0.14
+  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509133415573.png" alt="image-20220509133415573" style="zoom:70%;" />
 
-### 容器网路设定
+### 网路位置分配说明
 
-| 项目              | 容器IP      | 子网计算                                                     |
-| ----------------- | ----------- | ------------------------------------------------------------ |
-| 预设用            | 2.2.2.2     | $ sipcalc 2.2.2.0/30<br /><img src="./assets/image-20220409143439805.png" alt="image-20220409143439805" style="zoom:50%;" /><br /> |
-| etcd 用           | 6.6.6.6     | $ sipcalc 6.6.6.4/30<br /><img src="./assets/image-20220409143801312.png" alt="image-20220409143801312" style="zoom:50%;" /><br /> |
-| mariadb 用        | 10.10.10.10 | $ sipcalc 10.10.10.8/30<br /><img src="./assets/image-20220409144331574.png" alt="image-20220409144331574" style="zoom:50%;" /><br /> |
-| mariadb-sakila 用 | 14.14.14.14 | $ sipcalc 14.14.14.12/30<br /><img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220409144749186-16494875936295.png" alt="image-20220409144749186" style="zoom:50%;" /><br /> |
-| 保留用            | 18.18.18.18 | $ sipcalc 18.18.18.16/30<br /><img src="./assets/image-20220409145025336.png" alt="image-20220409145025336" style="zoom:50%;" /><br /> |
+> 以最后一个子网区块 **10.10.10.12/30** 为例
+
+- 规划子网为 **10.10.10.12/30**，只预留 2 个 bits ( 值为 32 - 30) 可以变化，共有四种组合可变动的 IP，分别为 **10.10.10.12 、 10.10.10.13、 10.10.10.14、 10.10.10.15**
+
+- 网路位置的使用如下表
+
+  |  网路位置   |     用途     |
+  | :---------: | :----------: |
+  | 10.10.10.12 |   网域位置   |
+  | 10.10.10.13 |   路由位置   |
+  | 10.10.10.14 | **主机位置** |
+  | 10.10.10.15 |   广播位置   |
+
+  由上表可知，新建的容器会被分配的 IP 为 **10.10.10.14**
 
 ### 建立网路设定档
 
@@ -134,7 +146,7 @@ $ mv ./cnitool /usr/local/bin
 # 以下使用 root 身份执行
 $ sudo su -
 
-# 写入网路设定档，并指定子网分割为 2.2.2.0/30
+# 写入网路设定档，并指定子网分割为 10.0.0.0/30
 # 在 gaea 环境下，用于容器的预设环境测试
 $ cat << EOF | tee /etc/cni/net.d/gaea-default.conf
 {
@@ -148,12 +160,12 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-default.conf
     "hairpinMode": true,
     "ipam": {
         "type": "host-local",
-        "subnet": "2.2.2.0/30"
+        "subnet": "10.0.0.0/30"
     }
 }
 EOF
 
-# 写入网路设定档，并指定子网分割为 6.6.6.4/30
+# 写入网路设定档，并指定子网分割为 10.0.0.4/30
 # 在 gaea 环境下，用 etcd 容器测试
 $ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
 {
@@ -167,12 +179,12 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-etcd.conf
     "hairpinMode": true,
     "ipam": {
         "type": "host-local",
-        "subnet": "6.6.6.4/30"
+        "subnet": "10.0.0.4/30"
     }
 }
 EOF
 
-# 写入网路设定档，并指定子网分割为 14.14.14.12/30
+# 写入网路设定档，并指定子网分割为 10.0.0.8/30
 # 在 gaea 环境下，用 mariaDB 容器测试
 $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
 {
@@ -186,26 +198,7 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
     "hairpinMode": true,
     "ipam": {
         "type": "host-local",
-        "subnet": "10.10.10.8/30"
-    }
-}
-EOF
-
-# 写入网路设定档，并指定子网分割为 18.18.18.16/30
-# 在 gaea 环境下，用 mariaDB 容器测试 sakila Schema
-$ cat << EOF | tee /etc/cni/net.d/gaea-mariadb-sakila.conf
-{
-    "cniVersion": "0.4.0",
-    "name": "gaea-mariadb-sakila",
-    "type": "bridge",
-    "bridge": "cni3",
-    "isDefaultGateway": true,
-    "forceAddress": false,
-    "ipMasq": true,
-    "hairpinMode": true,
-    "ipam": {
-        "type": "host-local",
-        "subnet": "14.14.14.12/30"
+        "subnet": "10.0.0.8/30"
     }
 }
 EOF
@@ -213,7 +206,13 @@ EOF
 
 ### 群组容器
 
-subnetcalc 10.255.255.248/29
+> 目前暂不开发这一部份，但先指定子网位位置为 **10.255.255.248/29**
+
+使用以下命令去计算子网
+
+````bash
+$ subnetcalc 10.255.255.248/29
+````
 
 ### 执行网路设定
 
@@ -224,47 +223,41 @@ subnetcalc 10.255.255.248/29
 $ ip netns add gaea-default
 $ ip netns add gaea-etcd
 $ ip netns add gaea-mariadb
-$ ip netns add gaea-mariadb-sakila
 
 $ ip netns list
+# 将会显示
 # gaea-default
 # gaea-etcd
 # gaea-mariadb
 # gaea-mariadb-sakila
 
 $ ls /var/run/netns/
-# gaea-default gaea-etcd gaea-mariadb gaea-mariadb-sakila
+# 将会显示 gaea-default gaea-etcd gaea-mariadb
 
-# 把 gaea-mariadb-sakila 加入 namespace
+# 加入 namespace
 $ export CNI_PATH=/opt/cni/bin
 $ cnitool add gaea-default /var/run/netns/gaea-default
 $ cnitool add gaea-etcd /var/run/netns/gaea-etcd
 $ cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
-$ cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
 
 # 进行连线测试
 $ ip a | grep cni0
 # 6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-#     inet 2.2.2.0/30 brd 2.2.2.3 scope global cni0
+#     inet 10.0.0.0/30 brd 10.10.10.3 scope global cni0
 # 7: veth8e852839@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master cni0 state UP group default
 
-$ ping -c 5 2.2.2.1
-# PING 2.2.2.1 (2.2.2.1) 56(84) bytes of data.
-# 64 bytes from 2.2.2.1: icmp_seq=1 ttl=64 time=0.107 ms
-# 64 bytes from 2.2.2.1: icmp_seq=2 ttl=64 time=0.099 ms
-# 64 bytes from 2.2.2.1: icmp_seq=3 ttl=64 time=0.099 ms
-# 64 bytes from 2.2.2.1: icmp_seq=4 ttl=64 time=0.100 ms
-# 64 bytes from 2.2.2.1: icmp_seq=5 ttl=64 time=0.099 ms
+$ ping -c 5 10.10.10.1
+# PING 10.10.10.1 (10.10.10.1) 56(84) bytes of data.
+# 64 bytes from 10.10.10.1: icmp_seq=1 ttl=64 time=0.107 ms
+# 64 bytes from 10.10.10.1: icmp_seq=2 ttl=64 time=0.099 ms
+# 64 bytes from 10.10.10.1: icmp_seq=3 ttl=64 time=0.099 ms
+# 64 bytes from 10.10.10.1: icmp_seq=4 ttl=64 time=0.100 ms
+# 64 bytes from 10.10.10.1: icmp_seq=5 ttl=64 time=0.099 ms
 ```
 
 ### 网路设定说明
 
-以预设网路为例
-
-- 在子网切割里 2.2.2.0/30，预留 4 个 IP 可以供容器自由使用，但前后网域和广播会各占一个，穚接器也会占用一个 2.2.2.1
-- 最后容器可以被分配的 IP 只剩一个，为 14.14.14.14
-
-Linux 的 namespace 并不是永远储存的，所以要在建立重新设定 namespace 的脚本
+Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespace 的脚本
 
 - export CNI_PATH=/opt/cni/bin 这一行写到 /etc/bash.bashrc
   
@@ -287,29 +280,27 @@ Linux 的 namespace 并不是永远储存的，所以要在建立重新设定 na
   cnitool del gaea-default /var/run/netns/gaea-default
   cnitool del gaea-etcd /var/run/netns/gaea-etcd
   cnitool del gaea-mariadb /var/run/netns/gaea-mariadb
-  cnitool del gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
   
   # 先删除 namespace
   ip netns del gaea-default
   ip netns del gaea-etcd
   ip netns del gaea-mariadb
-  ip netns del gaea-mariadb-sakila
   
   # 先新建 namespace
   ip netns add gaea-default
   ip netns add gaea-etcd
   ip netns add gaea-mariadb
-  ip netns add gaea-mariadb-sakila
   
   # 先新建 network
   export CNI_PATH=/opt/cni/bin
   cnitool add gaea-default /var/run/netns/gaea-default
   cnitool add gaea-etcd /var/run/netns/gaea-etcd
   cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
-  cnitool add gaea-mariadb-sakila /var/run/netns/gaea-mariadb-sakila
   ```
 
 ## 容器 ctr 命令操作
+
+> 当子网切割完成后，接下来就可以直接使用命令去操作 contained
 
 ### 下载容器镜像
 
@@ -324,6 +315,7 @@ $ ctr -n default image pull docker.io/library/debian:latest
 
 # 检查镜像档 default
 $ ctr -n default i ls
+# 会显示以下内容
 # REF TYPE DIGEST SIZE PLATFORMS LABELS 
 # docker.io/library/debian:latest application/vnd.docker.distribution.manifest.list.v2+json sha256:87eefc7c15610cca61db5c0fd280911c6a737c0680d807432c0bd80cd0cca39b 52.4 MiB linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/mips64le,linux/ppc64le,linux/s390x -
 ```
@@ -331,16 +323,20 @@ $ ctr -n default i ls
 ### 容器工作新建
 
 ```bash
+# >>>>> >>>>> >>>>> 创建容器
+
 # 启动容器 default
 $ ctr -n default run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:latest default
 
 # 检查容器 default
 $ ctr -n default container ls
+# 会显示以下内容
 # CONTAINER    IMAGE                              RUNTIME                  
 # default      docker.io/library/debian:latest    io.containerd.runc.v2 
 
 # 检查容器 default 的工作
 $ ctr -n default task ls
+# 会显示以下内容
 # TASK      PID      STATUS 
 # default    8371    RUNNING
 ```
@@ -350,15 +346,12 @@ $ ctr -n default task ls
 ```bash
 # 进入容器
 $ ctr -n default task exec -t --exec-id default default sh
-
-# 如果是数据库容器时，可以对数据库进行连线
-$ mysql -h 2.2.2.2 -P 3306 -u xiaomi -p
 ```
 
 ### 容器工作移除
 
 ```bash
-# 开始删除容器 >>>>> >>>>> >>>>> >>>>> >>>>>
+# >>>>> >>>>> >>>>> 删除容器
 
 # 中止容器运行
 $ ctr -n default task kill -s SIGKILL default
@@ -378,11 +371,11 @@ $ ctr -n default container rm default
 
 ## 重新打包数据库镜像
 
-> 因为数据库容器都无法在 containerd 上正常启动，所以要进行修正，重新打包，使用以下命令重新打包镜像
+> 因为现有的数据库容器都无法在 containerd 上正常启动，所以要进行修正和重新打包，使用以下命令重新打包镜像
 
 ### 建立帐户资料档案
 
-档案位于 Gaea/util/mocks/containerdTest/images/mariadb_testing/mariadb/user.sql
+档案位于 Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/user.sql
 
 ```sql
 -- SQL 档案，当容器启动时，会立即执行以下命令，就会建立新用户 xiaomi ，和 root 相同权限
@@ -393,7 +386,7 @@ FLUSH PRIVILEGES;
 
 ### 数据库容器的执行脚本
 
-档案位于 Gaea/util/mocks/containerdTest/images/mariadb_testing/mariadb/mysqld_init.sh
+档案位于 Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/mysqld_init.sh
 
 ```bash
 #!/bin/bash
@@ -445,6 +438,7 @@ $ buildah bud -t mariadb:testing .
 
 # 查询打包结果
 $ buildah images
+# 会显示以下内容
 # REPOSITORY        TAG    IMAGE ID     CREATED        SIZE
 # localhost/mariadb latest e4fe0437050b 5 minutes ago  484 MB # 产生新的镜像
 ```
@@ -459,10 +453,12 @@ $ apt-get install -y podman
 
 # 保存容器镜像为 tar 档 mariadb-latest.tar
 $ podman image save localhost/mariadb:testing -o mariadb-testing.tar
+# 会显示以下内容
 # WARN[0000] Error validating CNI config file /etc/cni/net.d/10-containerd-net.conflist: [plugin bridge does not support config version "1.0.0" plugin portmap does not support config version "1.0.0"]
 
 # 检查保存结果
 $ ls
+# 会显示以下内容
 # Dockerfile  mariadb-latest.tar # 新的 tar 档产生
 ```
 
@@ -477,11 +473,12 @@ $ ctr -n mariadb i import mariadb-latest.tar
 
 # 检查载入容器结果
 $ ctr -n mariadb i ls
+# 会显示以下内容
 # REF TYPE DIGEST SIZE PLATFORMS LABELS # 镜像 tar 档载入成功
 # localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
 ```
 
-## 上传镜像档到远端仓库
+### 上传镜像档到远端仓库
 
 > 目前容器的远端仓库有 [docker hub](https://hub.docker.com/) 和 [qury io](https://quay.io/)，目前打算在 [docker hub](https://hub.docker.com/) 上进行测试，功能较完整的镜象档上传到 [qury io](https://quay.io/)
 
@@ -495,7 +492,34 @@ $ cd gaea/util/mocks/containerdTest/images/mariadb_testing
 $ buildah bud -t mariadb:testing .
 
 # 上传容器镜象
+# <token> 为在 docker 网站中产生的验证 token 
 $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrainbow/mariadb:testing --dest-creds panhongrainbow:<token>
+```
+
+## 单元测试触发代码
+
+### 运作说明
+
+下面为单元测试的类图
+
+<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220510015206344.png" alt="image-20220510015206344" style="zoom:100%;" />
+
+各个类的说明
+
+| 类或接口            | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| containerManager 类 | 容器管理员                                                   |
+| ContainderList 类   | 容器管理员的容器列表，**先由这里上锁**                       |
+| Builder 接口        | 容器管理员的容器列表，查出建立 **容器的方法**                |
+| ContainerdClient 类 | ContainerdClient 类会根据设定档，去回传 **符合 Builder 接口** 的对象 |
+| Run 接口            | Run 接口列出容器管理的 **操作细节**，为 ContainerdClient 的一部份 |
+| 各不同种类的容器    | 包含 defaults类、etcd类 和 mariadb类，都实现 **Run 接口**    |
+
+### 操作演示
+
+```go
+// 取得 builder 对象 get builder object.
+builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
 ```
 
 
@@ -510,21 +534,73 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 
 
 
+```go
+	go func() {
+		// 数据库容器测试 mariadb container test
+		for i := 0; i < 10; i++ {
+			go func(j int) {
+				regFunc := func() string {
+					return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
+				}
+
+				
+				assert.Nil(t, err)
+
+				// 创建部份 create part
+				err = builder.Build(300 * time.Second)
+				assert.Nil(t, err)
+
+				// 检查部份 check part
+				err = builder.OnService(60 * time.Second)
+				assert.Nil(t, err)
+
+				// 进行测试 testing
+				if err == nil {
+					// 产生直连对象 Create dc connection.
+					var dc = DirectConnection{
+						// login to the mariadb. 登入数据库
+						user:      "xiaomi",         // user 帐户名称
+						password:  "12345",          // password 密码
+						charset:   "utf8mb4",        // charset 数据库编码
+						collation: 46,               // collation 文本排序
+						addr:      "10.0.0.10:3306", // mariadb 的 IP 地址
+					}
+				LOOP:
+					// 建立新的数据库连线 create a new connection to the mariadb.
+					for i := 0; i < 10; i++ {
+						err = dc.connect() // 连接数据库 connect to the mariadb.
+						if err == nil {
+							assert.Equal(t, i, 0) // check the connection. 确认连线是否成功
+							break LOOP            // 如果连接成功，则跳出循环 break the loop if the connection is successful.
+						}
+						time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
+					}
+				}
+
+				// 拆卸部份 decompose part
+				err = builder.TearDown(60 * time.Second)
+				assert.Nil(t, err)
+
+				// 归还 builder 部份 return builder part
+				err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+				require.Nil(t, err)
+
+				// 协程完成 goroutine complete.
+				wg.Done()
+			}(i)
+		}
+	}()
+```
 
 
 
 
 
 
-## ContainerdTest 单元测试
 
 
 
-### 运作说明
 
-
-
-### 操作演示
 
 
 

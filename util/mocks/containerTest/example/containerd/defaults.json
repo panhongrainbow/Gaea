@@ -6,7 +6,7 @@
   "image": "docker.io/library/debian:testing",
   "task": "default-server",
   "networkNs": "/var/run/netns/gaea-default",
-  "ip": "2.2.2.2",
+  "ip": "10.0.0.2",
   "snapshot": "default-server-snapshot",
   "sehema": "",
   "user": "",

@@ -269,11 +269,11 @@ func TestDirectConnWithDB(t *testing.T) {
 				// 产生直连对象 Create dc connection.
 				var dc = DirectConnection{
 					// login to the mariadb. 登入数据库
-					user:      "xiaomi",           // user 帐户名称
-					password:  "12345",            // password 密码
-					charset:   "utf8mb4",          // charset 数据库编码
-					collation: 46,                 // collation 文本排序
-					addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
+					user:      "xiaomi",         // user 帐户名称
+					password:  "12345",          // password 密码
+					charset:   "utf8mb4",        // charset 数据库编码
+					collation: 46,               // collation 文本排序
+					addr:      "10.0.0.10:3306", // mariadb 的 IP 地址
 				}
 			LOOP:
 				// 建立新的数据库连线 create a new connection to the mariadb.
@@ -344,7 +344,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 创建部份 create part
-				err = builder.Build(60 * time.Second)
+				err = builder.Build(300 * time.Second)
 				assert.Nil(t, err)
 
 				// 检查部份 check part
@@ -382,7 +382,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 创建部份 create part
-				err = builder.Build(60 * time.Second)
+				err = builder.Build(300 * time.Second)
 				assert.Nil(t, err)
 
 				// 检查部份 check part
@@ -394,11 +394,11 @@ func TestContainersInterference(t *testing.T) {
 					// 产生直连对象 Create dc connection.
 					var dc = DirectConnection{
 						// login to the mariadb. 登入数据库
-						user:      "xiaomi",           // user 帐户名称
-						password:  "12345",            // password 密码
-						charset:   "utf8mb4",          // charset 数据库编码
-						collation: 46,                 // collation 文本排序
-						addr:      "10.10.10.10:3306", // mariadb 的 IP 地址
+						user:      "xiaomi",         // user 帐户名称
+						password:  "12345",          // password 密码
+						charset:   "utf8mb4",        // charset 数据库编码
+						collation: 46,               // collation 文本排序
+						addr:      "10.0.0.10:3306", // mariadb 的 IP 地址
 					}
 				LOOP:
 					// 建立新的数据库连线 create a new connection to the mariadb.
