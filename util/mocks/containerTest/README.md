@@ -105,23 +105,23 @@ $ mv ./cnitool /usr/local/bin
 
 快速计算子网
 
-| 子网区块 | 计算命令                | 子网细节                                                     |
-| -------- | ----------------------- | ------------------------------------------------------------ |
-| 第1区块  | subnetcalc 10.0.0.0/30  | 网域位置 10.0.0.0<br />路由位置 10.0.0.1<br />主机位置 10.0.0.2<br />广播位置 10.0.0.3 |
-| 第2区块  | subnetcalc 10.0.0.4/30  | 网域位置 10.0.0.4<br />路由位置 10.0.0.5<br />主机位置 10.0.0.6<br />广播位置 10.0.0.7 |
-| 第3区块  | subnetcalc 10.0.0.8/30  | 网域位置 10.0.0.8<br />路由位置 10.0.0.9<br />主机位置 10.0.0.10<br />广播位置 10.0.0.11 |
-| 第4区块  | subnetcalc 10.0.0.12/30 | 网域位置 10.0.0.12<br />路由位置 10.0.0.13<br />主机位置 10.0.0.14<br />广播位置 10.0.0.15 |
+| 子网区块 | 计算命令                  | 子网细节                                                     |
+| -------- | ------------------------- | ------------------------------------------------------------ |
+| 第1区块  | $ subnetcalc 10.0.0.0/30  | 网域位置 10.0.0.0<br />路由位置 10.0.0.1<br />主机位置 10.0.0.2<br />广播位置 10.0.0.3 |
+| 第2区块  | $ subnetcalc 10.0.0.4/30  | 网域位置 10.0.0.4<br />路由位置 10.0.0.5<br />主机位置 10.0.0.6<br />广播位置 10.0.0.7 |
+| 第3区块  | $ subnetcalc 10.0.0.8/30  | 网域位置 10.0.0.8<br />路由位置 10.0.0.9<br />主机位置 10.0.0.10<br />广播位置 10.0.0.11 |
+| 第4区块  | $ subnetcalc 10.0.0.12/30 | 网域位置 10.0.0.12<br />路由位置 10.0.0.13<br />主机位置 10.0.0.14<br />广播位置 10.0.0.15 |
 
 以下为使用命令去计算子网的过程
 
 - 第一个区块可用的网路位置为 10.0.0.2
-  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509115346566.png" alt="image-20220509115346566" style="zoom:70%;" />
+  <img src="./assets/image-20220509115346566.png" alt="image-20220509115346566" style="zoom:70%;" />
 - 第二个区块可用的网路位置为 10.0.0.6
-  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509132536251.png" alt="image-20220509132536251" style="zoom:70%;" />
+  <img src="./assets/image-20220509132536251.png" alt="image-20220509132536251" style="zoom:70%;" />
 - 第三个区块可用的网路位置为 10.0.0.10
-  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
+  <img src="./assets/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
 - 第四个区块可用的网路位置为 10.0.0.14
-  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509133415573.png" alt="image-20220509133415573" style="zoom:70%;" />
+  <img src="./assets/image-20220509133415573.png" alt="image-20220509133415573" style="zoom:70%;" />
 
 ### 网路位置分配说明
 
@@ -204,7 +204,7 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
 EOF
 ```
 
-### 群组容器
+### 群组容器設定
 
 > 目前暂不开发这一部份，但先指定子网位位置为 **10.255.255.248/29**
 
@@ -214,7 +214,7 @@ EOF
 $ subnetcalc 10.255.255.248/29
 ````
 
-### 执行网路设定
+### 设定测试网路
 
 请依照以下步骤进行网路设定
 
@@ -255,7 +255,7 @@ $ ping -c 5 10.10.10.1
 # 64 bytes from 10.10.10.1: icmp_seq=5 ttl=64 time=0.099 ms
 ```
 
-### 网路设定说明
+### 网路设定脚本
 
 Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespace 的脚本
 
@@ -264,7 +264,7 @@ Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespac
   ```bash
   # 新增以下内容
   
-  # 新增 containerd 的动态网咯介面 
+  # 新增 containerd 设定 
   export CNI_PATH=/opt/cni/bin
   ```
   
@@ -518,98 +518,51 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 ### 操作演示
 
 ```go
-// 取得 builder 对象 get builder object.
+// 注册函数，会回传执行函数或协程的名称
+regFunc := func() string {
+	return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
+}
+
+// 先取得 builder 对象，先取后控制容器环境的机会
 builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
+
+// 创建容器环境，必须在 300 秒内创建完成，不然测试失败
+// 设定在 300 秒内完成的原因为要花时间去下载镜像档
+err = builder.Build(300 * time.Second)
+
+// 容器必须在 60 秒内准备服务完成
+err = builder.OnService(60 * time.Second)
+
+// 建立直连的登入资讯
+var dc = DirectConnection{
+	user:      "xiaomi",
+	password:  "12345",
+	charset:   "utf8mb4",
+	collation: 46,
+	addr:      "10.0.0.10:3306",
+}
+
+// 如果直连连线成功就脱离回圈继续执行
+LOOP:
+for i := 0; i < 10; i++ {
+	err = dc.connect()
+	if err == nil { break LOOP }
+	time.Sleep(1 * time.Second)
+}
+
+// 拆除容器环境
+err = builder.TearDown(60 * time.Second)
+
+// 容器使用完毕，让出容器环境给其他测试使用
+err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-```go
-	go func() {
-		// 数据库容器测试 mariadb container test
-		for i := 0; i < 10; i++ {
-			go func(j int) {
-				regFunc := func() string {
-					return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
-				}
-
-				
-				assert.Nil(t, err)
-
-				// 创建部份 create part
-				err = builder.Build(300 * time.Second)
-				assert.Nil(t, err)
-
-				// 检查部份 check part
-				err = builder.OnService(60 * time.Second)
-				assert.Nil(t, err)
-
-				// 进行测试 testing
-				if err == nil {
-					// 产生直连对象 Create dc connection.
-					var dc = DirectConnection{
-						// login to the mariadb. 登入数据库
-						user:      "xiaomi",         // user 帐户名称
-						password:  "12345",          // password 密码
-						charset:   "utf8mb4",        // charset 数据库编码
-						collation: 46,               // collation 文本排序
-						addr:      "10.0.0.10:3306", // mariadb 的 IP 地址
-					}
-				LOOP:
-					// 建立新的数据库连线 create a new connection to the mariadb.
-					for i := 0; i < 10; i++ {
-						err = dc.connect() // 连接数据库 connect to the mariadb.
-						if err == nil {
-							assert.Equal(t, i, 0) // check the connection. 确认连线是否成功
-							break LOOP            // 如果连接成功，则跳出循环 break the loop if the connection is successful.
-						}
-						time.Sleep(1 * time.Second) // 等待 1 秒 wait for 1 second.
-					}
-				}
-
-				// 拆卸部份 decompose part
-				err = builder.TearDown(60 * time.Second)
-				assert.Nil(t, err)
-
-				// 归还 builder 部份 return builder part
-				err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
-				require.Nil(t, err)
-
-				// 协程完成 goroutine complete.
-				wg.Done()
-			}(i)
-		}
-	}()
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-之后可以登入容器内部进行测试或者是远端连线都可以
+在容器运行中，可以登入容器内部去进行测试
 
 ```bash
 # 直接登入容器内部进行测试
-$ ctr -n default task exec -t --exec-id default-server default-server sh
+$ ctr -n default task exec -t --exec-id mariadb-server mariadb-server sh
 
 # 或者是远端登入进行测试
-$ mysql -h 2.2.2.2 -P 3306 -u root -p
+$ mysql -h 10.0.0.10 -P 3306 -u root -p
 ```
