@@ -305,7 +305,7 @@ Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespac
 ### 下载容器镜像
 
 ```bash
-# 开始建立容器 >>>>> >>>>> >>>>> >>>>> >>>>>
+# >>>>> >>>>> >>>>> 下載容器鏡像
 
 # 建立 namespace
 $ ctr ns create default
@@ -462,7 +462,7 @@ $ ls
 # Dockerfile  mariadb-latest.tar # 新的 tar 档产生
 ```
 
-### 载入镜像 tar 档到 containerd
+### 载入镜像 tar 档到 Containerd
 
 ```bash
 # 建立名称空间 mariadb 
@@ -502,7 +502,7 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 
 下面为单元测试的类图
 
-<img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220510015206344.png" alt="image-20220510015206344" style="zoom:100%;" />
+<img src="./assets/image-20220510015206344.png" alt="image-20220510015206344" style="zoom:100%;" />
 
 各个类的说明
 
@@ -516,6 +516,8 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 | 各不同种类的容器    | 包含 defaults类、etcd类 和 mariadb类，都实现 **Run 接口**    |
 
 ### 操作演示
+
+使用实际的代码进行演示
 
 ```go
 // 注册函数，会回传执行函数或协程的名称

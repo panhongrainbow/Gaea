@@ -278,7 +278,7 @@ Append **export CNI_PATH=/opt/cni/bin** to **/etc/bash.bashrc**
 export CNI_PATH=/opt/cni/bin
 ```
 
-run the below commands 
+Run the below commands
 
 ```bash
 #!/bin/bash
@@ -308,15 +308,267 @@ cnitool add gaea-etcd /var/run/netns/gaea-etcd
 cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
 ```
 
+## CTR Command Line
 
+> Starting containerd container depends on the subnetworks.
 
+### Download container image
 
+Run the below commands
 
-SoarTest is not in an isolated test environment and depends on many technic things, such as containers, databases, SQL, etc.
-I should tear down those dependencies as much as possible.
-Fewer dependencies make a more stable test.
+```bash
+# >>>>> >>>>> >>>>> download container image
 
-I make an essential decision to integrate Containerd with UnitTest.
-Containerd will take over docker sooner or later.
-I choose Containerd to keep up with technology after evaluating it.
-Rename from SoarTest to ContainerdTest.
+# create namespace
+$ ctr ns create default
+
+# pull debian image
+$ ctr -n default image pull docker.io/library/debian:latest
+
+# list images in default namespace
+$ ctr -n default i ls
+# The result is displayed as follows.
+# REF TYPE DIGEST SIZE PLATFORMS LABELS 
+# docker.io/library/debian:latest application/vnd.docker.distribution.manifest.list.v2+json sha256:87eefc7c15610cca61db5c0fd280911c6a737c0680d807432c0bd80cd0cca39b 52.4 MiB linux/386,linux/amd64,linux/arm/v5,linux/arm/v7,linux/arm64/v8,linux/mips64le,linux/ppc64le,linux/s390x -
+```
+
+### Create container and task
+
+Run the below commands
+
+```bash
+# >>>>> >>>>> >>>>> create container and task
+
+# start a default container with network namespace gaea-default
+$ ctr -n default run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:latest default
+
+# check default container
+$ ctr -n default container ls
+# The result is displayed as follows.
+# CONTAINER    IMAGE                              RUNTIME                  
+# default      docker.io/library/debian:latest    io.containerd.runc.v2 
+
+# check default container task
+$ ctr -n default task ls
+# The result is displayed as follows.
+# TASK      PID      STATUS 
+# default    8371    RUNNING
+```
+
+### Get into container inside
+
+Run the below commands
+
+```bash
+# get into container inside
+$ ctr -n default task exec -t --exec-id default default sh
+```
+
+### Remove container task
+
+Run the below commands
+
+```bash
+# >>>>> >>>>> >>>>> remove container
+
+# interrupt the default container immediately.
+$ ctr -n default task kill -s SIGKILL default
+
+# check the default container whether it stops or not.
+$ ctr -n default task ls
+# TASK      PID      STATUS    
+# default    8371    STOPPED
+
+# remove the task of the default container.
+$ ctr -n default task rm default
+# The result is displayed as follows.
+# WARN[0000] task default exit with non-zero exit code 137
+
+# remove the default container
+$ ctr -n default container rm default
+```
+
+## Rebuild container image
+
+> Many of the original docker images are **not workable** in Containerd. Then we **must rebuild** the container images.
+
+### Create account file
+
+The file is *located on* **Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/user.sql**.
+
+```sql
+-- When the database is created initially, he makes the account "xiaomi" and its password "12345".
+CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+### Create container's script
+
+The file is *located on* **Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/mysqld_init.sh**.
+
+```bash
+#!/bin/bash
+
+# Use this script to correct the docker image and make it workable.
+mkdir /var/run/mysqld
+# RUN useradd -m mysql
+chown mysql:mysql /var/run/mysqld
+chmod 777 /var/run/mysqld
+
+# user.sql makes the account "xiaomi" and its password "12345" initially.
+mysqld --init-file=/home/mariadb/user.sql
+```
+
+### Create Docker file
+
+The file is *located on* **Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/mysqld_init.sh**.
+
+````dockerfile
+FROM debian:latest
+
+# install database
+RUN apt-get update && apt-get install -y mariadb-server && apt-get clean
+
+# correct connection config
+# (The regular expression is bind-address(\s*?)=(\s*?)127\.0\.0\.1)
+RUN sed -i "s/bind-address.*/bind-address=0.0.0.0/g" /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# correct docker image
+RUN mkdir -p /home/mariadb/
+ADD mariadb /home/mariadb/
+
+# make mysqld_init.sh executable
+RUN chmod +x /home/mariadb/mysqld_init.sh
+
+# start database
+ENTRYPOINT ["/home/mariadb/mysqld_init.sh"]
+````
+
+### Rebuild Docker image
+
+Run the below commands
+
+```bash
+# install buildah
+$ apt-get install buildah
+
+# rebuild mariadb container
+$ buildah bud -t mariadb:testing .
+
+# check docker images
+$ buildah images
+# The result is displayed as follows.
+# REPOSITORY        TAG    IMAGE ID     CREATED        SIZE
+# localhost/mariadb latest e4fe0437050b 5 minutes ago  484 MB # 产生新的镜像
+```
+
+### Save Images as Tar files
+
+Run the below commands
+
+```bash
+# create database mariadb 
+$ ctr namespace create mariadb
+
+# Containerd imports the tar file
+$ ctr -n mariadb i import mariadb-latest.tar
+
+# Check docker images
+$ ctr -n mariadb i ls
+# The result is displayed as follows.
+# REF TYPE DIGEST SIZE PLATFORMS LABELS # import successfully
+# localhost/mariadb:latest application/vnd.docker.distribution.manifest.v2+json sha256:47db1ba681c4ebcf56370ad22d9f9a5c72bc08414b7f2d54c5cd2112502b5931 461.7 MiB linux/amd64 -
+```
+
+### Upload docker images
+
+> Push Docker images to [docker hub](https://hub.docker.com/) or [qury io](https://quay.io/). I decided to use [docker hub](https://hub.docker.com/) to testing and [qury io](https://quay.io/) for sharing.
+
+Run the below commands
+
+```bash
+# go into the container folder
+$ cd gaea/util/mocks/containerdTest/images/mariadb_testing
+
+# build the docker image
+$ buildah bud -t mariadb:testing .
+
+# upload the docker image
+# create personal access tokens in docker hub. 
+$ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrainbow/mariadb:testing --dest-creds panhongrainbow:<token>
+```
+
+## UnitTest by using Containerd
+
+> Explain how to use Containerd to make unit tests.
+
+### Unified Modeling Language
+
+Class diagram for package **containerTest**
+
+<img src="./assets/image-20220510015206344.png" alt="image-20220510015206344" style="zoom:100%;" /> 
+
+The class components in package **containerTest**
+
+| class or interface         | description                                                  |
+| :------------------------- | :----------------------------------------------------------- |
+| class **containerManager** | **class containerManager** is a **container manager** to manipulate the container environment. |
+| class **ContainderList**   | **class ContainerList** is used to list **containerd clients**. |
+| interface **Builder**      | **interface Builder** is an interface for making a **new container test environment**. |
+| class **ContainerdClient** | **class ContainerdClient** is the **core component** for the container manager to control the container environment. |
+| interface **Run**          | **Interface Run** lists every step for **Builder** to control the controller. |
+| others                     | **Class defaults, etcd, and mariadb** implement **Interface Run**. |
+
+### Implementing container Manager
+
+> use an example to demonstrate how to create  container Manager
+
+```go
+// regFunc is used to register the current function.
+regFunc := func() string {
+	return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
+}
+
+// get builder object to control container environment.
+builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
+
+// The container manager must finish building container environment within 300 seconds, including pulling the image.
+err = builder.Build(300 * time.Second)
+
+// checking container service within 60 seconds.
+err = builder.OnService(60 * time.Second)
+
+// create dc object.
+var dc = DirectConnection{
+	user:      "xiaomi",
+	password:  "12345",
+	charset:   "utf8mb4",
+	collation: 46,
+	addr:      "10.0.0.10:3306",
+}
+
+// If container service is ready, break the loop and continue.
+LOOP:
+for i := 0; i < 10; i++ {
+	err = dc.connect()
+	if err == nil { break LOOP }
+	time.Sleep(1 * time.Second)
+}
+
+// tear down container environment.
+err = builder.TearDown(60 * time.Second)
+
+// I return the container environment for other goroutine or function to use it.
+err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+```
+
+go into the container inside to get more details.
+
+```bash
+# go into the container inside.
+$ ctr -n default task exec -t --exec-id mariadb-server mariadb-server sh
+
+# get more details or make more tests.
+$ mysql -h 10.0.0.10 -P 3306 -u root -p
+```

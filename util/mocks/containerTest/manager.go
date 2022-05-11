@@ -26,12 +26,15 @@ var (
 var Manager *ContainerManager
 
 // ContainerManager 容器服务管理員
+// ContainerManager is used to manage Containerd.
 type ContainerManager struct {
 	Enable        bool
 	ConfigPath    string
 	ContainerList map[string]*ContainerList
 }
 
+// ContainerList 容器服务列表
+// ContainerList is used to list containerd clients.
 type ContainerList struct {
 	NetworkLock sync.Locker
 	Cfg         containerd.ContainerD

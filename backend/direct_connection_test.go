@@ -244,11 +244,14 @@ func TestDirectConnWithDB(t *testing.T) {
 	// 数据库容器测试 mariadb container test
 	for i := 0; i < 10; i++ {
 		go func(j int) {
+			// regFunc 是用来注册当前函数的
+			// regFunc is used to register the current function.
 			regFunc := func() string {
 				return containerTest.AppendCurrentFunction(3, "-default-"+strconv.Itoa(j))
 			}
 
-			// 取得 builder 对象 get builder object.
+			// 取得 builder 对象去控制容器环境
+			// get builder object to control container environment.
 			builder, err := containerTest.Manager.GetBuilder("mariadb-server",
 				func() string {
 					return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
@@ -257,7 +260,7 @@ func TestDirectConnWithDB(t *testing.T) {
 			assert.Nil(t, err)
 
 			// 创建部份 create part
-			err = builder.Build(60 * time.Second)
+			err = builder.Build(300 * time.Second)
 			assert.Nil(t, err)
 
 			// 检查部份 check part
