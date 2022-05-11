@@ -4,46 +4,47 @@
 
 ### 会面临的问题如下
 
-- docker 未来的重用性将会下降，未来将会直接操作 **containerd** ，不经由 docker 去控制，这次测试准备把 containerd 整合到单元测试内，测试包命名为 **containerTest**
+- **Docker** 重要性将会下降，未来将会直接操作 **Containerd** ，不经由 Docker 去控制
+- 这次测试准备把 **Containerd** 集成到单元测试内，测试包命名为 **containerTest**
 
 ## Containerd 容器的安装
 
 ### 简介
 
-此为 containerd 的早期版本，已经去除 docker 那一层去进行效能的提升<img src="./assets/image-20220331141145598.png" alt="image-20220331141145598" style="zoom:100%;" /> 
+此为 **Containerd** 的早期版本，已经去除 **Docker** 那一层去进行性能的提升<img src="./assets/image-20220331141145598.png" alt="image-20220331141145598" style="zoom:100%;" /> 
 
 ### Containerd 主体安装
 
-> 参考以下网址进行安装 [containerd安装文件](https://containerd.io/downloads/)
+> 参考以下网址进行安装 [Containerd套件](https://containerd.io/downloads/)
 
 ```bash
-# 先安装依赖，libseccomp2 套件将会指定 process 去呼叫特定的 system call 
+# 先安装依赖，libseccomp2 套件将会指定 process 去调用特定的 system call，以增加安全性
 $ sudo apt-get update
 $ sudo apt-get install libseccomp2
 
-# 下载 containerd 套件，目前最新版本为 1.6.2 版，
+# 下载 Containerd 套件，目前最新版本为 1.6.2 版
 $ wget https://github.com/containerd/containerd/releases/download/v1.6.2/cri-containerd-cni-1.6.2-linux-amd64.tar.gz
 
-# 这份压缩包含 containerd 运行时所需要的 runc 
+# 这份压缩包含 Containerd 运行时所需要的 runc 
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep runc
 usr/local/bin/containerd-shim-runc-v2
 usr/local/bin/containerd-shim-runc-v1
 usr/local/sbin/runc # 存在
 
-# 进行安装整个 containerd
+# 进行安装整个 Containerd
 $ sudo tar -C / -xzf cri-containerd-cni-1.6.2-linux-amd64.tar.gz
 
-# 检查 systemd 设定档是否存在
+# 检查 Systemd 设定档是否存在
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep containerd.service
 etc/systemd/system/containerd.service # 存在
 
-# 启动 containerd 服务
-$ sudo systemctl daemon-reload # 重新載入 Systemd
-$ sudo systemctl enable --now containerd.service # 开机时启动 containerd 服务
-$ sudo systemctl start containerd.service # 启动 containerd 服务
+# 启动 Containerd 服务
+$ sudo systemctl daemon-reload # 重新加载 Systemd
+$ sudo systemctl enable --now containerd.service # 开机时启动 Containerd 服务
+$ sudo systemctl start containerd.service # 启动 Containerd 服务
 
 
-# 檢查 ctr 指令是否存在
+# 检查 ctr 指令是否存在
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep ctr
 usr/local/bin/ctr # 存在
 
@@ -52,32 +53,32 @@ $ ctr container list
 # 会显示 CONTAINER    IMAGE    RUNTIME
 ```
 
-### Containerd 插件設定
+### Containerd 插件设置
 
 ```bash
-# 检查 cni 元件是否存在
+# 检查 cni 组件是否存在
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
 # 会显示以下内容
-opt/cni/
-opt/cni/bin/
-opt/cni/bin/tuning
-opt/cni/bin/vrf
-opt/cni/bin/loopback
-opt/cni/bin/portmap
-opt/cni/bin/ptp
-opt/cni/bin/ipvlan
-opt/cni/bin/host-device
-opt/cni/bin/macvlan
-opt/cni/bin/host-local
-opt/cni/bin/firewall
-opt/cni/bin/bandwidth
-opt/cni/bin/sbr
-opt/cni/bin/vlan
-opt/cni/bin/static
-opt/cni/bin/bridge
-opt/cni/bin/dhcp
+# opt/cni/
+# opt/cni/bin/
+# opt/cni/bin/tuning
+# opt/cni/bin/vrf
+# opt/cni/bin/loopback
+# opt/cni/bin/portmap
+# opt/cni/bin/ptp
+# opt/cni/bin/ipvlan
+# opt/cni/bin/host-device
+# opt/cni/bin/macvlan
+# opt/cni/bin/host-local
+# opt/cni/bin/firewall
+# opt/cni/bin/bandwidth
+# opt/cni/bin/sbr
+# opt/cni/bin/vlan
+# opt/cni/bin/static
+# opt/cni/bin/bridge
+# opt/cni/bin/dhcp
 
-# 產生 config.toml 設定
+# 产生 config.toml 设置
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep config.toml # 压缩包未含设定档
 $ containerd config default > /etc/containerd/config.toml # 用命令产生预设文档
 ```
@@ -100,30 +101,30 @@ $ mv ./cnitool /usr/local/bin
 
 ### 计算容器子网
 
-> - 目的为保留两个容器可分配 IP，让 containerdTest 包可以快速在网路上找到容器并进行连线
-> - 使用 class A 私有網路的網路位置 10.0.0.0 至 10.255.255.255
+> - 目的为保留 **两个可分配 IP**，其中 **一个会被路由使用**，让 containerTest 包可以快速在网路上找到容器的网路位置并进行连线
+> - 使用 **class A 私有网络** 的网络位置 **10.0.0.0 至 10.255.255.255**
 
 快速计算子网
 
 | 子网区块 | 计算命令                  | 子网细节                                                     |
 | -------- | ------------------------- | ------------------------------------------------------------ |
-| 第1区块  | $ subnetcalc 10.0.0.0/30  | 网域位置 10.0.0.0<br />路由位置 10.0.0.1<br />主机位置 10.0.0.2<br />广播位置 10.0.0.3 |
-| 第2区块  | $ subnetcalc 10.0.0.4/30  | 网域位置 10.0.0.4<br />路由位置 10.0.0.5<br />主机位置 10.0.0.6<br />广播位置 10.0.0.7 |
-| 第3区块  | $ subnetcalc 10.0.0.8/30  | 网域位置 10.0.0.8<br />路由位置 10.0.0.9<br />主机位置 10.0.0.10<br />广播位置 10.0.0.11 |
-| 第4区块  | $ subnetcalc 10.0.0.12/30 | 网域位置 10.0.0.12<br />路由位置 10.0.0.13<br />主机位置 10.0.0.14<br />广播位置 10.0.0.15 |
+| 第1区块  | $ subnetcalc 10.0.0.0/30  | 网域位置 10.0.0.0<br />路由位置 10.0.0.1<br />**主机位置 10.0.0.2**<br />广播位置 10.0.0.3 |
+| 第2区块  | $ subnetcalc 10.0.0.4/30  | 网域位置 10.0.0.4<br />路由位置 10.0.0.5<br />**主机位置 10.0.0.6**<br />广播位置 10.0.0.7 |
+| 第3区块  | $ subnetcalc 10.0.0.8/30  | 网域位置 10.0.0.8<br />路由位置 10.0.0.9<br />**主机位置 10.0.0.10**<br />广播位置 10.0.0.11 |
+| 第4区块  | $ subnetcalc 10.0.0.12/30 | 网域位置 10.0.0.12<br />路由位置 10.0.0.13<br />**主机位置 10.0.0.14**<br />广播位置 10.0.0.15 |
 
 以下为使用命令去计算子网的过程
 
-- 第一个区块可用的网路位置为 10.0.0.2
+- 第一个区块可用的网路位置为 **10.0.0.2**
   <img src="./assets/image-20220509115346566.png" alt="image-20220509115346566" style="zoom:70%;" />
-- 第二个区块可用的网路位置为 10.0.0.6
+- 第二个区块可用的网路位置为 **10.0.0.6**
   <img src="./assets/image-20220509132536251.png" alt="image-20220509132536251" style="zoom:70%;" />
-- 第三个区块可用的网路位置为 10.0.0.10
+- 第三个区块可用的网路位置为 **10.0.0.10**
   <img src="./assets/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
-- 第四个区块可用的网路位置为 10.0.0.14
+- 第四个区块可用的网路位置为 **10.0.0.14**
   <img src="./assets/image-20220509133415573.png" alt="image-20220509133415573" style="zoom:70%;" />
 
-### 网路位置分配说明
+### 子网路位置分配说明
 
 > 以最后一个子网区块 **10.10.10.12/30** 为例
 
@@ -131,16 +132,16 @@ $ mv ./cnitool /usr/local/bin
 
 - 网路位置的使用如下表
 
-  |  网路位置   |     用途     |
-  | :---------: | :----------: |
-  | 10.10.10.12 |   网域位置   |
-  | 10.10.10.13 |   路由位置   |
-  | 10.10.10.14 | **主机位置** |
-  | 10.10.10.15 |   广播位置   |
+  |    网路位置     |     用途     |
+  | :-------------: | :----------: |
+  |   10.10.10.12   |   网域位置   |
+  |   10.10.10.13   |   路由位置   |
+  | **10.10.10.14** | **主机位置** |
+  |   10.10.10.15   |   广播位置   |
 
   由上表可知，新建的容器会被分配的 IP 为 **10.10.10.14**
 
-### 建立网路设定档
+### 创建子网设定档
 
 ```bash
 # 以下使用 root 身份执行
@@ -204,7 +205,7 @@ $ cat << EOF | tee /etc/cni/net.d/gaea-mariadb.conf
 EOF
 ```
 
-### 群组容器設定
+### 群组容器设置
 
 > 目前暂不开发这一部份，但先指定子网位位置为 **10.255.255.248/29**
 
@@ -214,12 +215,12 @@ EOF
 $ subnetcalc 10.255.255.248/29
 ````
 
-### 设定测试网路
+### 设定测试子网
 
 请依照以下步骤进行网路设定
 
 ```bash
-# 建立网路的 namespace 进行网路隔离
+# 创建 namespace 进行网路隔离
 $ ip netns add gaea-default
 $ ip netns add gaea-etcd
 $ ip netns add gaea-mariadb
@@ -246,6 +247,7 @@ $ ip a | grep cni0
 #     inet 10.0.0.0/30 brd 10.10.10.3 scope global cni0
 # 7: veth8e852839@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master cni0 state UP group default
 
+# 连线测试
 $ ping -c 5 10.10.10.1
 # PING 10.10.10.1 (10.10.10.1) 56(84) bytes of data.
 # 64 bytes from 10.10.10.1: icmp_seq=1 ttl=64 time=0.107 ms
@@ -257,14 +259,14 @@ $ ping -c 5 10.10.10.1
 
 ### 网路设定脚本
 
-Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespace 的脚本
+Linux 的 namespace 并 **不是永远储存的**，所以要在创建设定 **namespace 的脚本**
 
-- export CNI_PATH=/opt/cni/bin 这一行写到 /etc/bash.bashrc
+- **export CNI_PATH=/opt/cni/bin 这一行写到 /etc/bash.bashrc**
   
   ```bash
-  # 新增以下内容
+  # 添加以下内容
   
-  # 新增 containerd 设定 
+  # 添加 containerd 设定 
   export CNI_PATH=/opt/cni/bin
   ```
   
@@ -300,14 +302,14 @@ Linux 的 namespace 并不是永远储存的，所以要在建立设定 namespac
 
 ## 容器 ctr 命令操作
 
-> 当子网切割完成后，接下来就可以直接使用命令去操作 contained
+> 当子网切割完成后，接下来就可以直接使用 **命令去操作 Contained**
 
 ### 下载容器镜像
 
 ```bash
-# >>>>> >>>>> >>>>> 下載容器鏡像
+# >>>>> >>>>> >>>>> 下载容器镜像
 
-# 建立 namespace
+# 创建 namespace
 $ ctr ns create default
 
 # 下载镜像档 debian
@@ -363,6 +365,7 @@ $ ctr -n default task ls
 
 # 删除容器 default 的工作
 $ ctr -n default task rm default
+# 会显示以下内容
 # WARN[0000] task default exit with non-zero exit code 137
 
 # 删除容器 default
@@ -371,14 +374,14 @@ $ ctr -n default container rm default
 
 ## 重新打包数据库镜像
 
-> 因为现有的数据库容器都无法在 containerd 上正常启动，所以要进行修正和重新打包，使用以下命令重新打包镜像
+> 因为现有的数据库容器都无法在 Containerd 上正常启动，所以要进行修正和重新打包，**使用以下命令重新打包镜像**
 
-### 建立帐户资料档案
+### 创建帐户资料档案
 
 档案位于 Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/user.sql
 
 ```sql
--- SQL 档案，当容器启动时，会立即执行以下命令，就会建立新用户 xiaomi ，和 root 相同权限
+-- SQL 档案，当容器启动时，会立即执行以下命令，就会创建新用户 xiaomi ，和 root 相同权限
 CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
@@ -397,7 +400,7 @@ mkdir /var/run/mysqld
 chown mysql:mysql /var/run/mysqld
 chmod 777 /var/run/mysqld
 
-# user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会建立一个用户 xiaomi，并且设置密码
+# user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会创建一个用户 xiaomi，并且设置密码
 mysqld --init-file=/home/mariadb/user.sql
 ```
 
@@ -411,7 +414,7 @@ FROM debian:latest
 # 安装数据库
 RUN apt-get update && apt-get install -y mariadb-server && apt-get clean
 
-# 修改數据库连线設定 (正规表示式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
+# 修改数据库连线设置 (正规表达式为 bind-address(\s*?)=(\s*?)127\.0\.0\.1)
 RUN sed -i "s/bind-address.*/bind-address=0.0.0.0/g" /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # 设定用户密码和修正
@@ -465,7 +468,7 @@ $ ls
 ### 载入镜像 tar 档到 Containerd
 
 ```bash
-# 建立名称空间 mariadb 
+# 创建名称空间 mariadb 
 $ ctr namespace create mariadb
 
 # containerd 载入打包的镜像
@@ -508,9 +511,9 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 
 | 类或接口            | 说明                                                         |
 | ------------------- | ------------------------------------------------------------ |
-| containerManager 类 | 容器管理员                                                   |
+| containerManager 类 | **容器管理员**，进行容器环境的管理                           |
 | ContainderList 类   | 容器管理员的容器列表，**先由这里上锁**                       |
-| Builder 接口        | 容器管理员的容器列表，查出建立 **容器的方法**                |
+| Builder 接口        | 用来组成容器管理员的容器列表，内含 **容器的集成操作方法**    |
 | ContainerdClient 类 | ContainerdClient 类会根据设定档，去回传 **符合 Builder 接口** 的对象 |
 | Run 接口            | Run 接口列出容器管理的 **操作细节**，为 ContainerdClient 的一部份 |
 | 各不同种类的容器    | 包含 defaults类、etcd类 和 mariadb类，都实现 **Run 接口**    |
@@ -525,7 +528,7 @@ regFunc := func() string {
 	return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
 }
 
-// 先取得 builder 对象，先取后控制容器环境的机会
+// 先取得 builder 对象，先取得控制容器环境的机会
 builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
 
 // 创建容器环境，必须在 300 秒内创建完成，不然测试失败
@@ -535,7 +538,7 @@ err = builder.Build(300 * time.Second)
 // 容器必须在 60 秒内准备服务完成
 err = builder.OnService(60 * time.Second)
 
-// 建立直连的登入资讯
+// 创建直连的登录资讯
 var dc = DirectConnection{
 	user:      "xiaomi",
 	password:  "12345",
@@ -559,12 +562,12 @@ err = builder.TearDown(60 * time.Second)
 err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
 ```
 
-在容器运行中，可以登入容器内部去进行测试
+在容器运行中，可以登录容器内部去进行测试
 
 ```bash
-# 直接登入容器内部进行测试
+# 直接登录容器内部进行测试
 $ ctr -n default task exec -t --exec-id mariadb-server mariadb-server sh
 
-# 或者是远端登入进行测试
+# 或者是远端登录进行测试
 $ mysql -h 10.0.0.10 -P 3306 -u root -p
 ```
