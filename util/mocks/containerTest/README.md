@@ -516,7 +516,7 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 | Builder 接口        | 用来组成容器管理员的容器列表，内含 **容器的集成操作方法**    |
 | ContainerdClient 类 | ContainerdClient 类会根据设定档，去回传 **符合 Builder 接口** 的对象 |
 | Run 接口            | Run 接口列出容器管理的 **操作细节**，为 ContainerdClient 的一部份 |
-| 各不同种类的容器    | 包含 defaults类、etcd类 和 mariadb类，都实现 **Run 接口**    |
+| 各不同种类的容器    | 包含 **defaults类、etcd类 和 mariadb类**，都实现 **Run 接口** |
 
 ### 操作演示
 

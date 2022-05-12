@@ -1,10 +1,10 @@
 # Running Unit Tests With Containerd
 
-> The test environment is complex for the programmer to set up.
-> Fortunately, **Docker** is popular for people to learn and love as a common language for **temporarily creating test environments**.
-> However, there are many alternatives for docker, such as **Containerd**, Kata Container, and gVisor.
-> Most likely, there is a high probability that **Containerd** replaces Docker in **the container management ecosystem** because Containerd is **less dependent and more efficient**.
-> Indeed, Containerd does not have **docker cli layer**.
+> - The test environment is complex for the programmer to set up.
+> - Fortunately, **Docker** is popular for people to learn and love as a common language for **temporarily creating test environments**.
+> - However, there are many alternatives for Docker, such as **Containerd**, Kata Container, and gVisor.
+> - Most likely, there is a high probability that **Containerd** replaces Docker in **the container management ecosystem** because Containerd is **less dependent and more efficient**.
+> - Indeed, **Containerd** does not have **Docker cli layer**.
 
 ## Installation
 
@@ -12,7 +12,7 @@
 
 What is **Containerd**？
 
-**Containerd** has been *used* for *a long time* as **a container management tool**. However, People cannot be aware of its existence because it is **a container runtime** with simplicity and does not have **docker cli layer**.
+**Containerd** has been *used* for *a long time* as **a container management tool**. However, People cannot be aware of its existence because it is **a container runtime** with simplicity and does not have **Docker cli layer**.
 
 <img src="./assets/image-20220331141145598.png" alt="image-20220331141145598" style="zoom:100%;" /> 
 
@@ -36,12 +36,12 @@ usr/local/bin/containerd-shim-runc-v2
 usr/local/bin/containerd-shim-runc-v1
 usr/local/sbin/runc # runc is a CLI tool for running containers.
 
-# install containerd
+# install Containerd
 $ sudo tar -C / -xzf cri-containerd-cni-1.6.2-linux-amd64.tar.gz
 
-# check the existence of systemd config.
+# check the existence of Systemd config.
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep containerd.service
-etc/systemd/system/containerd.service # systemd config.
+etc/systemd/system/containerd.service # Systemd config.
 
 # start Containerd Service.
 $ sudo systemctl daemon-reload # reload Systemd.
@@ -65,27 +65,34 @@ set up Containerd plugins
 # check the existence of cni component.
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
 # The result is displayed as follows.
-opt/cni/
-opt/cni/bin/
-opt/cni/bin/tuning
-opt/cni/bin/vrf
-opt/cni/bin/loopback
-opt/cni/bin/portmap
-opt/cni/bin/ptp
-opt/cni/bin/ipvlan
-opt/cni/bin/host-device
-opt/cni/bin/macvlan
-opt/cni/bin/host-local
-opt/cni/bin/firewall
-opt/cni/bin/bandwidth
-opt/cni/bin/sbr
-opt/cni/bin/vlan
-opt/cni/bin/static
-opt/cni/bin/bridge
-opt/cni/bin/dhcp
+# opt/cni/
+# opt/cni/bin/
+# opt/cni/bin/tuning
+# opt/cni/bin/vrf
+# opt/cni/bin/loopback
+# opt/cni/bin/portmap
+# opt/cni/bin/ptp
+# opt/cni/bin/ipvlan
+# opt/cni/bin/host-device
+# opt/cni/bin/macvlan
+# opt/cni/bin/host-local
+# opt/cni/bin/firewall
+# opt/cni/bin/bandwidth
+# opt/cni/bin/sbr
+# opt/cni/bin/vlan
+# opt/cni/bin/static
+# opt/cni/bin/bridge
+# opt/cni/bin/dhcp
 
-# Generate config.toml config
+# does not have config.toml config
 $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep config.toml # does not contain config file.
+
+# Containerd cli tool
+$ which containerd
+# The result is displayed as follows.
+# /usr/local/bin/containerd
+
+# generate config.toml config
 $ containerd config default > /etc/containerd/config.toml # create default config file.
 ```
 
@@ -105,36 +112,38 @@ $ mv ./cnitool /usr/local/bin
 
 # Subnetwork
 
-> - to force containers to be isolated with a small subnetwork of limited hosts numbers.
+> - to force containers to be isolated with a small subnetwork of **limited hosts numbers**.
 > - to use **class A** Private IP addesses, **10.0.0.0 - 10.255.255.255**.
 
 ## calculate subnetwork
+
+### calculate four subnetworks
 
 There are four subnets *listed in the table below*.
 
 | Subnetwork            | Command                   | Details                                                      |
 | :-------------------- | :------------------------ | ------------------------------------------------------------ |
-| The first subnetwork  | $ subnetcalc 10.0.0.0/30  | network: 10.0.0.0<br />router: 10.0.0.1<br />host: 10.0.0.2<br />broadcast: 10.0.0.3 |
-| The second subnetwork | $ subnetcalc 10.0.0.4/30  | network: 10.0.0.4<br />router: 10.0.0.5<br />host: 10.0.0.6<br />broadcast: 10.0.0.7 |
-| The third subnetwork  | $ subnetcalc 10.0.0.8/30  | network: 10.0.0.8<br />router: 10.0.0.9<br />host: 10.0.0.10<br />broadcast: 10.0.0.11 |
-| The fourth subnetwork | $ subnetcalc 10.0.0.12/30 | network: 10.0.0.12<br />router: 10.0.0.13<br />host: 10.0.0.14<br />broadcast: 10.0.0.15 |
+| The first subnetwork  | $ subnetcalc 10.0.0.0/30  | network: 10.0.0.0<br />router: 10.0.0.1<br />**host: 10.0.0.2**<br />broadcast: 10.0.0.3 |
+| The second subnetwork | $ subnetcalc 10.0.0.4/30  | network: 10.0.0.4<br />router: 10.0.0.5<br />**host: 10.0.0.6**<br />broadcast: 10.0.0.7 |
+| The third subnetwork  | $ subnetcalc 10.0.0.8/30  | network: 10.0.0.8<br />router: 10.0.0.9<br />**host: 10.0.0.10**<br />broadcast: 10.0.0.11 |
+| The fourth subnetwork | $ subnetcalc 10.0.0.12/30 | network: 10.0.0.12<br />router: 10.0.0.13<br />**host: 10.0.0.14**<br />broadcast: 10.0.0.15 |
 
 The Linux command, **subnetcalc**, calculates subnet quickly.
 
 - The host IP is **10.0.0.2** in the **first** subnetwork.
   <img src="./assets/image-20220509115346566.png" alt="image-20220509115346566" style="zoom:70%;" />
-- The host IP is **10.0.0.4** in the **second** subnetwork.
+- The host IP is **10.0.0.6** in the **second** subnetwork.
   <img src="./assets/image-20220509132536251.png" alt="image-20220509132536251" style="zoom:70%;" />
-- The host IP is **10.0.0.8** in the **third** subnetwork.
-  <img src="/home/panhong/go/src/github.com/panhongrainbow/note/typora-user-images/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
-- The host IP is **10.0.0.12** in the **fourth** subnetwork.
+- The host IP is **10.0.0.10** in the **third** subnetwork.
+  <img src="./assets/image-20220509133001081.png" alt="image-20220509133001081" style="zoom:70%;" />
+- The host IP is **10.0.0.14** in the **fourth** subnetwork.
   <img src="./assets/image-20220509133415573.png" alt="image-20220509133415573" style="zoom:70%;" />
 
 ### Explain how to calculate subnetwork
 
-> Use the last subnetwork,**10.10.10.12/30**, as an example to explain how to calculate the subnetwork.
+> To use the last subnetwork,**10.10.10.12/30**, as an example to explain **how to calculate the subnetwork**.
 
-- **The variable-length subnet** is **2** (32 - 30 = 2). Four IP addresses exist in this subnetwork such as **10.10.10.12 , 10.10.10.13, 10.10.10.14 and 10.10.10.15 .**
+- **The variable-length subnet** is **2** (32 - 30 = 2). This subnetwork has four IP addresses: **10.10.10.12 , 10.10.10.13, 10.10.10.14 and 10.10.10.15 .**
 
 - Some details *listed in the table below*.
 
@@ -240,8 +249,9 @@ $ ip netns list
 # gaea-mariadb
 # gaea-mariadb-sakila
 
+# list namespaces
 $ ls /var/run/netns/
-# # The result is displayed as follows.
+# The result is displayed as follows.
 # gaea-default gaea-etcd gaea-mariadb
 
 # add namespaces
@@ -274,7 +284,7 @@ Append **export CNI_PATH=/opt/cni/bin** to **/etc/bash.bashrc**
 ```bash
 # append below
 
-# add containerd config 
+# add containerd config path
 export CNI_PATH=/opt/cni/bin
 ```
 
@@ -310,7 +320,7 @@ cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
 
 ## CTR Command Line
 
-> Starting containerd container depends on the subnetworks.
+> To start Containerd container depends on the subnetworks.
 
 ### Download container image
 
@@ -397,7 +407,7 @@ $ ctr -n default container rm default
 The file is *located on* **Gaea/util/mocks/containerTest/images/mariadb_testing/mariadb/user.sql**.
 
 ```sql
--- When the database is created initially, he makes the account "xiaomi" and its password "12345".
+-- When the database is created initially, it makes the account "xiaomi" and its password "12345".
 CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
@@ -416,7 +426,8 @@ mkdir /var/run/mysqld
 chown mysql:mysql /var/run/mysqld
 chmod 777 /var/run/mysqld
 
-# user.sql makes the account "xiaomi" and its password "12345" initially.
+# start mariadb
+# makes the account "xiaomi" and its password "12345" initially.
 mysqld --init-file=/home/mariadb/user.sql
 ```
 
@@ -483,7 +494,7 @@ $ ctr -n mariadb i ls
 
 ### Upload docker images
 
-> Push Docker images to [docker hub](https://hub.docker.com/) or [qury io](https://quay.io/). I decided to use [docker hub](https://hub.docker.com/) to testing and [qury io](https://quay.io/) for sharing.
+> Push Docker images to [docker hub](https://hub.docker.com/) or [qury io](https://quay.io/). I decided to use [docker hub](https://hub.docker.com/) for testing and [qury io](https://quay.io/) for sharing images.
 
 Run the below commands
 
@@ -494,14 +505,14 @@ $ cd gaea/util/mocks/containerdTest/images/mariadb_testing
 # build the docker image
 $ buildah bud -t mariadb:testing .
 
-# upload the docker image
-# create personal access tokens in docker hub. 
+# upload the Docker image
+# create personal access tokens from docker hub website. 
 $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrainbow/mariadb:testing --dest-creds panhongrainbow:<token>
 ```
 
 ## UnitTest by using Containerd
 
-> Explain how to use Containerd to make unit tests.
+> To explain how to use Containerd to make unit tests.
 
 ### Unified Modeling Language
 
@@ -513,16 +524,16 @@ The class components in package **containerTest**
 
 | class or interface         | description                                                  |
 | :------------------------- | :----------------------------------------------------------- |
-| class **containerManager** | **class containerManager** is a **container manager** to manipulate the container environment. |
-| class **ContainderList**   | **class ContainerList** is used to list **containerd clients**. |
-| interface **Builder**      | **interface Builder** is an interface for making a **new container test environment**. |
-| class **ContainerdClient** | **class ContainerdClient** is the **core component** for the container manager to control the container environment. |
-| interface **Run**          | **Interface Run** lists every step for **Builder** to control the controller. |
+| class **containerManager** | **class containerManager** is **a container manager** to manipulate the container environments. |
+| class **ContainderList**   | **class ContainerList** is used to **list Containerd clients**. |
+| interface **Builder**      | **interface Builder** is an interface for making **a new container test environment**. |
+| class **ContainerdClient** | **class ContainerdClient** is **the core component** for the container manager to control the container environment. |
+| interface **Run**          | **Interface Run** implements every step for **Builder** to control the controller. |
 | others                     | **Class defaults, etcd, and mariadb** implement **Interface Run**. |
 
 ### Implementing container Manager
 
-> use an example to demonstrate how to create  container Manager
+> To use an example to demonstrate how to create your own container Manager.
 
 ```go
 // regFunc is used to register the current function.
@@ -530,16 +541,16 @@ regFunc := func() string {
 	return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
 }
 
-// get builder object to control container environment.
+// get builder object to control the container environment.
 builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
 
-// The container manager must finish building container environment within 300 seconds, including pulling the image.
+// The container manager must finish building the container environment within 300 seconds, including pulling the image.
 err = builder.Build(300 * time.Second)
 
-// checking container service within 60 seconds.
+// checking the container service within 60 seconds.
 err = builder.OnService(60 * time.Second)
 
-// create dc object.
+// create DC object.
 var dc = DirectConnection{
 	user:      "xiaomi",
 	password:  "12345",
@@ -548,7 +559,7 @@ var dc = DirectConnection{
 	addr:      "10.0.0.10:3306",
 }
 
-// If container service is ready, break the loop and continue.
+// If the container service is ready, break the loop and continue.
 LOOP:
 for i := 0; i < 10; i++ {
 	err = dc.connect()
@@ -556,14 +567,14 @@ for i := 0; i < 10; i++ {
 	time.Sleep(1 * time.Second)
 }
 
-// tear down container environment.
+// tear down the container environment.
 err = builder.TearDown(60 * time.Second)
 
-// I return the container environment for other goroutine or function to use it.
+// return the container environment for other goroutine or function to use it.
 err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
 ```
 
-go into the container inside to get more details.
+go into the container inside to make more tests.
 
 ```bash
 # go into the container inside.
