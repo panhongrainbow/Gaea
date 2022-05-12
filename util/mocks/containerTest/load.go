@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/XiaoMi/Gaea/util"
 	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd"
-	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run"
 	"io/ioutil"
 	"net"
 	"path/filepath"
@@ -13,70 +12,96 @@ import (
 	"strings"
 )
 
-// 进行介面的设置
+// >>>>> >>>>> >>>>> 获得所有的容器设定值
+// >>>>> >>>>> >>>>> get all containerd configs
 
 // Load 为用来执行容器服务
+// Load is used to run containerd
 type Load struct {
-	client map[string]run.Run
+	// prefix 表示容器服务的设定目录的路径
+	// prefix is the path of containerd configs
 	prefix string
 }
 
 // ContainerdPath 返回容器服务设定目录的路径
+// ContainerdPath returns the path of containerd configs.
 func (r *Load) ContainerdPath() string {
-	return filepath.Join(r.prefix, "containerd")
+	return filepath.Join(r.prefix, "containerd") // 在 prefix 下面的 containerd 目录 inside the containerd configs directory
 }
 
-// listContainerD 列出 ContainerD 的設定檔列表
+// listContainerD 列出 ContainerD 的設定檔列表, 有几個設定檔就有几個名稱
+// listContainerD lists the containerd configs，one config file match one name.
 func (r *Load) listContainerD() ([]string, error) {
-	path := r.ContainerdPath()
-
-	list := make([]string, 0)
-
-	files, err := ioutil.ReadDir(path)
+	// 在 containerd 目錄下面列出所有的設定檔列表
+	// list all configs in the containerd directory
+	files, err := ioutil.ReadDir(r.ContainerdPath())
 	if err != nil {
 		return nil, err
 	}
 
+	// 收集所有的設定檔名稱
+	// collect all the configs names
+	result := make([]string, 0)
 	for _, f := range files {
-		list = append(list, f.Name())
+		result = append(result, f.Name())
 	}
 
-	return list, nil
+	// 回传结果
+	// return the result
+	return result, nil
 }
 
 // loadContainerD 载入指定的設定檔轉成 ContainerD 設定值
+// loadContainerD converts the specified config file to ContainerD config
 func (r *Load) loadContainerD(file string) (containerd.ContainerD, error) {
-	path := r.ContainerdPath()
-	config := filepath.Join(path, file)
+	// 在 containerd 目錄下面列出所有的設定檔列表
+	// list all configs in the containerd directory
+	config := filepath.Join(r.ContainerdPath(), file)
 	b, err := ioutil.ReadFile(config)
 	if err != nil {
 		return containerd.ContainerD{}, err
 	}
-	c := containerd.ContainerD{}
-	err = json.Unmarshal(b, &c)
+
+	// 开始把設定檔轉成 ContainerD 設定值
+	// start converting the config to ContainerD config
+	result := containerd.ContainerD{}
+	err = json.Unmarshal(b, &result)
 	if err != nil {
 		return containerd.ContainerD{}, err
 	}
-	return c, nil
+
+	// 回传结果
+	// return the result
+	return result, nil
 }
 
 // loadAllContainerD 把所有的設定檔轉成 ContainerD 設定值
+// loadAllContainerD converts all the config files to ContainerD config
 func (r *Load) loadAllContainerD() (map[string]containerd.ContainerD, error) {
+	// 在 containerd 目錄下面列出所有的設定檔列表
+	// list all configs in the containerd directory
 	files, err := r.listContainerD()
 	if err != nil {
 		return nil, err
 	}
-	configs := make(map[string]containerd.ContainerD, len(files))
+
+	// 创建一个 map 存放所有的設定檔轉成 ContainerD 設定值
+	// create a map to store all the configs converted to ContainerD config
+	result := make(map[string]containerd.ContainerD, len(files))
 	for _, f := range files {
 		config, err := r.loadContainerD(f)
 		if err != nil {
 			return nil, err
 		}
-		configs[config.Name] = config
+		result[config.Name] = config
 	}
 
-	return configs, nil
+	// 回传结果
+	// return the result
+	return result, nil
 }
+
+// 以下为群姐容器设定方式，这次 PR 不送出 !
 
 // >>>>> >>>>> >>>>> 扩展容器服务的设定 extend the containerd config
 
@@ -84,6 +109,7 @@ func (r *Load) loadAllContainerD() (map[string]containerd.ContainerD, error) {
 // correctRange is used to correct the range string
 func correctRange(name string) string {
 	// 先修正字符串 fix the string
+	// 使用 To 当成预期的格式 use To as the expected format
 	name = strings.TrimSpace(name)
 	name = strings.Replace(name, "TO", "To", -1)
 	name = strings.Replace(name, "to", "To", -1)

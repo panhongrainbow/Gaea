@@ -10,25 +10,24 @@ import (
 
 // 测试容器设定文件的位罝 Test the container config file position.
 func TestContainerdPath(t *testing.T) {
-	r := Load{prefix: "./test/", client: nil}
+	r := Load{prefix: "./test/"}
 	path := r.ContainerdPath()
 	require.Equal(t, path, "test/containerd")
 }
 
 // 测试容器设定文件的数量和名称 Test the container config files' number and name.
 func TestListContainerD(t *testing.T) {
-	r := Load{prefix: "./example/", client: nil}
+	r := Load{prefix: "./example/"}
 	files, err := r.listContainerD()
 	require.Nil(t, err)
-	require.Equal(t, len(files), 3)
+	require.Equal(t, len(files), 2)
 	require.Contains(t, files, "defaults.json")
-	require.Contains(t, files, "group.json")
 	require.Contains(t, files, "mariadb.json")
 }
 
 // 测试容器设定文件的载入 Test the container config file loading.
 func TestLoadContainerD(t *testing.T) {
-	r := Load{prefix: "./example/", client: nil}
+	r := Load{prefix: "./example/"}
 	mariadb, err := r.loadContainerD("mariadb.json")
 	require.Nil(t, err)
 	require.Equal(t, mariadb.Name, "mariadb-server")
@@ -36,7 +35,7 @@ func TestLoadContainerD(t *testing.T) {
 
 // 测试所有容器设定文件的载入 Test all container config files loading.
 func TestLoadAllContainerD(t *testing.T) {
-	r := Load{prefix: "./example/", client: nil}
+	r := Load{prefix: "./example/"}
 	configs, err := r.loadAllContainerD()
 	require.Nil(t, err)
 	for key, value := range configs {
@@ -47,7 +46,7 @@ func TestLoadAllContainerD(t *testing.T) {
 // 扩展容器设定文件的载入 extend the container config file loading
 func TestLoadExtendContainerD(t *testing.T) {
 	// 先载入所有的容器设定文件 Load all container config files
-	r := Load{prefix: "./example/", client: nil}
+	r := Load{prefix: "./example/"}
 	configs, err := r.loadAllContainerD()
 	require.Nil(t, err)
 

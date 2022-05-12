@@ -1,24 +1,64 @@
 package containerTest
 
-// init 初始化 containerd 容器管理员服务 init is init function of containerd manager
+import (
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+const (
+	// DefaultConfigPath 預設的容器設定路径
+	// DefaultConfigPath is the default config path
+	DefaultConfigPath = "util/mocks/containerTest/example"
+)
+
+// init 初始化 containerd 容器管理员服务
+// init is init function of containerd manager
 func init() {
 	// 先开始辨判连接方式
+	// check the configuration.
 	if err := check(); err == nil {
+		// 初始化容器管理员服务
+		// init the containerd manager
 		if err := setup(); err != nil {
+			// 立即中断程序
+			// immediately exit the program
 			panic(err)
 		}
 	}
 }
 
-// Setup 连线测试的到取得资料库版本就为正确
+// setup 初始化容器管理员服务
+// setup is init function of containerd manager
 func setup() error {
-	var err error
-	// 连接到容器管理器 connect to the containerd manager.
-	Manager, err = NewContainderManager("./example/")
+	// 获得容器管理员服务配置
+	// get the containerd manager config
+	path, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	// 决定容器管理员服务配置路径
+	// decide the containerd manager config path
+	absolutePath := ""
+	if strings.Contains(path, "Gaea") {
+		absolutePath = filepath.Join(strings.Split(path, "Gaea")[0], "Gaea", DefaultConfigPath)
+	} else {
+		return errors.New("invalid config path")
+	}
+
+	// 连接到容器管理器，设定档在 Gaea (/home/panhong/go/src/github.com/panhongrainbow/Gaea/) 下的相对路径下 util/mocks/containerTest/example
+	// connect to the containerd manager. config file is in Gaea directory, relative path is util/mocks/containerTest/example.
+	Manager, err = NewContainderManager(absolutePath)
+
+	// 返回错误
+	// return the error
 	return err
 }
 
-// check 检查配置文件和环境是否正确 check is a function to check the config file and test environment are ok
+// check 检查配置文件和环境是否正确
+// check is a function to check the config file and test environment are ok
 func check() error {
 	return nil
 }

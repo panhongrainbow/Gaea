@@ -32,17 +32,28 @@ const (
 
 // Run 接口会容器對象，在這裡要可以直接操作容器 Run is an interface for containerd client to implement.
 type Run interface {
-	// Pull to Start 创建部份 create part
+	// >>>>> >>>>> >>>>> Pull to Start 创建部份 create part
+
+	// Pull 为容器的镜像下载 PullImage is to pull image for container.
 	Pull(client *containerd.Client, ctx context.Context, imageUrl string) (containerd.Image, error)
+
+	// Create 为创建容器 Create is to create container.
 	Create(client *containerd.Client, ctx context.Context, containerName string, networkNS string, imagePulled containerd.Image, snapShot string) (containerd.Container, error)
+	// Task 为创建容器的任务 CreateTask is to create task for container.
 	Task(container containerd.Container, ctx context.Context) (containerd.Task, error)
+	// Start 为容器启动 Start is to start container.
 	Start(task containerd.Task, ctx context.Context) error
 
-	// CheckService to CheckSchema 检查部份 check part
+	// >>>>> >>>>> >>>>> CheckService to CheckSchema 检查部份 check part
+
+	// CheckService 检查服务状态 CheckService is to check containerd service status.
 	CheckService(ctx context.Context, ipAddrPort string) error
+	// CheckSchema 检查数据库 Schema。 CheckSchema is to check containerd schema.
 	CheckSchema(ctx context.Context, ipAddrPort string) error
 
 	// Interrupt to Delete 销毁部份 destroy part
+	// Interrupt 为容器中断 Interrupt is to interrupt container.
 	Interrupt(task containerd.Task, ctx context.Context) error
+	// Delete 为容器删除 Delete is to delete container.
 	Delete(task containerd.Task, container containerd.Container, ctx context.Context) error
 }
