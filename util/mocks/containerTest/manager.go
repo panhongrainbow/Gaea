@@ -12,6 +12,12 @@ import (
 	"sync"
 )
 
+// IsEnabled 获取容器是否被启用
+// IsEnabled is to check container is enabled.
+func (cm *ContainerManager) IsEnabled() bool {
+	return cm.Enable
+}
+
 // 这次 PR 会把这里删除，不送出
 var (
 /*cmConfigFile = flag.String("cm", "./etc/containerd.ini", "containerd manager 配置")
@@ -188,4 +194,10 @@ func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc register
 	// 正常适放容器服务构建器
 	// release containerd builder
 	return nil
+}
+
+// GetIPAddrPort 获取容器的网络位置
+// GetIPAddrPort is used to get containerd's status.
+func (cm *ContainerManager) GetIPAddrPort(containerName string) string {
+	return cm.ContainerList[containerName].Cfg.IP
 }

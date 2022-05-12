@@ -11,6 +11,10 @@ const (
 	// DefaultConfigPath 預設的容器設定路径
 	// DefaultConfigPath is the default config path
 	DefaultConfigPath = "util/mocks/containerTest/example"
+
+	// 启用容器管理员服务
+	// enable the containerd manager
+	enableManager = false
 )
 
 // init 初始化 containerd 容器管理员服务
@@ -51,6 +55,10 @@ func setup() error {
 	// 连接到容器管理器，设定档在 Gaea (/home/panhong/go/src/github.com/panhongrainbow/Gaea/) 下的相对路径下 util/mocks/containerTest/example
 	// connect to the containerd manager. config file is in Gaea directory, relative path is util/mocks/containerTest/example.
 	Manager, err = NewContainderManager(absolutePath)
+
+	// 启用容器管理员服务
+	// enable the containerd manager
+	Manager.Enable = enableManager
 
 	// 返回错误
 	// return the error

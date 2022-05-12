@@ -11,12 +11,14 @@ import (
 	"time"
 )
 
-// Defaults 为预设容器配置项 default container configuration.
+// Defaults 为预设容器配置项
+// default container configuration.
 type Defaults struct {
-	debianVersion string // debain version. debian 版本
+	debianVersion string // Debian 版本 Debian version.
 }
 
-// 约定的接口 defined interface
+// 约定的接口
+// defined interface
 
 // >>>>> >>>>> >>>>> 创建部分 create part
 
@@ -89,9 +91,9 @@ func (d *Defaults) Create(client *containerd.Client, ctx context.Context, contai
 	// 建立一个新的预设容器
 	// create a default container.
 	return client.NewContainer(
-		ctx,                                                                                         // 序文 context.
-		containerName,                                                                               // 容器名称 container name.
-		containerd.WithImage(imagePulled),                                                           // 容器镜像 image.
+		ctx,                               // 序文 context.
+		containerName,                     // 容器名称 container name.
+		containerd.WithImage(imagePulled), // 容器镜像 image.
 		containerd.WithNewSnapshot(snapShot, imagePulled),                                           // 容器快照 snapshot.
 		containerd.WithNewSpec(oci.WithImageConfig(imagePulled), oci.WithLinuxNamespace(defaultNS)), // 容器配置 spec.
 	)
@@ -106,7 +108,7 @@ func (d *Defaults) Task(container containerd.Container, ctx context.Context) (co
 }
 
 // Start 为容器任务启动
-//Start is to start task.
+// Start is to start task.
 func (d *Defaults) Start(task containerd.Task, ctx context.Context) error {
 	// 开始执行容器工作
 	// start the task.
@@ -149,7 +151,7 @@ LOOP:
 	return nil
 }
 
-// >>>>> >>>>> >>>>> 检查部分
+// >>>>> >>>>> >>>>> 检查部分 check part
 
 // CheckService 为检查容器服务是否上线
 // CheckService is to check container service.
@@ -180,7 +182,7 @@ func (d *Defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
 	return nil
 }
 
-// >>>>> >>>>> >>>>> 删除部分
+// >>>>> >>>>> >>>>> 删除部分 delete part
 
 // Interrupt 为立刻停止容器任务
 // Interrupt is to stop task immediately.
