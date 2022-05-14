@@ -27,20 +27,20 @@ install Containerd components
 $ sudo apt-get update
 $ sudo apt-get install libseccomp2
 
-# download containerd package. current version is 1.6.2.
-$ wget https://github.com/containerd/containerd/releases/download/v1.6.2/cri-containerd-cni-1.6.2-linux-amd64.tar.gz
+# download containerd package. current version is 1.6.4.
+$ wget https://github.com/containerd/containerd/releases/download/v1.6.4/cri-containerd-cni-1.6.4-linux-amd64.tar.gz
 
 # cri-containerd-cni includes runc and internet components.
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep runc
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep runc
 usr/local/bin/containerd-shim-runc-v2
 usr/local/bin/containerd-shim-runc-v1
 usr/local/sbin/runc # runc is a CLI tool for running containers.
 
 # install Containerd
-$ sudo tar -C / -xzf cri-containerd-cni-1.6.2-linux-amd64.tar.gz
+$ sudo tar -C / -xzf cri-containerd-cni-1.6.4-linux-amd64.tar.gz
 
 # check the existence of Systemd config.
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep containerd.service
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep containerd.service
 etc/systemd/system/containerd.service # Systemd config.
 
 # start Containerd Service.
@@ -49,7 +49,7 @@ $ sudo systemctl enable --now containerd.service # start Containerd service at b
 $ sudo systemctl start containerd.service # start Containerd service.
 
 # check the existence of ctr cli tool.
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep ctr
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep ctr
 usr/local/bin/ctr # ctr cli tool.
 
 # test ctr cli tool.
@@ -63,7 +63,7 @@ set up Containerd plugins
 
 ```bash
 # check the existence of cni component.
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep opt/cni
 # The result is displayed as follows.
 # opt/cni/
 # opt/cni/bin/
@@ -85,7 +85,7 @@ $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
 # opt/cni/bin/dhcp
 
 # does not have config.toml config
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep config.toml # does not contain config file.
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep config.toml # does not contain config file.
 
 # Containerd cli tool
 $ which containerd

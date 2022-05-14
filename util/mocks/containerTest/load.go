@@ -5,12 +5,42 @@ import (
 	"fmt"
 	"github.com/XiaoMi/Gaea/util"
 	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd"
+	"github.com/go-ini/ini"
 	"io/ioutil"
 	"net"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
+
+// >>>>> >>>>> >>>>> >>>>>> 载入 Containerd 初始配置
+// >>>>> >>>>> >>>>> >>>>>> Load Containerd initial config
+
+// ContainerIniConfig 为容器设定的初始配置
+// ContainerIniConfig is the initial config for the container
+type ContainerIniConfig struct {
+	// config type
+	ContainerTestEnable string `ini:"container_test_enable"`
+}
+
+// ParseContainerConfigFromFile 从档案获取容器初始配置
+// ParseContainerConfigFromFile gets the container initial config from the file
+func ParseContainerConfigFromFile(cfgFile string) (*ContainerIniConfig, error) {
+	cfg, err := ini.Load(cfgFile)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var containerIniConfig = &ContainerIniConfig{}
+	err = cfg.MapTo(containerIniConfig)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return containerIniConfig, err
+}
 
 // >>>>> >>>>> >>>>> 获得所有的容器设定值
 // >>>>> >>>>> >>>>> get all containerd configs
@@ -29,7 +59,7 @@ func (r *Load) ContainerdPath() string {
 	return filepath.Join(r.prefix, "containerd") // 在 prefix 下面的 containerd 目录 inside the containerd configs directory
 }
 
-// listContainerD 列出 ContainerD 的設定檔列表, 有几個設定檔就有几個名稱
+// listContainerD 列出 ContainerConfig 的設定檔列表, 有几個設定檔就有几個名稱
 // listContainerD lists the containerd configs，one config file match one name.
 func (r *Load) listContainerD() ([]string, error) {
 	// 在 containerd 目錄下面列出所有的設定檔列表
@@ -51,23 +81,23 @@ func (r *Load) listContainerD() ([]string, error) {
 	return result, nil
 }
 
-// loadContainerD 载入指定的設定檔轉成 ContainerD 設定值
-// loadContainerD converts the specified config file to ContainerD config
-func (r *Load) loadContainerD(file string) (containerd.ContainerD, error) {
+// loadContainerD 载入指定的設定檔轉成 ContainerConfig 設定值
+// loadContainerD converts the specified config file to ContainerConfig config
+func (r *Load) loadContainerD(file string) (containerd.ContainerConfig, error) {
 	// 在 containerd 目錄下面列出所有的設定檔列表
 	// list all configs in the containerd directory
 	config := filepath.Join(r.ContainerdPath(), file)
 	b, err := ioutil.ReadFile(config)
 	if err != nil {
-		return containerd.ContainerD{}, err
+		return containerd.ContainerConfig{}, err
 	}
 
-	// 开始把設定檔轉成 ContainerD 設定值
-	// start converting the config to ContainerD config
-	result := containerd.ContainerD{}
+	// 开始把設定檔轉成 ContainerConfig 設定值
+	// start converting the config to ContainerConfig config
+	result := containerd.ContainerConfig{}
 	err = json.Unmarshal(b, &result)
 	if err != nil {
-		return containerd.ContainerD{}, err
+		return containerd.ContainerConfig{}, err
 	}
 
 	// 回传结果
@@ -75,9 +105,9 @@ func (r *Load) loadContainerD(file string) (containerd.ContainerD, error) {
 	return result, nil
 }
 
-// loadAllContainerD 把所有的設定檔轉成 ContainerD 設定值
-// loadAllContainerD converts all the config files to ContainerD config
-func (r *Load) loadAllContainerD() (map[string]containerd.ContainerD, error) {
+// loadAllContainerD 把所有的設定檔轉成 ContainerConfig 設定值
+// loadAllContainerD converts all the config files to ContainerConfig config
+func (r *Load) loadAllContainerD() (map[string]containerd.ContainerConfig, error) {
 	// 在 containerd 目錄下面列出所有的設定檔列表
 	// list all configs in the containerd directory
 	files, err := r.listContainerD()
@@ -85,9 +115,9 @@ func (r *Load) loadAllContainerD() (map[string]containerd.ContainerD, error) {
 		return nil, err
 	}
 
-	// 创建一个 map 存放所有的設定檔轉成 ContainerD 設定值
-	// create a map to store all the configs converted to ContainerD config
-	result := make(map[string]containerd.ContainerD, len(files))
+	// 创建一个 map 存放所有的設定檔轉成 ContainerConfig 設定值
+	// create a map to store all the configs converted to ContainerConfig config
+	result := make(map[string]containerd.ContainerConfig, len(files))
 	for _, f := range files {
 		config, err := r.loadContainerD(f)
 		if err != nil {
@@ -212,7 +242,7 @@ func extendContainerIP(ipStr string) ([]string, error) {
 	return ips, nil
 }
 
-func extendContainerConfig(config containerd.ContainerD) ([]containerd.ContainerD, error) {
+func extendContainerConfig(config containerd.ContainerConfig) ([]containerd.ContainerConfig, error) {
 
 	// names
 	names, err := extendContainerName(config.Name)
@@ -225,10 +255,10 @@ func extendContainerConfig(config containerd.ContainerD) ([]containerd.Container
 	// snapshot
 	snapshots, err := extendContainerName(config.SnapShot)
 
-	extendConfigs := make([]containerd.ContainerD, len(names))
+	extendConfigs := make([]containerd.ContainerConfig, len(names))
 
 	for i, name := range names {
-		extendConfigs[i] = containerd.ContainerD{
+		extendConfigs[i] = containerd.ContainerConfig{
 			Sock:      config.Sock,
 			Type:      config.Type,
 			Name:      name,

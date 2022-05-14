@@ -15,8 +15,8 @@ import (
 // >>>>> >>>>> >>>>> contianerd 客户端的设置结构体
 // ContainerdClient's config struct.
 
-// ContainerD 为 Containerd 容器服务所要 Parse 对应的内容
-type ContainerD struct {
+// ContainerConfig 为 Containerd 容器服务所要 Parse 对应的内容
+type ContainerConfig struct {
 	Sock      string `json:"sock"`      // 容器服务在 Linux 的连接位置 the connection location of the container service.
 	Type      string `json:"type"`      // 容器服务类型 the type of the container service.
 	Name      string `json:"name"`      // 容器服务名称 the name of the container service.
@@ -33,13 +33,13 @@ type ContainerD struct {
 
 // NewBuilder 为建立一个新的 Builder 接口
 // NewBuilder is a function to create a new Builder interface.
-func NewBuilder(cfg ContainerD) (builder.Builder, error) {
+func NewBuilder(cfg ContainerConfig) (builder.Builder, error) {
 	return NewContainerdClient(cfg)
 }
 
 // NewContainerdClient 为新建容器服务的客户端
 // NewContainerdClient is a function to create a new containerd client.
-func NewContainerdClient(cfg ContainerD) (*ContainerdClient, error) {
+func NewContainerdClient(cfg ContainerConfig) (*ContainerdClient, error) {
 	// >>>>> >>>>> >>>>> 决定容器服务的连接 sock 对象
 	// >>>>> >>>>> >>>>> decide the sock.
 

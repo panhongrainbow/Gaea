@@ -22,20 +22,20 @@
 $ sudo apt-get update
 $ sudo apt-get install libseccomp2
 
-# 下载 Containerd 套件，目前最新版本为 1.6.2 版
-$ wget https://github.com/containerd/containerd/releases/download/v1.6.2/cri-containerd-cni-1.6.2-linux-amd64.tar.gz
+# 下载 Containerd 套件，目前最新版本为 1.6.4 版
+$ wget https://github.com/containerd/containerd/releases/download/v1.6.4/cri-containerd-cni-1.6.4-linux-amd64.tar.gz
 
 # 这份压缩包含 Containerd 运行时所需要的 runc 
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep runc
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep runc
 usr/local/bin/containerd-shim-runc-v2
 usr/local/bin/containerd-shim-runc-v1
 usr/local/sbin/runc # 存在
 
 # 进行安装整个 Containerd
-$ sudo tar -C / -xzf cri-containerd-cni-1.6.2-linux-amd64.tar.gz
+$ sudo tar -C / -xzf cri-containerd-cni-1.6.4-linux-amd64.tar.gz
 
 # 检查 Systemd 设定档是否存在
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep containerd.service
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep containerd.service
 etc/systemd/system/containerd.service # 存在
 
 # 启动 Containerd 服务
@@ -45,7 +45,7 @@ $ sudo systemctl start containerd.service # 启动 Containerd 服务
 
 
 # 检查 ctr 指令是否存在
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep ctr
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep ctr
 usr/local/bin/ctr # 存在
 
 # 执行 ctr 指令进行简易测试
@@ -57,7 +57,7 @@ $ ctr container list
 
 ```bash
 # 检查 cni 组件是否存在
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep opt/cni
 # 会显示以下内容
 # opt/cni/
 # opt/cni/bin/
@@ -79,7 +79,7 @@ $ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep opt/cni
 # opt/cni/bin/dhcp
 
 # 产生 config.toml 设置
-$ tar -tf cri-containerd-cni-1.6.2-linux-amd64.tar.gz | grep config.toml # 压缩包未含设定档
+$ tar -tf cri-containerd-cni-1.6.4-linux-amd64.tar.gz | grep config.toml # 压缩包未含设定档
 $ containerd config default > /etc/containerd/config.toml # 用命令产生预设文档
 ```
 

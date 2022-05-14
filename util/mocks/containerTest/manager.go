@@ -38,11 +38,11 @@ type ContainerManager struct {
 // ContainerList 容器服务列表
 // ContainerList is used to list containerd clients.
 type ContainerList struct {
-	NetworkLock sync.Locker           // 容器服务网络锁 containerd network lock
-	Cfg         containerd.ContainerD // 容器服务配置 containerd config
-	Builder     builder.Builder       // 容器服务构建器 containerd builder
-	User        string                // 用户名称 User name
-	Status      int                   // 容器服务状态 containerd status
+	NetworkLock sync.Locker                // 容器服务网络锁 containerd network lock
+	Cfg         containerd.ContainerConfig // 容器服务配置 containerd config
+	Builder     builder.Builder            // 容器服务构建器 containerd builder
+	User        string                     // 用户名称 User name
+	Status      int                        // 容器服务状态 containerd status
 }
 
 // NewContainderManager 新建容器服务管理員

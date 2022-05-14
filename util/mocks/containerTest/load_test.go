@@ -51,7 +51,7 @@ func TestLoadExtendContainerD(t *testing.T) {
 	require.Nil(t, err)
 
 	//
-	tmp := make([]containerd.ContainerD, 0)
+	tmp := make([]containerd.ContainerConfig, 0)
 	for key, value := range configs {
 		if strings.Contains(key, "{") {
 			extendConfig, err := extendContainerConfig(value)

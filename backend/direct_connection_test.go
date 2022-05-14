@@ -15,8 +15,6 @@ package backend
 
 import (
 	"bytes"
-	"github.com/XiaoMi/Gaea/log"
-	"github.com/XiaoMi/Gaea/log/xlog"
 	"github.com/XiaoMi/Gaea/mysql"
 	"github.com/XiaoMi/Gaea/util/mocks/containerTest"
 	"github.com/XiaoMi/Gaea/util/mocks/pipeTest"
@@ -307,31 +305,9 @@ func TestDirectConnWithDB(t *testing.T) {
 	wg.Wait()
 }
 
-func initXLog() error {
-	cfg := make(map[string]string)
-	cfg["path"] = "./log/"
-	cfg["filename"] = "test"
-	cfg["level"] = "debug"
-	cfg["service"] = "test"
-	cfg["skip"] = "5" // 设置xlog打印方法堆栈需要跳过的层数, 5目前为调用log.Debug()等方法的方法名, 比xlog默认值多一层.
-
-	logger, err := xlog.CreateLogManager("file", cfg)
-	if err != nil {
-		return err
-	}
-
-	log.SetGlobalLogger(logger)
-	return nil
-}
-
 // TestContainersInterference 確認管理的容器之間不互相干擾
 // TestContainersInterference is checking interference of the container management and multi container.
 func TestContainersInterference(t *testing.T) {
-	/*err := initXLog()
-	if err != nil {
-		return
-	}*/
-
 	// 确认管理容器是否被启用
 	// check if the container is enabled.
 	if !containerTest.Manager.IsEnabled() {
