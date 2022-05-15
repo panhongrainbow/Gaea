@@ -35,7 +35,7 @@ func init() {
 func check() error {
 	// 如果容器管理员服务已经载入，则直接返回
 	// if the containerd manager is loaded, then return directly.
-	if Manager != nil {
+	if manager != nil {
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func check() error {
 	// 启用容器管理员服务
 	// enable the containerd manager
 	if iniCfg.ContainerTestEnable != "true" {
-		Manager.Enable = enableManager
+		manager.Enable = enableManager
 		return errors.New("containerd manager is not enabled")
 	}
 
@@ -70,14 +70,14 @@ func setup() error {
 
 	// 连接到容器管理器，设定档在 Gaea (/home/panhong/go/src/github.com/panhongrainbow/Gaea/) 下的相对路径下 util/mocks/containerTest/example
 	// connect to the containerd manager. config file is in Gaea directory, relative path is util/mocks/containerTest/example.
-	Manager, err = NewContainderManager(absPath)
+	manager, err = NewContainderManager(absPath)
 	if err != nil {
 		return err
 	}
 
 	// 启用容器管理员服务
 	// enable the containerd manager
-	Manager.Enable = true
+	manager.Enable = true
 
 	// 初始化容器管理员服务
 	// init the containerd manager

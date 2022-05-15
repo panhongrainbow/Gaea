@@ -25,7 +25,7 @@ var (
   DefaultConfigPath = "./etc/containerd/"*/
 )
 
-var Manager *ContainerManager
+var manager *ContainerManager
 
 // ContainerManager 容器服务管理員
 // ContainerManager is used to manage Containerd.
@@ -43,6 +43,30 @@ type ContainerList struct {
 	Builder     builder.Builder            // 容器服务构建器 containerd builder
 	User        string                     // 用户名称 User name
 	Status      int                        // 容器服务状态 containerd status
+}
+
+// IsEnable 获取容器是否被启用
+// IsEnable is to check container is enabled.
+func IsEnable() bool {
+	return manager.IsEnabled()
+}
+
+// GetBuilder 获取容器服务构建器
+// GetBuilder is used to get containerd builder.
+func GetBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
+	return manager.GetBuilder(containerName, regFunc)
+}
+
+// ReturnBuilder 适放容器服务构建器
+// ReturnBuilder is used to release containerd builder.
+func ReturnBuilder(containerName string, regFunc registerFunc) error {
+	return manager.ReturnBuilder(containerName, regFunc)
+}
+
+// GetIPAddrPort 获取容器的网络位置
+// GetIPAddrPort is used to get containerd's status.
+func GetIPAddrPort(containerName string) string {
+	return manager.ContainerList[containerName].Cfg.IP
 }
 
 // NewContainderManager 新建容器服务管理員
@@ -171,7 +195,8 @@ func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFun
 	return cm.ContainerList[containerName].Builder, nil
 }
 
-// ReturnBuilder 适放容器服务构建器 ReturnBuilder is used to release containerd builder.
+// ReturnBuilder 适放容器服务构建器
+// ReturnBuilder is used to release containerd builder.
 func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc registerFunc) error {
 	if regFunc == nil {
 		regFunc = defaultRegFunction

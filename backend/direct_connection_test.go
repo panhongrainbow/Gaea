@@ -206,7 +206,7 @@ func TestDefaultContainer(t *testing.T) {
 			}
 
 			// 取得 builder 对象 get builder object.
-			builder, err := containerTest.Manager.GetBuilder("default-server", regFunc)
+			builder, err := containerTest.GetBuilder("default-server", regFunc)
 			assert.Nil(t, err)
 
 			// 创建部份 create part
@@ -222,7 +222,7 @@ func TestDefaultContainer(t *testing.T) {
 			assert.Nil(t, err)
 
 			// 归还 builder 部份 return builder part
-			err = containerTest.Manager.ReturnBuilder("default-server", regFunc)
+			err = containerTest.ReturnBuilder("default-server", regFunc)
 			require.Nil(t, err)
 
 			// 协程完成 goroutine complete.
@@ -251,7 +251,7 @@ func TestDirectConnWithDB(t *testing.T) {
 
 			// 取得 builder 对象去控制容器环境
 			// get builder object to control container environment.
-			builder, err := containerTest.Manager.GetBuilder("mariadb-server",
+			builder, err := containerTest.GetBuilder("mariadb-server",
 				func() string {
 					return containerTest.AppendCurrentFunction(3, "-mariadb-"+strconv.Itoa(j))
 				},
@@ -271,11 +271,11 @@ func TestDirectConnWithDB(t *testing.T) {
 				// 产生直连对象 Create dc connection.
 				var dc = DirectConnection{
 					// login to the mariadb. 登入数据库
-					user:      "xiaomi",                                              // user 帐户名称
-					password:  "12345",                                               // password 密码
-					charset:   "utf8mb4",                                             // charset 数据库编码
-					collation: 46,                                                    // collation 文本排序
-					addr:      containerTest.Manager.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
+					user:      "xiaomi",                                      // user 帐户名称
+					password:  "12345",                                       // password 密码
+					charset:   "utf8mb4",                                     // charset 数据库编码
+					collation: 46,                                            // collation 文本排序
+					addr:      containerTest.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
 				}
 			LOOP:
 				// 建立新的数据库连线 create a new connection to the mariadb.
@@ -294,7 +294,7 @@ func TestDirectConnWithDB(t *testing.T) {
 			assert.Nil(t, err)
 
 			// 归还 builder 部份 return builder part
-			err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+			err = containerTest.ReturnBuilder("mariadb-server", regFunc)
 			require.Nil(t, err)
 
 			// 协程完成 goroutine complete.
@@ -310,7 +310,7 @@ func TestDirectConnWithDB(t *testing.T) {
 func TestContainersInterference(t *testing.T) {
 	// 确认管理容器是否被启用
 	// check if the container is enabled.
-	if containerTest.Manager.IsEnabled() == false {
+	if containerTest.IsEnable() == false {
 		return
 	}
 
@@ -328,7 +328,7 @@ func TestContainersInterference(t *testing.T) {
 				}
 
 				// 取得 builder 对象 get builder object.
-				builder, err := containerTest.Manager.GetBuilder("default-server", regFunc)
+				builder, err := containerTest.GetBuilder("default-server", regFunc)
 				assert.Nil(t, err)
 
 				// 创建部份 create part
@@ -344,7 +344,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 归还 builder 部份 return builder part
-				err = containerTest.Manager.ReturnBuilder("default-server", regFunc)
+				err = containerTest.ReturnBuilder("default-server", regFunc)
 				require.Nil(t, err)
 
 				// 协程完成 goroutine complete.
@@ -366,7 +366,7 @@ func TestContainersInterference(t *testing.T) {
 				}
 
 				// 取得 builder 对象 get builder object.
-				builder, err := containerTest.Manager.GetBuilder("mariadb-server", regFunc)
+				builder, err := containerTest.GetBuilder("mariadb-server", regFunc)
 				assert.Nil(t, err)
 
 				// 创建部份 create part
@@ -382,11 +382,11 @@ func TestContainersInterference(t *testing.T) {
 					// 产生直连对象 Create dc connection.
 					var dc = DirectConnection{
 						// login to the mariadb. 登入数据库
-						user:      "xiaomi",                                              // user 帐户名称
-						password:  "12345",                                               // password 密码
-						charset:   "utf8mb4",                                             // charset 数据库编码
-						collation: 46,                                                    // collation 文本排序
-						addr:      containerTest.Manager.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
+						user:      "xiaomi",                                      // user 帐户名称
+						password:  "12345",                                       // password 密码
+						charset:   "utf8mb4",                                     // charset 数据库编码
+						collation: 46,                                            // collation 文本排序
+						addr:      containerTest.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
 					}
 				LOOP:
 					// 建立新的数据库连线 create a new connection to the mariadb.
@@ -405,7 +405,7 @@ func TestContainersInterference(t *testing.T) {
 				assert.Nil(t, err)
 
 				// 归还 builder 部份 return builder part
-				err = containerTest.Manager.ReturnBuilder("mariadb-server", regFunc)
+				err = containerTest.ReturnBuilder("mariadb-server", regFunc)
 				require.Nil(t, err)
 
 				// 协程完成 goroutine complete.

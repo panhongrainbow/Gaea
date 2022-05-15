@@ -37,12 +37,12 @@ func TestManager(t *testing.T) {
 func BenchmarkContainerdManager_Lock(b *testing.B) {
 	return
 	for i := 0; i < b.N; i++ {
-		_, err := Manager.GetBuilder("mariadb-server", nil)
+		_, err := manager.GetBuilder("mariadb-server", nil)
 		if err != nil {
 			panic(err)
 		}
 		if err == nil {
-			err = Manager.ReturnBuilder("mariadb-server", nil)
+			err = manager.ReturnBuilder("mariadb-server", nil)
 			if err != nil {
 				panic(err)
 			}
