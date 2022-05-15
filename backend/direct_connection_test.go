@@ -268,14 +268,19 @@ func TestDirectConnWithDB(t *testing.T) {
 
 			// 进行测试 testing
 			if err == nil {
+				// 获得容器对象的网路位置
+				// get the container object's network location.
+				ipAddrPort, err := containerTest.GetIPAddrPort("mariadb-server")
+				require.Nil(t, err)
+
 				// 产生直连对象 Create dc connection.
 				var dc = DirectConnection{
 					// login to the mariadb. 登入数据库
-					user:      "xiaomi",                                      // user 帐户名称
-					password:  "12345",                                       // password 密码
-					charset:   "utf8mb4",                                     // charset 数据库编码
-					collation: 46,                                            // collation 文本排序
-					addr:      containerTest.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
+					user:      "xiaomi",   // user 帐户名称
+					password:  "12345",    // password 密码
+					charset:   "utf8mb4",  // charset 数据库编码
+					collation: 46,         // collation 文本排序
+					addr:      ipAddrPort, // mariadb 的 IP 地址
 				}
 			LOOP:
 				// 建立新的数据库连线 create a new connection to the mariadb.
@@ -379,14 +384,19 @@ func TestContainersInterference(t *testing.T) {
 
 				// 进行测试 testing
 				if err == nil {
+					// 获得容器对象的网路位置
+					// get the container object's network location.
+					ipAddrPort, err := containerTest.GetIPAddrPort("mariadb-server")
+					require.Nil(t, err)
+
 					// 产生直连对象 Create dc connection.
 					var dc = DirectConnection{
 						// login to the mariadb. 登入数据库
-						user:      "xiaomi",                                      // user 帐户名称
-						password:  "12345",                                       // password 密码
-						charset:   "utf8mb4",                                     // charset 数据库编码
-						collation: 46,                                            // collation 文本排序
-						addr:      containerTest.GetIPAddrPort("mariadb-server"), // mariadb 的 IP 地址
+						user:      "xiaomi",   // user 帐户名称
+						password:  "12345",    // password 密码
+						charset:   "utf8mb4",  // charset 数据库编码
+						collation: 46,         // collation 文本排序
+						addr:      ipAddrPort, // mariadb 的 IP 地址
 					}
 				LOOP:
 					// 建立新的数据库连线 create a new connection to the mariadb.

@@ -583,3 +583,176 @@ $ ctr -n default task exec -t --exec-id mariadb-server mariadb-server sh
 # get more details or make more tests.
 $ mysql -h 10.0.0.10 -P 3306 -u root -p
 ```
+
+## Container test operation
+
+### Enable container manager
+
+To use this method to enable **container manager**
+
+The config file is *located on* **Gaea/util/mocks/containerTest/etc/containerTest.ini**.
+
+1. to make container manager **disable**
+
+   ```ini
+   ; disable
+   container_test_enable=false
+   ```
+
+   to make container manager **enable**
+
+   ```ini
+   ; enable
+   container_test_enable=true # must be lower case
+   ```
+
+### Check logs when disabling container manager
+
+Run the below commands
+
+1. To **disable** container manager first
+
+   ```ini
+   ; disable
+   container_test_enable=fasle
+   ```
+
+2. To run test
+
+   ```bash
+   # go into the Gaea folder
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+   
+   # run test
+   $ make test
+   # The result is displayed as follows.
+   # ok      github.com/XiaoMi/Gaea/util/timer       0.671s  coverage: 96.2% of statements
+   # go tool cover -func=.coverage.out -o .coverage.func
+   # tail -1 .coverage.func
+   # total:                                                                                                  (statements)                                            58.2%
+   # go tool cover -html=.coverage.out -o .coverage.html
+   ```
+
+3. To check log
+
+   ```bash
+   # go into the log folder
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea/util/mocks/containerTest/logs
+   
+   $ ls
+   # no log files
+   ```
+
+### Check logs when enabling container manager
+
+Run the below commands
+
+1. To **enable** container manager first
+
+   ```ini
+   ; enable
+   container_test_enable=true
+   ```
+
+2. To run test
+
+   ```bash
+   # go into the Gaea folder
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+   
+   # run test
+   $ make test
+   # The result is displayed as follows.
+   # go tool cover -func=.coverage.out -o .coverage.func
+   # tail -1 .coverage.func
+   # total:                                                                                                  (statements)                                            58.4%
+   # go tool cover -html=.coverage.out -o .coverage.html
+   ```
+
+3. To check log
+
+   ````bash
+   # go into the log folder
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea/util/mocks/containerTest/logs
+   
+   $ ls
+   # There are some log files generated.
+   # containerTest2022-05-15-22-36-00.log  containerTest2022-05-15-22-36-00.log.wf  containerTest2022-05-15-22-36-06.log  containerTest2022-05-15-22-36-06.log.wf
+   
+   $ cat containerTest2022-05-15-22-36-00.log
+   # 日志内容如下
+   # [2022-05-15 22:36:00] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-mariadb-1 occupies mariadb-server
+   
+   # [2022-05-15 22:36:00] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-default-1 occupies default-server
+   
+   # [2022-05-15 22:36:09] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases default-server
+   
+   # [2022-05-15 22:36:09] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-default-0 occupies default-server
+   
+   # [2022-05-15 22:36:12] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases mariadb-server
+   
+   # [2022-05-15 22:36:12] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-mariadb-0 occupies mariadb-server
+   
+   # [2022-05-15 22:36:17] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases default-server
+   
+   # [2022-05-15 22:36:21] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases mariadb-server
+   ````
+
+### Reset Containerd environment
+
+Run the below commands
+
+```bash
+# stop all container task
+$ ctr -n default task kill -s SIGKILL default
+$ ctr -n mariadb task kill -s SIGKILL mariadb-server
+
+# rm all container task
+$ ctr -n default task rm default
+$ ctr -n mariadb task rm mariadb-server
+
+# wipe out container folder inside
+$ rm -rf /var/lib/containerd/*
+
+# restart container service
+$ systemctl restart containerd.service
+```
+
+### Reset Containerd network
+
+create the script **init_cni.sh**
+
+```bash
+#!/bin/bash
+
+# enable firewall forward
+iptables -P FORWARD ACCEPT
+
+# remove network
+cnitool del gaea-default /var/run/netns/gaea-default
+cnitool del gaea-etcd /var/run/netns/gaea-etcd
+cnitool del gaea-mariadb /var/run/netns/gaea-mariadb
+
+# remove namespace
+ip netns del gaea-default
+ip netns del gaea-etcd
+ip netns del gaea-mariadb
+
+# create namespace
+ip netns add gaea-default
+ip netns add gaea-etcd
+ip netns add gaea-mariadb
+
+# create network
+export CNI_PATH=/opt/cni/bin
+cnitool add gaea-default /var/run/netns/gaea-default
+cnitool add gaea-etcd /var/run/netns/gaea-etcd
+cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
+```
+
+Run the below commands
+
+```bash
+# reset container network
+$ sh init_cni.sh
+```

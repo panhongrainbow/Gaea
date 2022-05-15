@@ -12,20 +12,12 @@ import (
 	"sync"
 )
 
-// IsEnabled 获取容器是否被启用
-// IsEnabled is to check container is enabled.
-func (cm *ContainerManager) IsEnabled() bool {
-	return cm.Enable
-}
-
 // 这次 PR 会把这里删除，不送出
 var (
 /*cmConfigFile = flag.String("cm", "./etc/containerd.ini", "containerd manager 配置")
   // DefaultConfigPath 預設的容器設定路徑
   DefaultConfigPath = "./etc/containerd/"*/
 )
-
-var manager *ContainerManager
 
 // ContainerManager 容器服务管理員
 // ContainerManager is used to manage Containerd.
@@ -43,30 +35,6 @@ type ContainerList struct {
 	Builder     builder.Builder            // 容器服务构建器 containerd builder
 	User        string                     // 用户名称 User name
 	Status      int                        // 容器服务状态 containerd status
-}
-
-// IsEnable 获取容器是否被启用
-// IsEnable is to check container is enabled.
-func IsEnable() bool {
-	return manager.IsEnabled()
-}
-
-// GetBuilder 获取容器服务构建器
-// GetBuilder is used to get containerd builder.
-func GetBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
-	return manager.GetBuilder(containerName, regFunc)
-}
-
-// ReturnBuilder 适放容器服务构建器
-// ReturnBuilder is used to release containerd builder.
-func ReturnBuilder(containerName string, regFunc registerFunc) error {
-	return manager.ReturnBuilder(containerName, regFunc)
-}
-
-// GetIPAddrPort 获取容器的网络位置
-// GetIPAddrPort is used to get containerd's status.
-func GetIPAddrPort(containerName string) string {
-	return manager.ContainerList[containerName].Cfg.IP
 }
 
 // NewContainderManager 新建容器服务管理員
@@ -166,9 +134,15 @@ func checkDir(path string) error {
 	return nil
 }
 
-// GetBuilder 获取容器服务构建器
-// GetBuilder is used to get containerd builder.
-func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
+// isEnabled 获取容器是否被启用
+// isEnabled is to check container is enabled.
+func (cm *ContainerManager) isEnabled() bool {
+	return cm.Enable
+}
+
+// getBuilder 获取容器服务构建器
+// getBuilder is used to get containerd builder.
+func (cm *ContainerManager) getBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
 	// 判断容器服务是否存在，不存在則使用默认的注册函数
 	// check containerd is existed, if not, use default register's function
 	if regFunc == nil {
@@ -195,9 +169,9 @@ func (cm *ContainerManager) GetBuilder(containerName string, regFunc registerFun
 	return cm.ContainerList[containerName].Builder, nil
 }
 
-// ReturnBuilder 适放容器服务构建器
-// ReturnBuilder is used to release containerd builder.
-func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc registerFunc) error {
+// returnBuilder 适放容器服务构建器
+// returnBuilder is used to release containerd builder.
+func (cm *ContainerManager) returnBuilder(containerName string, regFunc registerFunc) error {
 	if regFunc == nil {
 		regFunc = defaultRegFunction
 	}
@@ -221,8 +195,8 @@ func (cm *ContainerManager) ReturnBuilder(containerName string, regFunc register
 	return nil
 }
 
-// GetIPAddrPort 获取容器的网络位置
-// GetIPAddrPort is used to get containerd's status.
-func (cm *ContainerManager) GetIPAddrPort(containerName string) string {
+// getIPAddrPort 获取容器的网络位置
+// getIPAddrPort is used to get containerd's status.
+func (cm *ContainerManager) getIPAddrPort(containerName string) string {
 	return cm.ContainerList[containerName].Cfg.IP
 }

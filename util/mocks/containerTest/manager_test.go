@@ -18,7 +18,7 @@ func TestManager(t *testing.T) {
 
 	// 取得容器服务管理員的容器服务创建管理器
 	// get the container manager builder
-	builder, err := mgr.GetBuilder("mariadb-server", nil)
+	builder, err := mgr.getBuilder("mariadb-server", nil)
 	require.Nil(t, err)
 
 	// 获得创建容器服务
@@ -37,12 +37,12 @@ func TestManager(t *testing.T) {
 func BenchmarkContainerdManager_Lock(b *testing.B) {
 	return
 	for i := 0; i < b.N; i++ {
-		_, err := manager.GetBuilder("mariadb-server", nil)
+		_, err := manager.getBuilder("mariadb-server", nil)
 		if err != nil {
 			panic(err)
 		}
 		if err == nil {
-			err = manager.ReturnBuilder("mariadb-server", nil)
+			err = manager.returnBuilder("mariadb-server", nil)
 			if err != nil {
 				panic(err)
 			}

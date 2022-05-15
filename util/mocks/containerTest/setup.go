@@ -2,6 +2,7 @@ package containerTest
 
 import (
 	"errors"
+	"github.com/XiaoMi/Gaea/util/mocks/containerTest/builder"
 )
 
 const (
@@ -13,6 +14,35 @@ const (
 	// enable the containerd manager
 	enableManager = false
 )
+
+var manager *ContainerManager
+
+// IsEnable 获取容器是否被启用
+// IsEnable is to check container is enabled.
+func IsEnable() bool {
+	return manager.isEnabled()
+}
+
+// GetBuilder 获取容器服务构建器
+// GetBuilder is used to get containerd builder.
+func GetBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
+	return manager.getBuilder(containerName, regFunc)
+}
+
+// ReturnBuilder 适放容器服务构建器
+// ReturnBuilder is used to release containerd builder.
+func ReturnBuilder(containerName string, regFunc registerFunc) error {
+	return manager.returnBuilder(containerName, regFunc)
+}
+
+// GetIPAddrPort 获取容器的网络位置
+// GetIPAddrPort is used to get containerd's status.
+func GetIPAddrPort(containerName string) (string, error) {
+	if value, ok := manager.ContainerList[containerName]; ok == true {
+		return value.Cfg.IP, nil
+	}
+	return "", errors.New("container not found")
+}
 
 // init 初始化 containerd 容器管理员服务
 // init is init function of containerd manager
@@ -49,6 +79,7 @@ func check() error {
 	// 启用容器管理员服务
 	// enable the containerd manager
 	if iniCfg.ContainerTestEnable != "true" {
+		manager = new(ContainerManager)
 		manager.Enable = enableManager
 		return errors.New("containerd manager is not enabled")
 	}

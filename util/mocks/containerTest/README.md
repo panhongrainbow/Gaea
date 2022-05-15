@@ -499,7 +499,7 @@ $ buildah bud -t mariadb:testing .
 $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrainbow/mariadb:testing --dest-creds panhongrainbow:<token>
 ```
 
-## 单元测试触发代码
+## 容器单元测试触发代码
 
 ### 运作说明
 
@@ -571,3 +571,170 @@ $ ctr -n default task exec -t --exec-id mariadb-server mariadb-server sh
 # 或者是远端登录进行测试
 $ mysql -h 10.0.0.10 -P 3306 -u root -p
 ```
+
+## 容器单元测试操作方式
+
+### 启用容器管理员单元测试
+
+单元测试管理员启用方式
+
+在设定文档  Gaea/util/mocks/containerTest/etc/containerTest.ini 中设定
+
+1. 这是 **未** 启用容器理员的设定
+   ```ini
+   ; 是否要启用容器测试
+   container_test_enable=false
+   ```
+
+   这是启用容器理员的设定
+
+   ```ini
+   ; 是否要启用容器测试
+   container_test_enable=true # 一定都要小写
+   ```
+
+### 容器单元测试未启用的日志
+
+步骤如下
+
+1. 先停止使用容器管理员
+   ```ini
+   ; 是否要启用容器测试
+   container_test_enable=fasle
+   ```
+
+2. 执行测试
+   ```bash
+   # 到 Gaea 目录
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+   
+   # 执行测试
+   $ make test
+   # 会显示以下内容
+   # ok      github.com/XiaoMi/Gaea/util/timer       0.671s  coverage: 96.2% of statements
+   # go tool cover -func=.coverage.out -o .coverage.func
+   # tail -1 .coverage.func
+   # total:                                                                                                  (statements)                                            58.2%
+   # go tool cover -html=.coverage.out -o .coverage.html
+   ```
+
+3. 检查执行的日志
+   ```bash
+   # 到日志目录里
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea/util/mocks/containerTest/logs
+   
+   $ ls
+   # 没有任何日志档案产生
+   ```
+
+### 容器单元测试启用的日志
+
+步骤如下
+
+1. 先启用容器管理员
+   ```ini
+   ; 是否要启用容器测试
+   container_test_enable=true
+   ```
+
+2. 执行测试
+   ```bash
+   # 到 Gaea 目录
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea
+   
+   # 执行测试
+   $ make test
+   # 会显示以下内容
+   # go tool cover -func=.coverage.out -o .coverage.func
+   # tail -1 .coverage.func
+   # total:                                                                                                  (statements)                                            58.4%
+   # go tool cover -html=.coverage.out -o .coverage.html
+   ```
+
+3. 检查执行的日志
+   ````bash
+   # 到日志目录里
+   $ cd /home/panhong/go/src/github.com/panhongrainbow/Gaea/util/mocks/containerTest/logs
+   
+   $ ls
+   # 有日志档案产生
+   containerTest2022-05-15-22-36-00.log  containerTest2022-05-15-22-36-00.log.wf  containerTest2022-05-15-22-36-06.log  containerTest2022-05-15-22-36-06.log.wf
+   
+   $ cat containerTest2022-05-15-22-36-00.log
+   # 日志内容如下
+   # [2022-05-15 22:36:00] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-mariadb-1 occupies mariadb-server
+   
+   # [2022-05-15 22:36:00] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-default-1 occupies default-server
+   
+   # [2022-05-15 22:36:09] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases default-server
+   
+   # [2022-05-15 22:36:09] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-default-0 occupies default-server
+   
+   # [2022-05-15 22:36:12] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases mariadb-server
+   
+   # [2022-05-15 22:36:12] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).getBuilder:manager.go:165] github.com/XiaoMi/Gaea/util/mocks/containerTest.GetBuilder-mariadb-0 occupies mariadb-server
+   
+   # [2022-05-15 22:36:17] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases default-server
+   
+   # [2022-05-15 22:36:21] [containerTest] [debian5] [NOTICE] [900000001] [github.com/XiaoMi/Gaea/util/mocks/containerTest.(*ContainerManager).returnBuilder:manager.go:191]  releases mariadb-server
+   ````
+
+### 重置 Containerd 容器测试环境
+
+依以下方式进行重置
+
+```bash
+# 停止所有的容器工作
+$ ctr -n default task kill -s SIGKILL default
+$ ctr -n mariadb task kill -s SIGKILL mariadb-server
+
+# 删除所有的容器工作
+$ ctr -n default task rm default
+$ ctr -n mariadb task rm mariadb-server
+
+# 删除容器储存目录
+$ rm -rf /var/lib/containerd/*
+
+# 重新启动容器服务
+$ systemctl restart containerd.service
+```
+
+### 重置 Containerd 容器网路环境
+
+先建立网路脚本 init_cni.sh
+
+```bash
+#!/bin/bash
+
+# 先開啟防火
+iptables -P FORWARD ACCEPT
+
+# 先删除 network
+cnitool del gaea-default /var/run/netns/gaea-default
+cnitool del gaea-etcd /var/run/netns/gaea-etcd
+cnitool del gaea-mariadb /var/run/netns/gaea-mariadb
+
+# 先删除 namespace
+ip netns del gaea-default
+ip netns del gaea-etcd
+ip netns del gaea-mariadb
+
+# 先新建 namespace
+ip netns add gaea-default
+ip netns add gaea-etcd
+ip netns add gaea-mariadb
+
+# 先新建 network
+export CNI_PATH=/opt/cni/bin
+cnitool add gaea-default /var/run/netns/gaea-default
+cnitool add gaea-etcd /var/run/netns/gaea-etcd
+cnitool add gaea-mariadb /var/run/netns/gaea-mariadb
+```
+
+依以下方式进行重置
+
+```bash
+# 执行网路重置
+$ sh init_cni.sh
+```
+
