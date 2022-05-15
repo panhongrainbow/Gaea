@@ -30,7 +30,7 @@ const (
 	ContainerdStatusReturned                    // 容器服务适放 containerd returned
 )
 
-// Run 接口会容器對象，在這裡要可以直接操作容器 Run is an interface for containerd client to implement.
+// Run 接口会容器对象，在这里要可以直接操作容器 Run is an interface for containerd client to implement.
 type Run interface {
 	// >>>>> >>>>> >>>>> Pull to Start 创建部份 create part
 

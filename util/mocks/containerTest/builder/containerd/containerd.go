@@ -26,12 +26,12 @@ type ContainerConfig struct {
 	NetworkNs string `json:"networkNs"` // 容器服务网络 namespace of the container service.
 	IP        string `json:"ip"`        // 容器服务 IP。 the IP of the container service.
 	SnapShot  string `json:"snapshot"`  // 容器服务快照 the snapshot of the container service.
-	Schema    string `json:"schema"`    // 容器服务 Schema，用於數據庫設定 the schema of the container service.
+	Schema    string `json:"schema"`    // 容器服务 Schema，用于数据库设置 the schema of the container service.
 	User      string `json:"user"`      // 容器服务用户名 the user name of the container service.
 	Password  string `json:"password"`  // 容器服务密码 the password of the container service.
 }
 
-// NewBuilder 为建立一个新的 Builder 接口
+// NewBuilder 为创建一个新的 Builder 接口
 // NewBuilder is a function to create a new Builder interface.
 func NewBuilder(cfg ContainerConfig) (builder.Builder, error) {
 	return NewContainerdClient(cfg)
@@ -47,7 +47,7 @@ func NewContainerdClient(cfg ContainerConfig) (*ContainerdClient, error) {
 	// create a new sock for the containerd client.
 	currentSock := new(containerd.Client) // 新的连接 a new connection to containerd.
 	var err error                         // 报错信息 error message
-	var usedSock = ""                     // 客戶端的 sock 指定路徑 usedSock is the user defined sock path.
+	var usedSock = ""                     // 客户端的 sock 指定路径 usedSock is the user defined sock path.
 
 	// 如果没有配置，则使用默认的路径
 	// if socketPath is empty, use default path.
@@ -57,7 +57,7 @@ func NewContainerdClient(cfg ContainerConfig) (*ContainerdClient, error) {
 		usedSock = run.DefaultSock
 	}
 
-	// 建立容器服务的客户端连接
+	// 创建容器服务的客户端连接
 	// create a new containerd connection.
 	currentSock, err = containerd.New(usedSock)
 	if err != nil {
@@ -66,7 +66,7 @@ func NewContainerdClient(cfg ContainerConfig) (*ContainerdClient, error) {
 
 	// >>>>> >>>>> >>>>> 创建容器服务的 ContainerdClient 对象 create a new ContainerdClient object
 
-	// 建立容器服务的客户端
+	// 创建容器服务的客户端
 	// create a new containerd client.
 	client := &ContainerdClient{
 		// 在 NewContainerdClient 中创建
@@ -105,10 +105,10 @@ func NewContainerdClient(cfg ContainerConfig) (*ContainerdClient, error) {
 	return client, nil
 }
 
-// >>>>> >>>>> >>>>> containerd client 的核心结构体
+// >>>>> >>>>> >>>>> containerd client 的内核结构体
 // >>>>> >>>>> >>>>> ContainerdClient is a struct to represent a containerd client.
 
-// ContainerdClient 为容器服务的核心客户端
+// ContainerdClient 为容器服务的内核客户端
 // ContainerdClient is core component of Containerd client.
 type ContainerdClient struct {
 	// 在 NewContainerdClient 中创建 create in NewContainerdClient.
@@ -124,7 +124,7 @@ type ContainerdClient struct {
 	Run run.Run // 容器服务的运行的接口 interface for Containerd.
 }
 
-// ClientContainerd 为客戶端的容器服务設定
+// ClientContainerd 为客户端的容器服务设置
 // ClientContainerd is configured for Containerd.
 type ClientContainerd struct {
 	Name      string // 容器服务的名称 Name
@@ -136,7 +136,7 @@ type ClientContainerd struct {
 	Task      string // 容器服务的任务 Task
 }
 
-// ClientSchema 客戶端的 Schema 設定
+// ClientSchema 客户端的 Schema 设置
 // ClientSchema is the schema of the containerd client.
 type ClientSchema struct {
 	User     string // 容器服务的用户名 user name.
@@ -144,7 +144,7 @@ type ClientSchema struct {
 	Schema   string // 容器服务的 schema.
 }
 
-// ClientRunning 客戶端的运行时的对象
+// ClientRunning 客户端的运行时的对象
 // ClientRunning is the running object of the containerd client.
 type ClientRunning struct {
 	ctx    context.Context      // 容器服务的上下文 context.
@@ -171,7 +171,7 @@ func (cc *ContainerdClient) Distinguish() error {
 	}
 }
 
-// Build 建立容器测试环境
+// Build 创建容器测试环境
 // Build create a new container environment for test.
 func (cc *ContainerdClient) Build(t time.Duration) error {
 	// 错误信息 error message.
@@ -212,7 +212,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	// container manager's status is creating container.
 	cc.Status = run.ContainerdStatusBuildCreateContainer
 
-	// 建立一个新的容器
+	// 创建一个新的容器
 	// create a new container
 	cc.Running.c, err = cc.Run.Create(cc.Conn, cc.Running.ctx, cc.Container.Name, cc.Container.NetworkNS, cc.Running.img, cc.Container.SnapShot)
 	if err != nil {
@@ -223,7 +223,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	// container manager's status is creating container task.
 	cc.Status = run.ContainerdStatusBuildCreateTask
 
-	// 建立新的容器工作
+	// 创建新的容器工作
 	// create a task from the container
 	cc.Running.tsk, err = cc.Run.Task(cc.Running.c, cc.Running.ctx)
 	if err != nil {
@@ -234,7 +234,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	// container manager's status is starting container task.
 	cc.Status = run.ContainerdStatusBuildStartTask
 
-	// 開始执行容器工作
+	// 开始执行容器工作
 	// start the task.
 	err = cc.Run.Start(cc.Running.tsk, cc.Running.ctx)
 	if err != nil {
@@ -245,7 +245,7 @@ func (cc *ContainerdClient) Build(t time.Duration) error {
 	// container manager's status is running container task.
 	cc.Status = run.ContainerdStatusBuildRunning
 
-	// 建立容器環境成功
+	// 创建容器环境成功
 	// build the container environment successfully.
 	return nil
 }
@@ -321,7 +321,7 @@ func (cc *ContainerdClient) TearDown(t time.Duration) error {
 	// container manager's status is interrupting container.
 	cc.Status = run.ContainerdStatusTearDownInterrupted
 
-	// 強制中斷容器工作
+	// 强制中断容器工作
 	// interrupt the task.
 	err := cc.Run.Interrupt(cc.Running.tsk, cc.Running.ctx)
 	if err != nil {
@@ -347,7 +347,7 @@ func (cc *ContainerdClient) TearDown(t time.Duration) error {
 	// clear the Running object.
 	cc.Running = nil
 
-	// 删除容器環境成功
+	// 删除容器环境成功
 	// delete the container environment successfully.
 	return nil
 }

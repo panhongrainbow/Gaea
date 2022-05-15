@@ -6,5 +6,5 @@ mkdir /var/run/mysqld
 chown mysql:mysql /var/run/mysqld
 chmod 777 /var/run/mysqld
 
-# user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会建立一个用户 xiaomi，并且设置密码
+# user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会创建一个用户 xiaomi，并且设置密码
 mysqld --init-file=/home/mariadb/user.sql

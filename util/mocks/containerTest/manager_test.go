@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-// TestManager 為容器服务管理員的测试
+// TestManager 为容器服务管理员的测试
 // TestManager is a testing for ContainerManager
 func TestManager(t *testing.T) {
 	return
-	// 取得容器服务管理員
+	// 取得容器服务管理员
 	// get the container manager
 	mgr, err := NewContainderManager("./example/")
 	require.Nil(t, err)
 
-	// 取得容器服务管理員的容器服务创建管理器
+	// 取得容器服务管理员的容器服务创建管理器
 	// get the container manager builder
 	builder, err := mgr.getBuilder("mariadb-server", nil)
 	require.Nil(t, err)
@@ -26,13 +26,13 @@ func TestManager(t *testing.T) {
 	err = builder.Build(60 * time.Second)
 	require.Nil(t, err)
 
-	// 归还容器服务管理員的容器服务创建管理器
+	// 归还容器服务管理员的容器服务创建管理器
 	// return the container manager builder
 	err = builder.TearDown(60 * time.Second)
 	require.Nil(t, err)
 }
 
-// BenchmarkContainerdManager_Lock 为容器服务管理員加锁的性能测试
+// BenchmarkContainerdManager_Lock 为容器服务管理员加锁的性能测试
 // BenchmarkContainerdManager_Lock is a benchmark for ContainerManager lock
 func BenchmarkContainerdManager_Lock(b *testing.B) {
 	return

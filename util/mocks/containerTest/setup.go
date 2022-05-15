@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	// DefaultConfigPath 預設的容器設定路径
+	// DefaultConfigPath 缺省的容器设置路径
 	// DefaultConfigPath is the default config path
 	DefaultConfigPath = "util/mocks/containerTest/example"
 
@@ -53,14 +53,14 @@ func init() {
 		// 初始化容器管理员服务
 		// init the containerd manager
 		if err := setup(); err != nil {
-			// 立即中断程序
+			// 立即中断进程
 			// immediately exit the program
 			panic(err)
 		}
 	}
 }
 
-// check 检查配置文件和环境是否正确
+// check 检查配置文档和环境是否正确
 // check is a function to check the config file and test environment are ok.
 func check() error {
 	// 如果容器管理员服务已经载入，则直接返回

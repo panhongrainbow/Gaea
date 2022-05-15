@@ -701,12 +701,12 @@ $ systemctl restart containerd.service
 
 ### 重置 Containerd 容器网路环境
 
-先建立网路脚本 init_cni.sh
+先创建网路脚本 init_cni.sh
 
 ```bash
 #!/bin/bash
 
-# 先開啟防火
+# 先打开防火
 iptables -P FORWARD ACCEPT
 
 # 先删除 network

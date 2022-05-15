@@ -8,14 +8,14 @@ import (
 	"testing"
 )
 
-// 测试容器设定文件的位罝 Test the container config file position.
+// 测试容器设定文档的位罝 Test the container config file position.
 func TestContainerdPath(t *testing.T) {
 	r := Load{prefix: "./test/"}
 	path := r.ContainerdPath()
 	require.Equal(t, path, "test/containerd")
 }
 
-// 测试容器设定文件的数量和名称 Test the container config files' number and name.
+// 测试容器设定文档的数量和名称 Test the container config files' number and name.
 func TestListContainerD(t *testing.T) {
 	r := Load{prefix: "./example/"}
 	files, err := r.listContainerD()
@@ -25,7 +25,7 @@ func TestListContainerD(t *testing.T) {
 	require.Contains(t, files, "mariadb.json")
 }
 
-// 测试容器设定文件的载入 Test the container config file loading.
+// 测试容器设定文档的载入 Test the container config file loading.
 func TestLoadContainerD(t *testing.T) {
 	r := Load{prefix: "./example/"}
 	mariadb, err := r.loadContainerD("mariadb.json")
@@ -33,7 +33,7 @@ func TestLoadContainerD(t *testing.T) {
 	require.Equal(t, mariadb.Name, "mariadb-server")
 }
 
-// 测试所有容器设定文件的载入 Test all container config files loading.
+// 测试所有容器设定文档的载入 Test all container config files loading.
 func TestLoadAllContainerD(t *testing.T) {
 	r := Load{prefix: "./example/"}
 	configs, err := r.loadAllContainerD()
@@ -43,9 +43,9 @@ func TestLoadAllContainerD(t *testing.T) {
 	}
 }
 
-// 扩展容器设定文件的载入 extend the container config file loading
+// 扩展容器设定文档的载入 extend the container config file loading
 func TestLoadExtendContainerD(t *testing.T) {
-	// 先载入所有的容器设定文件 Load all container config files
+	// 先载入所有的容器设定文档 Load all container config files
 	r := Load{prefix: "./example/"}
 	configs, err := r.loadAllContainerD()
 	require.Nil(t, err)

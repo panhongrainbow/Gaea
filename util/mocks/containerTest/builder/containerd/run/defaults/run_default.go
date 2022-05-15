@@ -34,7 +34,7 @@ func (d *Defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl
 		return image, nil
 	}
 
-	// 之后会用协程去拉取镜像，建立通信通道.
+	// 之后会用协程去拉取镜像，创建通信信道.
 	// Then, use goroutine to pull image. Create communication channel.
 
 	// message. 消息
@@ -43,7 +43,7 @@ func (d *Defaults) Pull(client *containerd.Client, ctx context.Context, imageUrl
 		err   error
 	}
 
-	// channel. 通道
+	// channel. 信道
 	chMessage := make(chan message)
 
 RETRY:
@@ -88,7 +88,7 @@ func (d *Defaults) Create(client *containerd.Client, ctx context.Context, contai
 		Type: specs.NetworkNamespace,
 		Path: networkNS}
 
-	// 建立一个新的预设容器
+	// 创建一个新的预设容器
 	// create a default container.
 	return client.NewContainer(
 		ctx,                               // 序文 context.
@@ -102,7 +102,7 @@ func (d *Defaults) Create(client *containerd.Client, ctx context.Context, contai
 // Task 为容器任务创建
 // Task is to create task.
 func (d *Defaults) Task(container containerd.Container, ctx context.Context) (containerd.Task, error) {
-	// 建立新的容器工作
+	// 创建新的容器工作
 	// create a task from the container.
 	return container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 }
@@ -126,7 +126,7 @@ LOOP:
 			// stop the task because the context is canceled.
 			return ctx.Err()
 		default:
-			// 開始監聽容器工作
+			// 开始监听容器工作
 			// start listening for the container work.
 			status, err := task.Status(ctx)
 			if err != nil {
@@ -156,7 +156,7 @@ LOOP:
 // CheckService 为检查容器服务是否上线
 // CheckService is to check container service.
 func (d *Defaults) CheckService(ctx context.Context, ipAddrPort string) error {
-	// 預設容器沒有服務，所以不需要檢查.
+	// 缺省容器没有服务，所以不需要检查.
 	// Default container has no service, so no need to check.
 
 	// 等待一秒
@@ -170,7 +170,7 @@ func (d *Defaults) CheckService(ctx context.Context, ipAddrPort string) error {
 
 // CheckSchema 为检查容器资料是否存在 CheckService is to check container data exists.
 func (d *Defaults) CheckSchema(ctx context.Context, ipAddrPort string) error {
-	// 預設容器沒有服務，所以不需要檢查.
+	// 缺省容器没有服务，所以不需要检查.
 	// Default container has no service, so no need to check.
 
 	// 等待一秒
@@ -194,7 +194,7 @@ LOOP:
 		// stop the task.
 		_ = task.Kill(ctx, syscall.SIGKILL)
 
-		// 開始監聽容器状态
+		// 开始监听容器状态
 		// start listening for the container status.
 		status, err := task.Status(ctx)
 		if err != nil {
@@ -220,7 +220,7 @@ LOOP:
 // Delete is to delete task.
 func (d *Defaults) Delete(task containerd.Task, container containerd.Container, ctx context.Context) error {
 
-	// 刪除容器工作
+	// 删除容器工作
 	// delete the task.
 	if task != nil { // 确认容器工作存在 check task exist.
 		if _, err := task.Delete(ctx); err != nil {
@@ -230,17 +230,17 @@ func (d *Defaults) Delete(task containerd.Task, container containerd.Container, 
 		}
 	}
 
-	// 刪除容器
+	// 删除容器
 	// delete the container.
 	if container != nil { // 确认容器存在 check container exist.
 		if err := container.Delete(ctx, containerd.WithSnapshotCleanup); err != nil {
-			// 刪除容器快照失败
+			// 删除容器快照失败
 			// delete container snapshot failed.
 			return err
 		}
 	}
 
-	// 刪除成功
+	// 删除成功
 	// delete success.
 	return nil
 }

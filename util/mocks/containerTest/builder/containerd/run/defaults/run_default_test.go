@@ -18,7 +18,7 @@ import (
 // TestRunContainerdEnv 测试容器的运行环境 test containerd env
 func TestRunContainerdEnv(t *testing.T) {
 	return
-	// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
+	// 创建新的容器的连接客户端 create a new client connected to the default socket path for containerd
 	client, err := containerd.New(run.DefaultSock)
 	require.Nil(t, err)
 	defer func() {
@@ -35,7 +35,7 @@ func TestRunContainerdEnv(t *testing.T) {
 	// 连接到网路环境 gaea-default connection to the default network environment
 	defaultNS := specs.LinuxNamespace{Type: specs.NetworkNamespace, Path: "/var/run/netns/gaea-default"}
 
-	// 建立一个新的预设容器 create a default container (离开后移除 remove after leaving the test)
+	// 创建一个新的预设容器 create a default container (离开后移除 remove after leaving the test)
 	container, err := client.NewContainer(
 		ctx,
 		"default-server",
@@ -48,7 +48,7 @@ func TestRunContainerdEnv(t *testing.T) {
 		_ = container.Delete(ctx, containerd.WithSnapshotCleanup)
 	}()
 
-	// 建立新的容器工作 create a task from the container (离开后移除 remove after leaving the test)
+	// 创建新的容器工作 create a task from the container (离开后移除 remove after leaving the test)
 	task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 	require.Nil(t, err)
 	defer func() {
@@ -82,7 +82,7 @@ func TestDefaultContainerd(t *testing.T) {
 	return
 	// 测试约定的接口 test the default interface
 	t.Run("test default interface", func(t *testing.T) {
-		// 建立新的容器的连接客户端 create a new client connected to the default socket path for containerd
+		// 创建新的容器的连接客户端 create a new client connected to the default socket path for containerd
 		client, err := containerd.New(run.DefaultSock)
 		require.Nil(t, err)
 		defer func() {
@@ -92,7 +92,7 @@ func TestDefaultContainerd(t *testing.T) {
 		// 测立一个新的命名空间 create a new context with a "default" namespace
 		ctx := namespaces.WithNamespace(context.Background(), "default")
 
-		// 建立测试对象 create a test object
+		// 创建测试对象 create a test object
 		d := Defaults{
 			debianVersion: "latest",
 		}
@@ -101,15 +101,15 @@ func TestDefaultContainerd(t *testing.T) {
 		img, err := d.Pull(client, ctx, "docker.io/library/debian:latest")
 		assert.Nil(t, err)
 
-		// 建立一个新的预设容器 create a default container
+		// 创建一个新的预设容器 create a default container
 		c, err := d.Create(client, ctx, "default-server", "/var/run/netns/gaea-default", img, "default-server-snapshot")
 		assert.Nil(t, err)
 
-		// 建立新的容器工作 create a task from the container
+		// 创建新的容器工作 create a task from the container
 		tsk, err := d.Task(c, ctx)
 		assert.Nil(t, err)
 
-		// start the task. 開始执行容器工作
+		// start the task. 开始执行容器工作
 		err = d.Start(tsk, ctx)
 		assert.Nil(t, err)
 
@@ -123,10 +123,10 @@ func TestDefaultContainerd(t *testing.T) {
 	})
 	// 测试非约定的函数 test the non-default function
 	t.Run("test non-default function", func(t *testing.T) {
-		// 先建立接口去进行储存和操作 create a new interface to store and operate
+		// 先创建接口去进行储存和操作 create a new interface to store and operate
 		// store := new(ContainerdClient)
 
-		// 建立一个待储存的对象 create a test object
+		// 创建一个待储存的对象 create a test object
 		/*d := &defaults{
 			debianVersion: "9",
 		}

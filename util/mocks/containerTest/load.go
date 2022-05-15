@@ -26,14 +26,14 @@ type ContainerIniConfig struct {
 // ParseContainerConfigFromFile 从档案获取容器初始配置
 // ParseContainerConfigFromFile gets the container initial config from the file
 func ParseContainerConfigFromFile(cfgFile string) (*ContainerIniConfig, error) {
-	// 先决定配置文件的决对路径
+	// 先决定配置文档的决对路径
 	// determine the config file's absolute path
 	absPath, err := absolutePath(cfgFile)
 	if err != nil {
 		return nil, err
 	}
 
-	// 读取配置文件的内容
+	// 读取配置文档的内容
 	// read the config file's content
 	cfg, err := ini.Load(absPath)
 	if err != nil {
@@ -70,17 +70,17 @@ func (r *Load) ContainerdPath() string {
 	return filepath.Join(r.prefix, "containerd") // 在 prefix 下面的 containerd 目录 inside the containerd configs directory
 }
 
-// listContainerD 列出 ContainerConfig 的設定檔列表, 有几個設定檔就有几個名稱
+// listContainerD 列出 ContainerConfig 的设置档列表, 有几个设置档就有几个名称
 // listContainerD lists the containerd configs，one config file match one name.
 func (r *Load) listContainerD() ([]string, error) {
-	// 在 containerd 目錄下面列出所有的設定檔列表
+	// 在 containerd 目录下面列出所有的设置档列表
 	// list all configs in the containerd directory
 	files, err := ioutil.ReadDir(r.ContainerdPath())
 	if err != nil {
 		return nil, err
 	}
 
-	// 收集所有的設定檔名稱
+	// 收集所有的设置文件名称
 	// collect all the configs names
 	result := make([]string, 0)
 	for _, f := range files {
@@ -92,10 +92,10 @@ func (r *Load) listContainerD() ([]string, error) {
 	return result, nil
 }
 
-// loadContainerD 载入指定的設定檔轉成 ContainerConfig 設定值
+// loadContainerD 载入指定的设置档转成 ContainerConfig 设置值
 // loadContainerD converts the specified config file to ContainerConfig config
 func (r *Load) loadContainerD(file string) (containerd.ContainerConfig, error) {
-	// 在 containerd 目錄下面列出所有的設定檔列表
+	// 在 containerd 目录下面列出所有的设置档列表
 	// list all configs in the containerd directory
 	config := filepath.Join(r.ContainerdPath(), file)
 	b, err := ioutil.ReadFile(config)
@@ -103,7 +103,7 @@ func (r *Load) loadContainerD(file string) (containerd.ContainerConfig, error) {
 		return containerd.ContainerConfig{}, err
 	}
 
-	// 开始把設定檔轉成 ContainerConfig 設定值
+	// 开始把设置档转成 ContainerConfig 设置值
 	// start converting the config to ContainerConfig config
 	result := containerd.ContainerConfig{}
 	err = json.Unmarshal(b, &result)
@@ -116,17 +116,17 @@ func (r *Load) loadContainerD(file string) (containerd.ContainerConfig, error) {
 	return result, nil
 }
 
-// loadAllContainerD 把所有的設定檔轉成 ContainerConfig 設定值
+// loadAllContainerD 把所有的设置档转成 ContainerConfig 设置值
 // loadAllContainerD converts all the config files to ContainerConfig config
 func (r *Load) loadAllContainerD() (map[string]containerd.ContainerConfig, error) {
-	// 在 containerd 目錄下面列出所有的設定檔列表
+	// 在 containerd 目录下面列出所有的设置档列表
 	// list all configs in the containerd directory
 	files, err := r.listContainerD()
 	if err != nil {
 		return nil, err
 	}
 
-	// 创建一个 map 存放所有的設定檔轉成 ContainerConfig 設定值
+	// 创建一个 map 存放所有的设置档转成 ContainerConfig 设置值
 	// create a map to store all the configs converted to ContainerConfig config
 	result := make(map[string]containerd.ContainerConfig, len(files))
 	for _, f := range files {
@@ -212,7 +212,7 @@ func separateIPandPort(ip string) (string, string) {
 	// 找到分离 IP 和 Port 的位置 find the position of seperating IP and Port.
 	index := strings.LastIndex(ip, ":")
 
-	// 如果 index 是 -1，那么就没有 ":" 在 ip 中 if index is -1, it means that there is no ":" in the ip.
+	// 如果 index 是 -1，那幺就没有 ":" 在 ip 中 if index is -1, it means that there is no ":" in the ip.
 	if index == -1 {
 		return ip, ""
 	}
@@ -241,7 +241,7 @@ func extendContainerIP(ipStr string) ([]string, error) {
 	for {
 		ips = append(ips, nextNetIP.String()+":"+firstPort)
 		if nextNetIP.String() == endIP {
-			// 如果 nextIP 字符串和 endIP 相同，那么就退出退出循环 break the loop
+			// 如果 nextIP 字符串和 endIP 相同，那幺就退出退出循环 break the loop
 			// if nextIP string is equal to endIP, then exit the loop
 			break
 		}

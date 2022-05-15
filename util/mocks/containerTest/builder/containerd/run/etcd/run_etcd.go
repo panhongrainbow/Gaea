@@ -5,7 +5,7 @@ import "github.com/XiaoMi/Gaea/util/mocks/containerTest/builder/containerd/run/d
 // Etcd 为 etcd 容器配置项
 // Etcd container configuration.
 type Etcd struct {
-	defaults.Defaults // 續承 Defaults. inherit Defaults.
+	defaults.Defaults // 续承 Defaults. inherit Defaults.
 }
 
 // 约定的接口 defined interface

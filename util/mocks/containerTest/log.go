@@ -27,8 +27,8 @@ func initContainerTestXLog() error {
 	// 容器测试日志设定
 	// container test log setting
 	cfg := make(map[string]string)
-	cfg["path"] = absPath                       // 日志文件路径 log file path
-	cfg["filename"] = "containerTest" + timeStr // 日志文件名 log file name
+	cfg["path"] = absPath                       // 日志文档路径 log file path
+	cfg["filename"] = "containerTest" + timeStr // 日志文档名 log file name
 	cfg["level"] = "debug"                      // 日志级别 log level
 	cfg["service"] = "containerTest"            // 日志服务名 log service name
 	cfg["skip"] = "5"                           // 设置xlog打印方法堆栈需要跳过的层数, 5目前为调用log.Debug()等方法的方法名, 比xlog默认值多一层.

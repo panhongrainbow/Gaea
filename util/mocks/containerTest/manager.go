@@ -15,11 +15,11 @@ import (
 // 这次 PR 会把这里删除，不送出
 var (
 /*cmConfigFile = flag.String("cm", "./etc/containerd.ini", "containerd manager 配置")
-  // DefaultConfigPath 預設的容器設定路徑
+  // DefaultConfigPath 缺省的容器设置路径
   DefaultConfigPath = "./etc/containerd/"*/
 )
 
-// ContainerManager 容器服务管理員
+// ContainerManager 容器服务管理员
 // ContainerManager is used to manage Containerd.
 type ContainerManager struct {
 	Enable        bool                      // 是否启用容器服务管理器 enable containerd manager
@@ -37,7 +37,7 @@ type ContainerList struct {
 	Status      int                        // 容器服务状态 containerd status
 }
 
-// NewContainderManager 新建容器服务管理員
+// NewContainderManager 新建容器服务管理员
 // NewContainderManager is used to create a new container manager.
 func NewContainderManager(path string) (*ContainerManager, error) {
 	// 判断目录是否存在
@@ -82,7 +82,7 @@ func NewContainderManager(path string) (*ContainerManager, error) {
 	return &ContainerManager{ConfigPath: path, ContainerList: containerList}, nil
 }
 
-// registerFunc 注册函式名称 register's function
+// registerFunc 注册函数名称 register's function
 type registerFunc func() string
 
 // 预设的注册函数
@@ -143,7 +143,7 @@ func (cm *ContainerManager) isEnabled() bool {
 // getBuilder 获取容器服务构建器
 // getBuilder is used to get containerd builder.
 func (cm *ContainerManager) getBuilder(containerName string, regFunc registerFunc) (builder.Builder, error) {
-	// 判断容器服务是否存在，不存在則使用默认的注册函数
+	// 判断容器服务是否存在，不存在则使用默认的注册函数
 	// check containerd is existed, if not, use default register's function
 	if regFunc == nil {
 		regFunc = defaultRegFunction
@@ -161,7 +161,7 @@ func (cm *ContainerManager) getBuilder(containerName string, regFunc registerFun
 	cm.ContainerList[containerName].User = regFunc()                      // 获取函数名称 register's function
 	cm.ContainerList[containerName].Status = run.ContainerdStatusOccupied // 容器服务状态为占用 containerd is occupied
 
-	// 記錄日誌 log
+	// 记录日志 log
 	_ = log.Notice(cm.ContainerList[containerName].User + " occupies " + containerName)
 
 	// 正常返回容器服务构建器
@@ -187,7 +187,7 @@ func (cm *ContainerManager) returnBuilder(containerName string, regFunc register
 	cm.ContainerList[containerName].User = ""                             // 获取函数名称 register's function
 	cm.ContainerList[containerName].Status = run.ContainerdStatusReturned // 容器服务状态为被适放 containerd is released
 
-	// 記錄日誌 log
+	// 记录日志 log
 	_ = log.Notice(cm.ContainerList[containerName].User + " releases " + containerName)
 
 	// 正常适放容器服务构建器

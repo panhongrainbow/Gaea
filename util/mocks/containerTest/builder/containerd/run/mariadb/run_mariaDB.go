@@ -30,7 +30,7 @@ type MariaDB struct {
 	// gaea-default connection to the default network environment. 连接到网路环境
 	mariadbNS := specs.LinuxNamespace{Type: specs.NetworkNamespace, Path: networkNS}
 
-	// 建立一个新的数据库容器
+	// 创建一个新的数据库容器
     // Create a default container.
 	return client.NewContainer(
 		ctx,
