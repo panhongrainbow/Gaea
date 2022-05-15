@@ -26,19 +26,30 @@ type ContainerIniConfig struct {
 // ParseContainerConfigFromFile 从档案获取容器初始配置
 // ParseContainerConfigFromFile gets the container initial config from the file
 func ParseContainerConfigFromFile(cfgFile string) (*ContainerIniConfig, error) {
-	cfg, err := ini.Load(cfgFile)
-
+	// 先决定配置文件的决对路径
+	// determine the config file's absolute path
+	absPath, err := absolutePath(cfgFile)
 	if err != nil {
 		return nil, err
 	}
 
+	// 读取配置文件的内容
+	// read the config file's content
+	cfg, err := ini.Load(absPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建一个容器 ini 设定配置对象
+	// create a container ini config object
 	var containerIniConfig = &ContainerIniConfig{}
 	err = cfg.MapTo(containerIniConfig)
-
 	if err != nil {
 		return nil, err
 	}
 
+	// 回传结果
+	// return the result
 	return containerIniConfig, err
 }
 

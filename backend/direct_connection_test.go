@@ -310,7 +310,7 @@ func TestDirectConnWithDB(t *testing.T) {
 func TestContainersInterference(t *testing.T) {
 	// 确认管理容器是否被启用
 	// check if the container is enabled.
-	if !containerTest.Manager.IsEnabled() {
+	if containerTest.Manager.IsEnabled() == false {
 		return
 	}
 
