@@ -45,12 +45,14 @@ func TestLoadAllContainerD(t *testing.T) {
 
 // 扩展容器设定文档的载入 extend the container config file loading
 func TestLoadExtendContainerD(t *testing.T) {
-	// 先载入所有的容器设定文档 Load all container config files
+	// 先载入所有的容器设定文档
+	// Load all container config files
 	r := Load{prefix: "./example/"}
 	configs, err := r.loadAllContainerD()
 	require.Nil(t, err)
 
-	//
+	// 以下为群组容器的扩展
+	// The following is a group container's extension
 	tmp := make([]containerd.ContainerConfig, 0)
 	for key, value := range configs {
 		if strings.Contains(key, "{") {

@@ -3,7 +3,7 @@
   "type": "mariadb",
   "name": "mariadb-server",
   "namespace": "mariadb",
-  "image": "docker.io/panhongrainbow/mariadb:testing",
+  "image": "docker.io/panhongrainbow/minidb:testing",
   "task": "mariadb-server",
   "networkNs": "/var/run/netns/gaea-mariadb",
   "ip": "10.0.0.10:3306",
