@@ -13,3 +13,18 @@ load () {
         fi
     done
 }
+
+############################################################
+# post 为执行最后操作
+# post is to post operation
+#
+# no parameters
+#
+exit_safely (){
+  # shellcheck disable=SC2046
+  exec > $(tty)
+  tail -n 20 ./logs/log.txt
+}
+post() {
+  trap exit_safely EXIT
+}
