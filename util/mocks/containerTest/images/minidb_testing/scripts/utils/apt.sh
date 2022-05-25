@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# shellcheck disable=SC2181
-
 ############################################################
 # apt_update 为更新 apt repo
 # apt_update is to update apt repo
@@ -38,12 +36,18 @@ apt_install () {
     # $1 不加双引号不会报错
     apt-get install -y --no-install-recommends $1
 
-    if [ $? -eq 0 ]; then
+    # 检查是否安装成功 check if install successfully
+    result_code=$?
+    retry_count=$i
+    print_detail 3 "result code: $result_code"
+    print_detail 3 "retry count: $retry_count"
+
+    if [ $result_code -eq 0 ]; then
       print_success 2 "apt install package in $i time(s) successfully"
       break
     else
       print_fail 2 "apt install package in $i time(s) failed"
-      if [ $? -eq "$2" ]; then
+      if [ "$retry_count" -eq "$2" ]; then
         break
       fi
     fi
@@ -63,5 +67,6 @@ apt_install () {
 apt_clean () {
   print_xiaomi 0 "apt clean"
   apt-get clean
+  print_success 2 "apt clean successfully"
   return 0
 }
