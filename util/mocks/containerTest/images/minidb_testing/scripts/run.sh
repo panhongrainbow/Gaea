@@ -24,9 +24,12 @@ post "${log_path}"    # 执行最后操作 post operation
 
 # 以下为暂时测试
 # apt_update 3
+. ./init/set_color.sh
+hex_to_rgb
 apt_install "vim nano" 3
-replace ./tmp BBC CNN
-echo -ne "\033]10;#676767\007"
+rgb_to_hex 103 103 103
+# replace ./tmp BBC CNN
+# echo -ne "\033]10;#676767\007"
 return 0
 
 # >>>>>>>> 设定容器环境 set debian env >>>>>>>>>>
