@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ############################################################
 # load 为载入一些基础的函数
@@ -23,7 +23,7 @@ load () {
 #
 # parameter 1: log path
 #
-exit_safely (){
+exit_safely () {
   # shellcheck disable=SC2046
   exec > $(tty)
   tail -n 20 "$1"

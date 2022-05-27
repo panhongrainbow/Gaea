@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Usage: check-leaktest.sh
 # It needs to run under the github.com/pingcap/tidb directory.

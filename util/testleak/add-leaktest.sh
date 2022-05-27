@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Usage: add-leaktest.sh pkg/*_test.go
 
