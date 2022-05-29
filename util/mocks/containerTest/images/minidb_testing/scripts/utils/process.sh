@@ -7,8 +7,6 @@
 # parameter 1:
 #
 panic () {
-  echo ">>>>>>>>>>>>"
-  echo "$1"
   if [ "$1" = "panic" ]; then
     echo "panic - processing"
     print_fail 2 "panic - processing"

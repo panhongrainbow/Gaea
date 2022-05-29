@@ -138,11 +138,27 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 ```bash
 $ ctr namespace create test
 
-$ ctr -n test i pull "docker.io/library/debian:bullseye"
+$ ctr -n test i pull "docker.io/library/debian:bullseye-slim"
 
-$ ctr -n test run --with-ns=network:/var/run/netns/gaea-default -d docker.io/library/debian:bullseye debian
+$ ctr -n test c create docker.io/library/debian:bullseye-slim --with-ns=network:/var/run/netns/gaea-default debian
+
+$ mkdir /tmp/container
+
+$ ctr -n test snapshot mounts /tmp/container debian | sh
+
+$ ctr -n test task start -d debian
 
 $ ctr -n test task exec -t --exec-id debian-sh debian sh
+
+
+$ ctr -n test task kill -s SIGKILL debian
+
+$ ctr -n test task rm debian
+
+$ umount /tmp/container
+
+$ ctr -n test c rm debian
+
 ```
 
 
