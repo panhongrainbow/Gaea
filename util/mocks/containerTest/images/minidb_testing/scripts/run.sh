@@ -29,7 +29,7 @@ load "${app_path}"     # 载入 app 设定工具包 load app config tool
 set_log "${log_path}" # 设定日志 set log
 post "${log_path}"    # 执行离开后操作 post operation after exit
 apt_install bc 2      # 安装 mariadb 数据库 install mariadb database
-panic "$(check_database_version "${database_type}" "${database_version}" "check" && echo "continue" || echo "panic")"
+panic "$(check_or_install_database_version "${database_type}" "${database_version}" "check" && echo "continue" || echo "panic")"
 # >>>>>>>> 初始化设置 initialize >>>>>>>>>>
 
 # >>>>>>>> 设定容器环境 set debian env >>>>>>>>>>
@@ -41,5 +41,5 @@ apt_update 3          # 更新 apt 源 update apt source
 apt_install "${deb_package}" 2 # 安装 mariadb 数据库 install mariadb database
 apt_clean                      # 清理 apt 源 clean apt source
 replace "$mysql_bind_config_path" "bind-address.*" "bind-address=0.0.0.0" # 设定数据库对外网路位置 set mariadb bind ip address
-check_database_version "${database_type}" "${database_version}" "correct"
+check_or_install_database_version "${database_type}" "${database_version}" "correct"
 # <<<<<<<< 设定数据库 set mariadb <<<<<<<<<<
