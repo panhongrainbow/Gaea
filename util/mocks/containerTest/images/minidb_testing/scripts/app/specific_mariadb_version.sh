@@ -52,17 +52,17 @@ apt_add_repo () {
 
   for i in $(seq 1 1 "$3")
   do
-    add-apt-repository "deb [arch=amd64,i386,arm64,ppc64el] https://mirrors.aliyun.com/mariadb/repo/$3/debian $2 main"
+    add-apt-repository "deb [arch=amd64,i386,arm64,ppc64el] https://mirrors.aliyun.com/mariadb/repo/$2/debian $1 main"
     # 是否新增 repo 成功 check if add repo successfully
     result_code=$?
     retry_count=$i
     print_detail 3 "result code: $result_code"
     print_detail 3 "retry count: $retry_count"
     if [ $result_code -eq 0 ]; then
-      print_success 2 "fetch key in $i time(s) successfully"
+      print_success 2 "add repo in $i time(s) successfully"
       break
     else
-      print_fail 2 "fetch key in $i time(s) failed"
+      print_fail 2 "add repo in $i time(s) failed"
       if [ "$retry_count" -eq "$3" ]; then
         return 1
       fi

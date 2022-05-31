@@ -33,7 +33,7 @@ check_or_install_database_version () {
 check_mariadb_version () {
   case $1 in
     10)
-      compare_string "$2" "correct" && sh ./app/mariadb/correct_mariadb.sh || return 0
+      compare_string "$2" "correct" && correct_mariadb || return 0
       return 0 # supported
       ;;
     *)

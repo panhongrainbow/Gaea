@@ -1,14 +1,15 @@
 #!/bin/bash
 
-# 以下为对 mariadb 数据库修正
+correct_mariadb () {
+  # 以下为对 mariadb 数据库修正
 
-print_xiaomi 0 "correct mariadb database"
+  print_xiaomi 0 "correct mariadb database"
 
-print_list 3 "make xiaomi directory"
+  print_list 3 "make xiaomi directory"
 
-mkdir -p /home/xiaomi/
+  mkdir -p /home/xiaomi/
 
-print_list 3 "create mysqld init script"
+  print_list 3 "create mysqld init script"
 
 cat << EOF > /home/xiaomi/mysqld_init.sh
 #!/bin/bash
@@ -23,7 +24,7 @@ chmod 777 /var/run/mysqld
 mysqld --init-file=/home/xiaomi/user.sql
 EOF
 
-print_list 3 "create user script"
+  print_list 3 "create user script"
 
 cat << EOF > /home/xiaomi/user.sql
 CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
@@ -31,6 +32,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 EOF
 
-print_list 3 "make mysqld init script executable"
+  print_list 3 "make mysqld init script executable"
 
-chmod +x /home/xiaomi/mysqld_init.sh
+  chmod +x /home/xiaomi/mysqld_init.sh
+}
