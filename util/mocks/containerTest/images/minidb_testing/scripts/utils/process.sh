@@ -9,7 +9,7 @@
 panic () {
   if [ "$1" = "panic" ]; then
     echo "panic - processing"
-    print_fail 2 "panic - processing"
+    print_fail 3 "panic - processing"
     exit
   fi
 }

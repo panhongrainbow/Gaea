@@ -12,10 +12,11 @@ apt_update () {
   do
     apt-get update
     if [ $? -eq 0 ]; then
-      print_success 2 "apt update in $i time successfully"
+      print_success 3 "apt update in $retry_count time successfully"
       return 0
     else
-      print_fail 2 "apt update in $i time failed"
+      print_fail 3 "apt update in $retry_count time failed"
+      return 1
     fi
   done
 }
@@ -39,22 +40,36 @@ apt_install () {
     # 检查是否安装成功 check if install successfully
     result_code=$?
     retry_count=$i
-    print_detail 3 "result code: $result_code"
-    print_detail 3 "retry count: $retry_count"
+    print_process 3 "result code: $result_code"
+    print_process 3 "retry count: $retry_count"
 
     if [ $result_code -eq 0 ]; then
-      print_success 2 "apt install package in $i time(s) successfully"
+      print_success 3 "apt install package in $retry_count time(s) successfully"
       break
     else
-      print_fail 2 "apt install package in $i time(s) failed"
+      print_fail 3 "apt install package in $retry_count time(s) failed"
       if [ "$retry_count" -eq "$2" ]; then
-        break
+        return 1
       fi
     fi
   done
 
   # 印出套件列表 print list
-  print_list 5 "installed: $1"
+  print_list 3 "installed: $1"
+  return 0
+}
+
+############################################################
+# apt_purge 为完整清除 apt 套件
+# apt_purge is to purge apt packages
+#
+# parameter 1: debian package(s) (to split packages separated By blank)
+#
+apt_purge () {
+  print_xiaomi 0 "apt purge package(s)"
+  apt-get purge -y --auto-remove $1
+  print_success 3 "apt purge successfully"
+  print_list 3 "purged: $1"
   return 0
 }
 
@@ -67,6 +82,6 @@ apt_install () {
 apt_clean () {
   print_xiaomi 0 "apt clean"
   apt-get clean
-  print_success 2 "apt clean successfully"
+  print_success 3 "apt clean successfully"
   return 0
 }

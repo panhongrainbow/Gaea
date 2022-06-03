@@ -96,9 +96,9 @@ print_list () {
 
 ############################################################
 # 打印执行细节
-# print details
+# print process
 #
-print_detail () {
+print_process () {
   # 印出空白 print black
   print_blank "$1"
 

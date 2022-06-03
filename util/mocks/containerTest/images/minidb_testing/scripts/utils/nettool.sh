@@ -12,5 +12,5 @@ set_dns () {
   # if [ -f "/etc/resolv.conf" ]; then
   echo "nameserver $1" > /etc/resolv.conf
   # fi
-  print_success 2 "set dns name server $1 successfully"
+  print_success 3 "set dns name server $1 successfully"
 }

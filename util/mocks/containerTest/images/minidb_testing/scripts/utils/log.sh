@@ -11,5 +11,5 @@ set_log () {
   print_list 3 "log path: $1"
   # 全部日志重定向到文件里 redirect all log to file
   exec 1>"$1" 2>&1
-  print_success 2 "set log path successfully"
+  print_success 3 "set log path successfully"
 }
