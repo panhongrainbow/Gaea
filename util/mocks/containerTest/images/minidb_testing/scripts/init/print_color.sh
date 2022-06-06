@@ -27,10 +27,11 @@ NC='\033[0m'             # No Color (无色)
 # 印出空白
 # print blank
 #
-# parameter 1: blank count in the beginning
+# parameter 1: blank count in the beginning (integer)
 #
 print_blank () {
   # 印出空白 print black
+  # shellcheck disable=SC2034
   for i in $(seq 1 1 "$1")
   do
     printf " "
@@ -41,8 +42,8 @@ print_blank () {
 # 打印彩色标题
 # print color xiaomi title
 #
-# parameter 1: blank count in the beginning
-# parameter 2: title
+# parameter 1: blank count in the beginning (integer)
+# parameter 2: title (string)
 #
 print_xiaomi () {
   # 印出空白 print black
@@ -54,10 +55,10 @@ print_xiaomi () {
 
 ############################################################
 # 打印执行成功的彩色信息
-# print color
+# print color for success
 #
-# parameter 1: blank count in the beginning
-# parameter 2: content
+# parameter 1: blank count in the beginning (integer)
+# parameter 2: content (string)
 #
 print_success () {
   # 印出空白 print black
@@ -69,10 +70,10 @@ print_success () {
 
 ############################################################
 # 打印执行错误的彩色信息
-# print fail
+# print color for fail
 #
-# parameter 1: blank count in the beginning
-# parameter 2: content
+# parameter 1: blank count in the beginning (integer)
+# parameter 2: content (string)
 #
 print_fail () {
   # 印出空白 print black
@@ -84,7 +85,10 @@ print_fail () {
 
 ############################################################
 # 打印色彩明细
-# print list
+# print color for showing list
+#
+# parameter 1: blank count in the beginning (integer)
+# parameter 2: content (string)
 #
 print_list () {
   # 印出空白 print black
@@ -96,7 +100,10 @@ print_list () {
 
 ############################################################
 # 打印执行细节
-# print process
+# print color for showing process
+#
+# parameter 1: blank count in the beginning (integer)
+# parameter 2: content (string)
 #
 print_process () {
   # 印出空白 print black

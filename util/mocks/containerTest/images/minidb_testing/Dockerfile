@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM ubuntu:focal
 
 # 安置脚本 add scripts
 ADD ./scripts /tmp/scripts
@@ -10,4 +10,4 @@ RUN cd /tmp/scripts/; sh /tmp/scripts/install.sh; rm -rf /tmp/scripts
 EXPOSE 3306
 
 # 启动数据库 Start
-ENTRYPOINT ["/home/xiaomi/mysqld_init.sh"]
+# ENTRYPOINT ["/home/xiaomi/mysqld_init.sh"]

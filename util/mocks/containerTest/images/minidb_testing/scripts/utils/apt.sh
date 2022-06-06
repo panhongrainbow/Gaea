@@ -4,7 +4,7 @@
 # apt_update 为更新 apt repo
 # apt_update is to update apt repo
 #
-# parameter 1: retry count
+# parameter 1: retry count (integer)
 #
 apt_update () {
   print_xiaomi 0 "apt update start"
@@ -25,8 +25,8 @@ apt_update () {
 # apt_install 为安装 apt 包
 # apt_install is to install apt packages
 #
-# parameter 1: debian package(s) (to split packages separated By blank)
-# parameter 2: retry count
+# parameter 1: debian package(s) (to split packages separated By blank; string)
+# parameter 2: retry count (integer)
 #
 apt_install () {
   print_xiaomi 0 "apt install package(s)"
@@ -34,7 +34,7 @@ apt_install () {
   # 重试进行安装 install again and again if failed
   for i in $(seq 1 1 "$2")
   do
-    # $1 不加双引号不会报错
+    # $1 加双引号会报错
     apt-get install -y --no-install-recommends $1
 
     # 检查是否安装成功 check if install successfully
@@ -63,7 +63,7 @@ apt_install () {
 # apt_purge 为完整清除 apt 套件
 # apt_purge is to purge apt packages
 #
-# parameter 1: debian package(s) (to split packages separated By blank)
+# parameter 1: debian package(s) (to split packages separated By blank; string)
 #
 apt_purge () {
   print_xiaomi 0 "apt purge package(s)"
