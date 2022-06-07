@@ -4,17 +4,18 @@
 # apt_add_repo 为特定版本的数据库 repo
 # apt_add_repo is to add repo for specific database version
 #
-# parameter 1: repo key EX: https://mariadb.org/mariadb_release_signing_key.asc
-# parameter 2: repository url EX: "deb [arch=amd64,i386,arm64,ppc64el] https://mirrors.aliyun.com/mariadb/repo/10.8/debian bullseye main"
-# parameter 3: retry count
+# parameter 1: repo key (string) EX: https://mariadb.org/mariadb_release_signing_key.asc
+# parameter 2: repository url (string) EX: "deb [arch=amd64,i386,arm64,ppc64el] https://mirrors.aliyun.com/mariadb/repo/10.8/debian bullseye main"
+# parameter 3: retry count (integer) EX: 10
 #
 apt_add_repo () {
   print_xiaomi 0 "apt add repo of debian"
   for i in $(seq 1 1 "$3")
   do
-    apt-get install -y software-properties-common dirmngr apt-transport-https # 在一开始安装这些软件 add these packages at the beginning
+    # 安裝 apt-key 工具; install apt-key tool
+    apt-get install -y apt-transport-https curl # 在一开始安装这些软件 add these packages at the beginning
 
-    # 检查是否安装成功 check if install successfully
+    # 检查是否安装成功; check if install successfully
     result_code=$?
     retry_count=$i
     print_process 3 "result code: $result_code"
@@ -32,9 +33,11 @@ apt_add_repo () {
 
   for i in $(seq 1 1 "$3")
   do
-    apt-key adv --fetch-keys "$1" # 导入密钥; import key
+    # 取得秘钥; get key
+    # apt-key adv --fetch-keys "$1" # 导入密钥; import key
+    curl -o /etc/apt/trusted.gpg.d/mariadb_release_signing_key.asc "$1"
 
-    # 是否取得金钥成功 check if fetch key successfully
+    # 是否取得金钥成功; check if fetch key successfully
     result_code=$?
     retry_count=$i
     print_process 3 "result code: $result_code"
@@ -52,9 +55,11 @@ apt_add_repo () {
 
   for i in $(seq 1 1 "$3")
   do
-    add-apt-repository "$2" # 添加 repo; add repo
+    # 添加 repo; add repo
+    # add-apt-repository -y "$2" # 添加 repo; add repo
+    sh -c "echo $2 >>/etc/apt/sources.list"
 
-    # 是否新增 repo 成功 check if add repo successfully
+    # 是否新增 repo 成功; check if add repo successfully
     result_code=$?
     retry_count=$i
     print_process 3 "result code: $result_code"
@@ -62,7 +67,7 @@ apt_add_repo () {
     if [ $result_code -eq 0 ]; then
       print_success 3 "add repo in $retry_count time(s) successfully"
 
-      apt-get purge -y --auto-remove software-properties-common dirmngr apt-transport-https # 在最后移除这些软件 remove these packages at the end
+      apt-get purge -y --auto-remove curl # 在最后移除这些软件 remove these packages at the end
       if [ $result_code -eq 0 ]; then
         print_success 3 "remove software-properties-common successfully"
       fi

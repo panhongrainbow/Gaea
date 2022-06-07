@@ -139,10 +139,10 @@ $ skopeo copy docker-archive:./mariadb-testing.tar docker://docker.io/panhongrai
 $ ctr namespace create test
 
 # $ ctr -n test i pull "docker.io/library/debian:bullseye-slim"
-$ ctr -n test i pull "docker.io/library/ubuntu:latest"
+$ ctr -n test i pull "docker.io/library/ubuntu:impish"
 
 # $ ctr -n test c create docker.io/library/debian:bullseye-slim --with-ns=network:/var/run/netns/gaea-default debian
-$ ctr -n test c create docker.io/library/ubuntu:latest --with-ns=network:/var/run/netns/gaea-default debian
+$ ctr -n test c create docker.io/library/ubuntu:impish --with-ns=network:/var/run/netns/gaea-default debian
 
 $ mkdir /tmp/container
 

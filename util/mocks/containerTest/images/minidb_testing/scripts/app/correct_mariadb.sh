@@ -4,7 +4,7 @@
 # correct_mariadb_container 为修正数据库容器的脚本，使其能够在 containerd 正常运行
 # correct_mariadb_container is to correct mariadb container, make it workable in containerd normally
 #
-# parameter 1: no parameter
+# parameter 1: config file path (string)
 #
 correct_mariadb_container () {
   # 以下为对 mariadb 数据库容器修正 correct the mariadb container in the following
@@ -32,7 +32,7 @@ chmod 777 /var/run/mysqld
 
 # user.sql 为一开始执行 mysqld 服务时，所需要执行的 SQL 脚本，会创建一个用户 xiaomi，并且设置密码
 # user.sql is the SQL script to create a user xiaomi and set the password
-mariadb --user=mysql --init-file=/home/xiaomi/user.sql
+mariadbd --user=mysql --init-file=/home/xiaomi/user.sql
 EOF
 
   # 建立数据库帐户和密码 create account and password for database
@@ -43,6 +43,14 @@ CREATE USER 'xiaomi'@'%' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON *.* TO 'xiaomi'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 EOF
+
+  # 创建數據庫配置文件 create database configuration file
+  if [ ! -f "$1" ]; then # 如果文件不存在 if file not exist
+    mkdir -p "${1%/*}"
+    print_list 3 "create config file"
+    echo "[mysqld]" > "$1"
+    echo "bind-address=0.0.0.0" >> "$1"
+  fi
 
   # 让脚本可以执行 make the script executable
   print_list 3 "make mysqld init script executable"
