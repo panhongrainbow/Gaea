@@ -11,6 +11,8 @@ clean_container () {
 
   # 清除 apt 設置 remove apt settings
   print_success 3 "apt purge apt successfully"
+  apt-get autoclean
+  apt-get autoremove
   apt_purge "apt*"
   rm -rf /var/lib/apt/lists/*
 

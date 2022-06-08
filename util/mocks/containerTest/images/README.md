@@ -194,7 +194,7 @@ $ podman image save localhost/minidb:testing -o minidb-testing.tar
 
 # 上传容器镜象
 # <token> 为在 docker 网站中产生的验证 token 
-$ skopeo copy docker-archive:./minidb-testing.tar docker://docker.io/panhongrainbow/minidb:testing --dest-creds panhongrainbow:<token>
+$ skopeo --dest-compress --dest-compress-format=zstd --dest-compress-level=20 copy docker-archive:./minidb-testing.tar docker://docker.io/panhongrainbow/minidb:testing --dest-creds panhongrainbow:<token>
 ```
 
 ## 较正式的容器镜像

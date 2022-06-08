@@ -9,7 +9,7 @@
 # parameter 3: retry count (integer) EX: 10
 #
 apt_add_repo () {
-  print_xiaomi 0 "apt add repo of debian"
+  print_xiaomi 0 "apt add repo of ubuntu"
   for i in $(seq 1 1 "$3")
   do
     # 安裝 apt-key 工具; install apt-key tool
@@ -34,8 +34,8 @@ apt_add_repo () {
   for i in $(seq 1 1 "$3")
   do
     # 取得秘钥; get key
-    # apt-key adv --fetch-keys "$1" # 导入密钥; import key
-    curl -o /etc/apt/trusted.gpg.d/mariadb_release_signing_key.asc "$1"
+    # echo ""
+    curl -o "/etc/apt/trusted.gpg.d/${1##*/}" "$1"
 
     # 是否取得金钥成功; check if fetch key successfully
     result_code=$?
@@ -56,7 +56,6 @@ apt_add_repo () {
   for i in $(seq 1 1 "$3")
   do
     # 添加 repo; add repo
-    # add-apt-repository -y "$2" # 添加 repo; add repo
     sh -c "echo $2 >>/etc/apt/sources.list"
 
     # 是否新增 repo 成功; check if add repo successfully
@@ -67,7 +66,7 @@ apt_add_repo () {
     if [ $result_code -eq 0 ]; then
       print_success 3 "add repo in $retry_count time(s) successfully"
 
-      apt-get purge -y --auto-remove curl # 在最后移除这些软件 remove these packages at the end
+      apt-get purge -y --auto-remove apt-transport-https curl # 在最后移除这些软件 remove these packages at the end
       if [ $result_code -eq 0 ]; then
         print_success 3 "remove software-properties-common successfully"
       fi

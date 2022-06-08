@@ -9,5 +9,5 @@
 clean_mariadb_container () {
   # 清除數據庫不必要的檔案 remove unnecessary files
   print_xiaomi 0 "clean mariadb library"
-  # rm -rf /var/lib/mysql/*
+  rm /var/lib/mysql/*
 }

@@ -42,4 +42,4 @@ create_user "mysql"             # 创建 mysql 用户; create mysql user
 
 # >>>>> 安装完成和清除 install finished and clean container
 clean_mariadb_container         # 清除数据库容器不必要的档案; clean mariadb container unnecessary files
-# clean_container               # 清除容器不必要的档案; clean container unnecessary files
+clean_container                 # 清除容器不必要的档案; clean container unnecessary files
